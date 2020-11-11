@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
@@ -27,10 +26,11 @@ import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../extension/configurations';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
 import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
 import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -87,24 +87,24 @@ describe('FabricDebugConfigurationProvider', () => {
         let connectToGatewayStub: sinon.SinonStub;
         beforeEach(async () => {
             await FabricEnvironmentRegistry.instance().clear();
-            await TestUtil.setupLocalFabric();
+            await TestUtil.startLocalFabric();
 
             getExtensionLocalFabricSetting = mySandbox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting');
             getExtensionLocalFabricSetting.returns(true);
 
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
-            getName = mySandbox.stub(LocalEnvironment.prototype, 'getName');
+            getName = mySandbox.stub(LocalMicroEnvironment.prototype, 'getName');
             getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
-            getPeerChaincodeURL = mySandbox.stub(LocalEnvironment.prototype, 'getPeerChaincodeURL');
+            getPeerChaincodeURL = mySandbox.stub(LocalMicroEnvironment.prototype, 'getPeerChaincodeURL');
             getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
-            isRunning = mySandbox.stub(LocalEnvironment.prototype, 'isRunning');
+            isRunning = mySandbox.stub(LocalMicroEnvironment.prototype, 'isRunning');
             isRunning.resolves(true);
-            killChaincode = mySandbox.stub(LocalEnvironment.prototype, 'killChaincode');
+            killChaincode = mySandbox.stub(LocalMicroEnvironment.prototype, 'killChaincode');
             killChaincode.resolves();
-            getGateways = mySandbox.stub(LocalEnvironment.prototype, 'getGateways');
+            getGateways = mySandbox.stub(LocalMicroEnvironment.prototype, 'getGateways');
             getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
-            mySandbox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns({
+            mySandbox.stub(LocalMicroEnvironmentManager.instance(), 'getRuntime').returns({
                 getName,
                 getPeerChaincodeURL,
                 isRunning,
@@ -139,7 +139,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
             logSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub = mySandbox.stub(UserInputUtil, 'showQuickPickItem').resolves({label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment});
 
             connectToGatewayStub = mySandbox.stub(FabricDebugConfigurationProvider, 'connectToGateway');
@@ -154,7 +154,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
@@ -168,21 +168,21 @@ describe('FabricDebugConfigurationProvider', () => {
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
-        it('should show all running local environments to debug for (1 & 2 Org)', async () => {
+        it('should show all running microfab environments to debug for (1 & 2 Org)', async () => {
 
             getName.restore();
 
             isRunning.onCall(2).resolves(false);
 
-            const otherLocalEntry: FabricEnvironmentRegistryEntry = {name: 'OtherLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1};
-            const twoOrgEntry: FabricEnvironmentRegistryEntry = {name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2};
+            const otherLocalEntry: FabricEnvironmentRegistryEntry = {name: 'OtherLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1};
+            const twoOrgEntry: FabricEnvironmentRegistryEntry = {name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 2};
             await FabricEnvironmentRegistry.instance().add(otherLocalEntry);
-            await FabricEnvironmentRegistry.instance().add({name: 'stoppedLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: 'stoppedLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1});
             await FabricEnvironmentRegistry.instance().add(twoOrgEntry);
             await FabricEnvironmentRegistry.instance().add({url: 'some_website', environmentType: 3, name: 'consoleEnv'});
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            const otherLocalEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(otherLocalEntry) as LocalEnvironment;
-            const twoOrgEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(twoOrgEntry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
+            const otherLocalEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(otherLocalEntry) as LocalMicroEnvironment;
+            const twoOrgEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(twoOrgEntry) as LocalMicroEnvironment;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
@@ -203,15 +203,15 @@ describe('FabricDebugConfigurationProvider', () => {
 
             getName.restore();
 
-            const otherEntry: FabricEnvironmentRegistryEntry = {name: 'OtherLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1};
-            const twoOrgEntry: FabricEnvironmentRegistryEntry = {name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 2};
+            const otherEntry: FabricEnvironmentRegistryEntry = {name: 'OtherLocalEnv', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1};
+            const twoOrgEntry: FabricEnvironmentRegistryEntry = {name: 'twoOrgEnvironment', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 2};
 
             await FabricEnvironmentRegistry.instance().add(otherEntry);
             await FabricEnvironmentRegistry.instance().add(twoOrgEntry);
             await FabricEnvironmentRegistry.instance().add({url: 'some_website', environmentType: 3, name: 'consoleEnv'});
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
-            const otherLocalEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(otherEntry) as LocalEnvironment;
-            const twoOrgEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(twoOrgEntry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
+            const otherLocalEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(otherEntry) as LocalMicroEnvironment;
+            const twoOrgEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(twoOrgEntry) as LocalMicroEnvironment;
 
             showQuickPickItemStub.resolves();
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -239,7 +239,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await scopedDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
@@ -263,7 +263,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -283,7 +283,7 @@ describe('FabricDebugConfigurationProvider', () => {
             getConnectionStub.onFirstCall().returns(undefined);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -302,7 +302,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -338,7 +338,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -356,7 +356,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -374,7 +374,7 @@ describe('FabricDebugConfigurationProvider', () => {
             getConnectionStub.returns(undefined);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
         });
 
@@ -383,7 +383,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
@@ -397,7 +397,7 @@ describe('FabricDebugConfigurationProvider', () => {
             isRunning.onSecondCall().resolves(false);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
@@ -421,7 +421,7 @@ describe('FabricDebugConfigurationProvider', () => {
             isRunning.resolves(true);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
@@ -443,7 +443,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Failed to launch debug: ${error.message}`);
         });
@@ -461,7 +461,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
-            const localEnvironment: LocalEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalEnvironment;
+            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
             showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.calledWith('setContext', 'blockchain-debug', true);
@@ -483,7 +483,7 @@ describe('FabricDebugConfigurationProvider', () => {
         beforeEach(async () => {
             await FabricEnvironmentRegistry.instance().clear();
             await FabricGatewayRegistry.instance().clear();
-            await TestUtil.setupLocalFabric();
+            await TestUtil.startLocalFabric();
 
             getConnectionStub = mySandbox.stub(FabricGatewayConnectionManager.instance(), 'getConnection');
             getGatewayRegistryEntryStub = mySandbox.stub(FabricGatewayConnectionManager.instance(), 'getGatewayRegistryEntry');
@@ -530,12 +530,12 @@ describe('FabricDebugConfigurationProvider', () => {
         it('should return true if connected to wrong gateway, and reconnecting to correct gateway is successful', async () => {
             getConnectionStub.onCall(0).returns(fabricClientConnectionMock); // Connected to wrong gateway
             getConnectionStub.onCall(1).returns(fabricClientConnectionMock);
-            getGatewayRegistryEntryStub.resolves({name: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org2`} as FabricGatewayRegistryEntry); // Wrong gateways registry
+            getGatewayRegistryEntryStub.resolves({name: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org2 Gateway`} as FabricGatewayRegistryEntry); // Wrong gateways registry
 
             FabricDebugConfigurationProvider.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
             FabricDebugConfigurationProvider.orgName = 'Org1';
 
-            const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName}`);
+            const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName} Gateway`);
             should.exist(localGateway);
 
             const connected: boolean = await FabricDebugConfigurationProvider.connectToGateway();
@@ -550,12 +550,12 @@ describe('FabricDebugConfigurationProvider', () => {
         it('should return false if connected to wrong gateway, and reconnecting to correct gateway is unsuccessful', async () => {
             getConnectionStub.onCall(0).returns(fabricClientConnectionMock); // Connected to wrong gateway
             getConnectionStub.onCall(1).returns(undefined);
-            getGatewayRegistryEntryStub.resolves({name: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org2`} as FabricGatewayRegistryEntry); // Wrong gateways registry
+            getGatewayRegistryEntryStub.resolves({name: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org2 Gateway`} as FabricGatewayRegistryEntry); // Wrong gateways registry
 
             FabricDebugConfigurationProvider.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
             FabricDebugConfigurationProvider.orgName = 'Org1';
 
-            const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName}`);
+            const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName} Gateway`);
             should.exist(localGateway);
 
             const connected: boolean = await FabricDebugConfigurationProvider.connectToGateway();
@@ -568,7 +568,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should return true if connected to correct gateway', async () => {
-            const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName}`);
+            const localGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName} Gateway`);
             should.exist(localGateway);
 
             getConnectionStub.onCall(0).returns(fabricClientConnectionMock);
@@ -633,7 +633,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should get contract if already connected to another environment with different name', async () => {
 
-            getEnvironmentRegistryStub.returns({name: 'otherEnvironment', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1} as FabricEnvironmentRegistryEntry);
+            getEnvironmentRegistryStub.returns({name: 'otherEnvironment', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1} as FabricEnvironmentRegistryEntry);
 
             const fabricEnvironmentRegistryGetSpy: sinon.SinonSpy = mySandbox.spy(FabricEnvironmentRegistry.instance(), 'get');
 

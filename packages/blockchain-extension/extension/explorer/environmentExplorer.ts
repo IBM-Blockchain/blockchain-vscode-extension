@@ -37,13 +37,16 @@ import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/Environ
 import { TextTreeItem } from './model/TextTreeItem';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { EditFiltersTreeItem } from './runtimeOps/connectedTree/EditFiltersTreeItem';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
-import { ManagedAnsibleEnvironmentManager } from '../fabric/environments/ManagedAnsibleEnvironmentManager';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
 import { CommittedContractTreeItem } from './runtimeOps/connectedTree/CommittedSmartContractTreeItem';
 import { DeployTreeItem } from './runtimeOps/connectedTree/DeployTreeItem';
 import { EnvironmentGroupTreeItem } from './runtimeOps/EnvironmentGroupTreeItem';
+<<<<<<< HEAD
+=======
+import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
+import { SettingConfigurations } from '../configurations';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
+>>>>>>> b2d920c0... Microfab (#2704)
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -208,7 +211,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const otherEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
         for (const environment of environmentEntries) {
             if (environmentGroups.length === 0) {
-                if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                if (environment.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                     environmentGroups.push([environment]);
                 } else if (environment.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environment.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                     cloudEnvironments.push(environment);
@@ -262,7 +265,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         } else {
             for (const group of environmentGroups) {
                 let groupName: string = '';
-                if (group[0].environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                if (group[0].environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                     groupName = 'Simple local networks';
                 } else if (group[0].environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || group[0].environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                     groupName = 'IBM Blockchain Platform on cloud';
@@ -331,14 +334,43 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                     if (isRunning) {
                         treeItem.contextValue = 'blockchain-runtime-item-running';
                     }
+<<<<<<< HEAD
 
                     if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+=======
+                }
+                for (const environment of environments) {
+                    if (environment.managedRuntime) {
+                        const runtime: LocalMicroEnvironment = await LocalMicroEnvironmentManager.instance().ensureRuntime(environment.name, undefined, environment.numberOfOrgs);
+
+                        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                            runtime.getName(),
+                            environment,
+                            {
+                                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                                title: '',
+                                arguments: [environment]
+                            },
+                            runtime
+                        );
+
+                        const isRunning: boolean = await runtime.isRunning();
+                        if (isRunning) {
+                            treeItem.contextValue = 'blockchain-runtime-item-running';
+                        }
+
+>>>>>>> b2d920c0... Microfab (#2704)
                         treeItem.iconPath = {
                             light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'laptop.svg'),
                             dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'laptop.svg')
                         };
+<<<<<<< HEAD
                     }
                     tree.push(treeItem);
+=======
+
+                        tree.push(treeItem);
+>>>>>>> b2d920c0... Microfab (#2704)
 
                 } else {
                     const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,

@@ -21,10 +21,14 @@ import * as sinon from 'sinon';
 import * as path from 'path';
 import { SettingConfigurations } from '../extension/configurations';
 import { SinonSandbox, SinonStub } from 'sinon';
-import { FabricRuntimeUtil, FileConfigurations, FabricEnvironmentRegistryEntry } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FileConfigurations, FabricEnvironmentRegistryEntry, FabricWalletRegistry, FabricGatewayRegistry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { GlobalState, ExtensionData } from '../extension/util/GlobalState';
 import { UserInputUtil } from '../extension/commands/UserInputUtil';
-import { LocalEnvironment } from '../extension/fabric/environments/LocalEnvironment';
+import { LocalMicroEnvironment } from '../extension/fabric/environments/LocalMicroEnvironment';
+import { EnvironmentFactory } from '../extension/fabric/environments/EnvironmentFactory';
+import { LocalMicroEnvironmentManager } from '../extension/fabric/environments/LocalMicroEnvironmentManager';
+import { RepositoryRegistry } from '../extension/registries/RepositoryRegistry';
+import { TimerUtil } from '../extension/util/TimerUtil';
 
 export class TestUtil {
 
@@ -52,7 +56,7 @@ export class TestUtil {
             showConfirmationWarningMessage = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`).resolves(true);
 
-            createStub = sandbox.stub(LocalEnvironment.prototype, 'create').resolves();
+            createStub = sandbox.stub(LocalMicroEnvironment.prototype, 'create').resolves();
 
             await this.setupLocalFabric();
 
@@ -61,6 +65,14 @@ export class TestUtil {
             createStub.restore();
 
             showConfirmationWarningMessage.restore();
+
+        } else {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.EXTENSION_TEST_DIR, vscode.ConfigurationTarget.Global);
+            const _path: string = path.join(this.EXTENSION_TEST_DIR, 'v2');
+            FabricWalletRegistry.instance().setRegistryPath(_path);
+            FabricGatewayRegistry.instance().setRegistryPath(_path);
+            FabricEnvironmentRegistry.instance().setRegistryPath(_path);
+            RepositoryRegistry.instance().setRegistryPath(_path);
         }
     }
 
@@ -78,6 +90,34 @@ export class TestUtil {
         const envReg: FabricEnvironmentRegistryEntry = await fs.readJSON(path.join(environmentDir, '.config.json'));
         envReg.environmentDirectory = environmentDir;
         await fs.writeJSON(path.join(environmentDir, '.config.json'), envReg);
+
+    }
+
+    static async startLocalFabric(): Promise<void> {
+        await this.setupLocalFabric();
+        const settings: any = {};
+        settings[FabricRuntimeUtil.LOCAL_FABRIC] = 8080;
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, settings, vscode.ConfigurationTarget.Global);
+
+        FabricWalletRegistry.instance().setRegistryPath(path.join(this.EXTENSION_TEST_DIR, 'v2'));
+        FabricGatewayRegistry.instance().setRegistryPath(path.join(this.EXTENSION_TEST_DIR, 'v2'));
+        FabricEnvironmentRegistry.instance().setRegistryPath(path.join(this.EXTENSION_TEST_DIR, 'v2'));
+        RepositoryRegistry.instance().setRegistryPath(path.join(this.EXTENSION_TEST_DIR, 'v2'));
+
+        const environmentDir: string = path.join(this.EXTENSION_TEST_DIR, 'v2', FileConfigurations.FABRIC_ENVIRONMENTS, FabricRuntimeUtil.LOCAL_FABRIC);
+        const envReg: FabricEnvironmentRegistryEntry = await fs.readJSON(path.join(environmentDir, '.config.json'));
+
+        const microManager: LocalMicroEnvironmentManager = LocalMicroEnvironmentManager.instance();
+        microManager.removeRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
+        await microManager.addRuntime(FabricRuntimeUtil.LOCAL_FABRIC, 8080, envReg.numberOfOrgs);
+        const environment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(envReg) as LocalMicroEnvironment;
+        const isRunning: boolean = await environment.isRunning();
+        if (!isRunning) {
+            await environment.start();
+            await TimerUtil.sleep(5000);
+        }
+
+        await environment.waitFor();
 
     }
 

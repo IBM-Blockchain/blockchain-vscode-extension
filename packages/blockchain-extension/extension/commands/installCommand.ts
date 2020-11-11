@@ -48,7 +48,7 @@ export async function installSmartContract(orgMap?: Map<string, string[]>, chose
     }, async (progress: vscode.Progress<{ message: string }>) => {
 
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-        if (environmentRegistryEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+        if (environmentRegistryEntry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
             VSCodeBlockchainDockerOutputAdapter.instance(environmentRegistryEntry.name).show();
         }
 

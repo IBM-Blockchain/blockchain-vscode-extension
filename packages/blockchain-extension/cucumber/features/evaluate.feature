@@ -6,8 +6,13 @@ Feature: Evaluate transaction
     And the 1 Org Local Fabric environment is running
     And the 'Local Fabric Admin' identity
     And the '1 Org Local Fabric' environment is connected
+<<<<<<< HEAD
     And I'm connected to the '1 Org Local Fabric - Org1' gateway
     And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+=======
+    And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+>>>>>>> b2d920c0... Microfab (#2704)
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'
@@ -27,8 +32,13 @@ Feature: Evaluate transaction
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
+<<<<<<< HEAD
     And I'm connected to the '1 Org Local Fabric - Org1' gateway
     And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+=======
+    And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+>>>>>>> b2d920c0... Microfab (#2704)
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'

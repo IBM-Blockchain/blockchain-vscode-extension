@@ -5,11 +5,11 @@ Feature: Fabric Gateways
     Given the 1 Org Local Fabric environment is running
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
-    When connecting to the '1 Org Local Fabric - Org1' gateway
-    Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1' in the 'Fabric Gateways' panel
-    And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1'
-    And there should be a tree item with a label 'Using ID: org1Admin' in the 'Fabric Gateways' panel
-    And the tree item should have a tooltip equal to 'Using ID: org1Admin'
+    When connecting to the '1 Org Local Fabric - Org1 Gateway' gateway
+    Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1 Gateway' in the 'Fabric Gateways' panel
+    And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1 Gateway'
+    And there should be a tree item with a label 'Using ID: Org1 Admin' in the 'Fabric Gateways' panel
+    And the tree item should have a tooltip equal to 'Using ID: Org1 Admin'
     And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
     And the tree item should have a tooltip equal to 'Channels'
 
@@ -18,9 +18,9 @@ Feature: Fabric Gateways
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the identity 'new_identity' exists
-    When connecting to the '1 Org Local Fabric - Org1' gateway
-    Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1' in the 'Fabric Gateways' panel
-    And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1'
+    When connecting to the '1 Org Local Fabric - Org1 Gateway' gateway
+    Then there should be a tree item with a label 'Connected via gateway: 1 Org Local Fabric - Org1 Gateway' in the 'Fabric Gateways' panel
+    And the tree item should have a tooltip equal to 'Connected via gateway: 1 Org Local Fabric - Org1 Gateway'
     And there should be a tree item with a label 'Using ID: new_identity' in the 'Fabric Gateways' panel
     And the tree item should have a tooltip equal to 'Using ID: new_identity'
 
@@ -29,7 +29,7 @@ Feature: Fabric Gateways
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the identity 'new_identity' exists
-    And the gateway '1 Org Local Fabric - Org1' is created
+    And the gateway '1 Org Local Fabric - Org1 Gateway' is created
     When I export the connection profile
     Then a connection profile exists
 
@@ -94,8 +94,13 @@ Feature: Fabric Gateways
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
+<<<<<<< HEAD
     And I'm connected to the '1 Org Local Fabric - Org1' gateway
     And a <contractLanguage> smart contract using Fabric v2 for <assetType> assets with the name <contractName> and version <version>
+=======
+    And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
+    And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
+>>>>>>> b2d920c0... Microfab (#2704)
     And the contract has been created
     And the contract has been packaged
     And the contract has been deployed on channel 'mychannel'

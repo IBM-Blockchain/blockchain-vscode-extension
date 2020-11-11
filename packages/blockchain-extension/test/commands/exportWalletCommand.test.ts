@@ -186,9 +186,9 @@ describe('exportWalletCommand', () => {
     });
 
     it('should be able to export local wallet', async () => {
-
-        await TestUtil.setupLocalFabric();
-
+        fsCopyStub.restore();
+        await TestUtil.startLocalFabric();
+        fsCopyStub = mySandBox.stub(fs, 'copy').resolves();
         const localWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
 
         showWalletsQuickPickBoxStub.resolves({
@@ -197,6 +197,7 @@ describe('exportWalletCommand', () => {
 
         });
 
+        fsEnsureDirStub.resetHistory();
         fsCopyStub.resetHistory();
         logSpy.resetHistory();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_WALLET);

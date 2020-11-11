@@ -44,13 +44,13 @@ describe('AdminIdentityTreeItem', () => {
 
         it('should create tree item', () => {
             treeItem = new TestAdminIdentityTreeItem('admin', 'myWallet', undefined, {} as FabricWalletRegistryEntry);
-            treeItem.label.should.equal('admin ⭑');
+            treeItem.label.should.equal('admin');
             treeItem.tooltip.should.equal(`Attributes:\n\nNone`);
         });
 
         it('should create tree item and set tooltip if there are attributes', () => {
             treeItem = new TestAdminIdentityTreeItem('admin', 'myWallet', {attr1: 'hello', attr2: 'world'}, {} as FabricWalletRegistryEntry);
-            treeItem.label.should.equal('admin ⭑');
+            treeItem.label.should.equal('admin');
             treeItem.tooltip.should.deep.equal(`Attributes:\n\nattr1:hello\nattr2:world`);
         });
 

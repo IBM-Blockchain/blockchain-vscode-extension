@@ -30,7 +30,8 @@ import {
     FabricEnvironmentRegistry,
     FabricEnvironmentRegistryEntry,
     EnvironmentType,
-    FabricWalletGeneratorFactory
+    FabricWalletGeneratorFactory,
+    FabricWalletRegistryEntry
 } from 'ibm-blockchain-platform-common';
 import { FabricWallet, FabricWalletGenerator } from 'ibm-blockchain-platform-wallet';
 import { LifecyclePeer, LifecycleChannel } from 'ibm-blockchain-platform-fabric-admin';
@@ -54,8 +55,10 @@ describe('FabricEnvironmentConnection', () => {
     let nodes: FabricNode[];
     let localWallet: FabricWallet;
     let getUserContextStub: sinon.SinonStub;
+    let envPath: string;
 
     before(async () => {
+        envPath = path.join(__dirname, '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC);
         FabricWalletGeneratorFactory.setFabricWalletGenerator(FabricWalletGenerator.instance());
         FabricWalletRegistry.instance().setRegistryPath(path.join(__dirname, 'tmp', 'registries'));
         FabricEnvironmentRegistry.instance().setRegistryPath(path.join(__dirname, 'tmp', 'registries'));
@@ -63,46 +66,48 @@ describe('FabricEnvironmentConnection', () => {
         await FabricEnvironmentRegistry.instance().clear();
         await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({
             name: FabricRuntimeUtil.LOCAL_FABRIC,
-            environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC),
-            environmentType: EnvironmentType.LOCAL_ENVIRONMENT
+            environmentDirectory: envPath, // ???
+            environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
+            numberOfOrgs: 1,
+            url: 'http://console.127-0-0-1.nip.io:8080'
         }));
+
     });
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-
         nodes = [
             FabricNode.newPeer(
-                'peer0.org1.example.com',
-                'peer0.org1.example.com',
-                `grpc://localhost:7051`,
+                'org1peer1',
+                'Org1 Peer1',
+                `grpc://org1peer1-api.127-0-0-1.nip.io:8080`,
                 `Org1`,
-                FabricRuntimeUtil.ADMIN_USER,
+                'Org1 Admin',
                 'Org1MSP'
             ),
             FabricNode.newPeer(
-                'peer1.org1.example.com',
-                'peer1.org1.example.com',
-                `grpc://localhost:7051`,
+                'org1peer2',
+                'Org1 Peer2',
+                `grpc://org1peer2-api.127-0-0-1.nip.io:8080`,
                 `Org1`,
-                FabricRuntimeUtil.ADMIN_USER,
+                'Org1 Admin',
                 'Org1MSP'
             ),
             FabricNode.newPeer(
-                'peer2.org1.example.com',
-                'peer2.org1.example.com',
-                `grpc://localhost:7051`,
+                'org1peer3',
+                'Org1 Peer3',
+                `grpc://org1peer3-api.127-0-0-1.nip.io:8080`,
                 `Org1`,
-                FabricRuntimeUtil.ADMIN_USER,
+                'Org1 Admin',
                 'Org1MSP'
             ),
             FabricNode.newSecurePeer(
-                'peer0.org2.example.com',
-                'peer0.org2.example.com',
-                `grpcs://localhost:8051`,
+                'org2peer1',
+                'Org2 Peer1',
+                `grpcs://org2peer1-api.127-0-0-1.nip.io:8080`,
                 TLS_CA_CERTIFICATE,
-                `Org1`,
-                FabricRuntimeUtil.ADMIN_USER,
+                `Org2`,
+                'Org2 Admin',
                 'Org2MSP'
             ),
             FabricNode.newSecurePeer(
@@ -115,27 +120,27 @@ describe('FabricEnvironmentConnection', () => {
                 'Org3MSP'
             ),
             FabricNode.newCertificateAuthority(
-                'ca.example.com',
-                'ca.example.com',
-                `http://localhost:7054`,
+                'org1ca',
+                'Org1 CA',
+                `http://org1ca-api.127-0-0-1.nip.io:8080`,
                 'ca_name',
                 'Org1',
-                FabricRuntimeUtil.ADMIN_USER,
+                'Org1 CA Admin',
                 'Org1MSP',
-                'admin',
-                'adminpw'
+                null,
+                null
             ),
             FabricNode.newSecureCertificateAuthority(
-                'ca2.example.com',
-                'ca2.example.com',
-                `https://localhost:8054`,
+                'org2ca',
+                'Org2 CA',
+                `http://org2ca-api.127-0-0-1.nip.io:8080`,
                 'ca_name',
                 TLS_CA_CERTIFICATE,
-                'Org1',
-                FabricRuntimeUtil.ADMIN_USER,
+                'Org2',
+                'Org2 CA Admin',
                 'Org2MSP',
-                'admin',
-                'adminpw'
+                null,
+                null
             ),
             FabricNode.newSecureCertificateAuthority(
                 'ca3.example.com',
@@ -150,15 +155,15 @@ describe('FabricEnvironmentConnection', () => {
                 'adminpw'
             ),
             FabricNode.newCertificateAuthority(
-                'ca3.example.com',
-                'ca3.example.com',
-                `http://localhost:9054`,
+                'org3ca',
+                'Org3 CA',
+                `http://org3ca-api.127-0-0-1.nip.io:8080`,
                 null,
-                'Org1',
-                FabricRuntimeUtil.ADMIN_USER,
+                'Org3',
+                'Org3 CA Admin',
                 null,
-                'admin',
-                'adminpw'
+                null,
+                null
             ),
             FabricNode.newOrderer(
                 'orderer.example.com',
@@ -186,6 +191,34 @@ describe('FabricEnvironmentConnection', () => {
             )
         ];
 
+        const getWalletRegistry: sinon.SinonStub = mySandBox.stub(FabricWalletRegistry.instance(), 'get');
+        getWalletRegistry.callThrough();
+
+        getWalletRegistry.withArgs('Org1', FabricRuntimeUtil.LOCAL_FABRIC).resolves({
+            name: 'Org1',
+            displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1`,
+            walletPath: path.join(envPath, 'wallets', 'Org1'),
+            managedWallet: true,
+            fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC,
+            environmentGroups: [FabricRuntimeUtil.LOCAL_FABRIC]
+        } as FabricWalletRegistryEntry);
+        getWalletRegistry.withArgs('Org2', FabricRuntimeUtil.LOCAL_FABRIC).resolves({
+            name: 'Org2',
+            displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org2`,
+            walletPath: path.join(envPath, 'wallets', 'Org2'),
+            managedWallet: true,
+            fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC,
+            environmentGroups: [FabricRuntimeUtil.LOCAL_FABRIC]
+        } as FabricWalletRegistryEntry);
+        getWalletRegistry.withArgs('Org3', FabricRuntimeUtil.LOCAL_FABRIC).resolves({
+            name: 'Org3',
+            displayName: `${FabricRuntimeUtil.LOCAL_FABRIC} - Org3`,
+            walletPath: path.join(envPath, 'wallets', 'Org3'),
+            managedWallet: true,
+            fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC,
+            environmentGroups: [FabricRuntimeUtil.LOCAL_FABRIC]
+        } as FabricWalletRegistryEntry);
+
         const mockFabricWalletGenerator: sinon.SinonStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
         localWallet = await FabricWallet.newFabricWallet('tmp/myWallet');
 
@@ -202,6 +235,10 @@ describe('FabricEnvironmentConnection', () => {
             private_key: 'myKey',
             msp_id: 'myMSPID',
             name: 'myWallet'
+        });
+
+        mySandBox.stub(localWallet.getWallet(), 'get').resolves({
+            type: 'admin'
         });
 
         mockFabricWalletGenerator.resolves(localWallet);
@@ -227,21 +264,25 @@ describe('FabricEnvironmentConnection', () => {
             const peerNames: string[] = Array.from(connection['lifecycle']['peers'].keys());
             const peerValues: LifecyclePeer[] = Array.from(connection['lifecycle']['peers'].values());
 
+<<<<<<< HEAD
             peerNames.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com']);
+=======
+            peerNames.should.deep.equal(['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3', 'Org2 Peer1']);
+>>>>>>> b2d920c0... Microfab (#2704)
 
             peerValues.should.have.lengthOf(5);
             peerValues[0].should.be.an.instanceOf(LifecyclePeer);
-            peerValues[0]['url'].should.equal('grpc://localhost:7051');
-            peerValues[0]['name'].should.equal('peer0.org1.example.com');
+            peerValues[0]['url'].should.equal('grpc://org1peer1-api.127-0-0-1.nip.io:8080');
+            peerValues[0]['name'].should.equal('Org1 Peer1');
         });
 
         it('should create peer clients for each peer node with API options', async () => {
             const node: FabricNode = FabricNode.newPeer(
-                'org1peer',
-                'Org1 Peer',
-                `grpc://localhost:8080`,
+                'org1peer1',
+                'Org1 Peer1',
+                `grpc://org1peer1-api.127-0-0-1.nip.io:8080`,
                 'Org1',
-                FabricRuntimeUtil.ADMIN_USER,
+                'Org1 Admin',
                 'Org1MSP'
             );
             node.api_options = {
@@ -253,11 +294,11 @@ describe('FabricEnvironmentConnection', () => {
             const peerNames: string[] = Array.from(connection['lifecycle']['peers'].keys());
             const peerValues: LifecyclePeer[] = Array.from(connection['lifecycle']['peers'].values());
 
-            peerNames.should.deep.equal(['Org1 Peer']);
+            peerNames.should.deep.equal(['Org1 Peer1']);
             peerValues.should.have.lengthOf(1);
             peerValues[0].should.be.an.instanceOf(LifecyclePeer);
-            peerValues[0]['url'].should.equal('grpc://localhost:8080');
-            peerValues[0]['name'].should.equal('Org1 Peer');
+            peerValues[0]['url'].should.equal('grpc://org1peer1-api.127-0-0-1.nip.io:8080');
+            peerValues[0]['name'].should.equal('Org1 Peer1');
             peerValues[0]['apiOptions'].should.deep.equal({
                 'grpc.some_option': 'some_value'
             });
@@ -355,33 +396,33 @@ describe('FabricEnvironmentConnection', () => {
         it('should create certificate authority clients for each certificate authority node', async () => {
             const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
-            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
+            certificateAuthorityNames.should.deep.equal(['Org1 CA', 'Org2 CA', 'Org3 CA']);
             certificateAuthorityValues.should.have.lengthOf(3);
             certificateAuthorityValues[0].should.be.an.instanceOf(FabricCAServices);
-            certificateAuthorityValues[0].toString().should.match(/hostname: localhost/);
-            certificateAuthorityValues[0].toString().should.match(/port: 7054/);
+            certificateAuthorityValues[0].toString().should.match(/hostname: org1ca-api.127-0-0-1.nip.io/);
+            certificateAuthorityValues[0].toString().should.match(/port: 8080/);
             certificateAuthorityValues[0].getCaName().should.equal('ca_name');
         });
 
         it('should create secure certificate authority clients for each secure certificate authority node', async () => {
             const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
-            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
+            certificateAuthorityNames.should.deep.equal(['Org1 CA', 'Org2 CA', 'Org3 CA']);
             certificateAuthorityValues.should.have.lengthOf(3);
             certificateAuthorityValues[1].should.be.an.instanceOf(FabricCAServices);
-            certificateAuthorityValues[1].toString().should.match(/hostname: localhost/);
-            certificateAuthorityValues[1].toString().should.match(/port: 8054/);
+            certificateAuthorityValues[1].toString().should.match(/hostname: org2ca-api.127-0-0-1.nip.io/);
+            certificateAuthorityValues[1].toString().should.match(/port: 8080/);
             certificateAuthorityValues[1].getCaName().should.equal('ca_name');
         });
 
         it('should create certificate authority clients and use null ca_name if not set', async () => {
             const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
-            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
+            certificateAuthorityNames.should.deep.equal(['Org1 CA', 'Org2 CA', 'Org3 CA']);
             certificateAuthorityValues.should.have.lengthOf(3);
             certificateAuthorityValues[2].should.be.an.instanceOf(FabricCAServices);
-            certificateAuthorityValues[2].toString().should.match(/hostname: localhost/);
-            certificateAuthorityValues[2].toString().should.match(/port: 9054/);
+            certificateAuthorityValues[2].toString().should.match(/hostname: org3ca-api.127-0-0-1.nip.io/);
+            certificateAuthorityValues[2].toString().should.match(/port: 8080/);
             should.not.exist(certificateAuthorityValues[2].getCaName());
         });
 
@@ -412,28 +453,44 @@ describe('FabricEnvironmentConnection', () => {
             const endorser2: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
             const endorser3: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
             const endorser4: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
+<<<<<<< HEAD
             const endorser5: sinon.SinonStubbedInstance<Endorser> = mySandBox.createStubInstance(Endorser);
             (endorser1 as any)['name'] = 'peer0.org1.example.com';
             (endorser2 as any)['name'] = 'peer1.org1.example.com';
             (endorser3 as any)['name'] = 'peer0.org2.example.com';
             (endorser4 as any)['name'] = 'peer1.org2.example.com';
             (endorser5 as any)['name'] = 'peer0.org3.example.com';
+=======
+            (endorser1 as any)['name'] = 'Org1 Peer1';
+            (endorser2 as any)['name'] = 'Org1 Peer2';
+            (endorser3 as any)['name'] = 'Org1 Peer3';
+            (endorser4 as any)['name'] = 'Org2 Peer1';
+>>>>>>> b2d920c0... Microfab (#2704)
 
             (endorser1 as any)['mspid'] = 'Org1MSP';
             (endorser2 as any)['mspid'] = 'Org1MSP';
-            (endorser3 as any)['mspid'] = 'Org2MSP';
+            (endorser3 as any)['mspid'] = 'Org1MSP';
             (endorser4 as any)['mspid'] = 'Org2MSP';
             (endorser5 as any)['mspid'] = 'Org3MSP';
 
             const orgMap: Map<string, string[]> = new Map();
+<<<<<<< HEAD
             orgMap.set('Org1MSP', ['peer0.org1.example.com', 'peer1.org1.example.com']);
             orgMap.set('Org2MSP', ['peer0.org2.example.com', 'peer1.org2.example.com']);
             orgMap.set('Org3MSP', ['peer0.org3.example.com']);
+=======
+            orgMap.set('Org1MSP', ['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3']);
+            orgMap.set('Org2MSP', ['Org2 Peer1']);
+>>>>>>> b2d920c0... Microfab (#2704)
 
             const getDiscoveredPeersStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeers').resolves([endorser1, endorser2, endorser3, endorser4, endorser5]);
             const result: Map<string, string[]> = await connection.getDiscoveredOrgs('mychannel');
             result.should.deep.equal(orgMap);
+<<<<<<< HEAD
             getDiscoveredPeersStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+=======
+            getDiscoveredPeersStub.should.have.been.calledOnceWithExactly(['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3', 'Org2 Peer1']);
+>>>>>>> b2d920c0... Microfab (#2704)
         });
 
         it('should throw an error if no peers are found for discovery', async () => {
@@ -444,10 +501,17 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getAllDiscoveredPeerNames', () => {
         it('should get the names of all discovered peers', async () => {
+<<<<<<< HEAD
             const getDiscoveredPeerNamesStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeerNames').resolves(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com']);
             const result: string[] = await connection.getAllDiscoveredPeerNames('mychannel');
             result.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com']);
             getDiscoveredPeerNamesStub.should.have.been.calledOnceWithExactly(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+=======
+            const getDiscoveredPeerNamesStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getDiscoveredPeerNames').resolves(['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3', 'Org2 Peer1']);
+            const result: string[] = await connection.getAllDiscoveredPeerNames('mychannel');
+            result.should.deep.equal(['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3', 'Org2 Peer1']);
+            getDiscoveredPeerNamesStub.should.have.been.calledOnceWithExactly(['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3', 'Org2 Peer1']);
+>>>>>>> b2d920c0... Microfab (#2704)
         });
 
         it('should throw an error if no peers are found for discovery', async () => {
@@ -459,13 +523,17 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getAllPeerNames', () => {
         it('should get all of the peer names', () => {
+<<<<<<< HEAD
             connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer0.org3.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+=======
+            connection.getAllPeerNames().should.deep.equal(['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3', 'Org2 Peer1']);
+>>>>>>> b2d920c0... Microfab (#2704)
         });
     });
 
     describe('getAllPeerNamesForOrg', () => {
         it('should get all of the peer names for an org', () => {
-            connection.getAllPeerNamesForOrg('Org1MSP').should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
+            connection.getAllPeerNamesForOrg('Org1MSP').should.deep.equal(['Org1 Peer1', 'Org1 Peer2', 'Org1 Peer3']);
         });
     });
 
@@ -481,8 +549,8 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer2.getAllChannelNames.resolves(['channel2']);
 
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer1);
-            connection['lifecycle']['peers'].set('peer0.org2.example.com', mockPeer2);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1);
+            connection['lifecycle']['peers'].set('Org2 Peer1', mockPeer2);
 
             mockPeer1.getChannelCapabilities.resolves(['V2_0']);
             mockPeer2.getChannelCapabilities.resolves(['V2_0']);
@@ -494,8 +562,8 @@ describe('FabricEnvironmentConnection', () => {
             channelMap.should.deep.equal(
                 new Map<string, Array<string>>(
                     [
-                        ['channel1', ['peer0.org1.example.com']],
-                        ['channel2', ['peer0.org1.example.com', 'peer0.org2.example.com']]
+                        ['channel1', ['Org1 Peer1']],
+                        ['channel2', ['Org1 Peer1', 'Org2 Peer1']]
                     ]
                 )
             );
@@ -504,6 +572,27 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer2.getChannelCapabilities.should.have.been.calledOnce;
         });
 
+<<<<<<< HEAD
+=======
+        it('should get only the V2 channel names, with the list of peers', async () => {
+            mockPeer1.getChannelCapabilities.onFirstCall().resolves(['V1_4_3']);            // peer 1 channel 1
+            mockPeer1.getChannelCapabilities.onSecondCall().resolves(['V1_4_3', 'V2_0']);   // peer 1 channel 2
+            mockPeer2.getChannelCapabilities.resolves(['V2_0']);                            // peer 2 channel 2
+            const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+            const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
+            channelMap.should.deep.equal(
+                new Map<string, Array<string>>(
+                    [
+                        ['channel2', ['Org1 Peer1', 'Org2 Peer1']]
+                    ]
+                )
+            );
+
+            mockPeer1.getChannelCapabilities.should.have.been.calledTwice;
+            mockPeer2.getChannelCapabilities.should.have.been.calledOnce;
+        });
+
+>>>>>>> b2d920c0... Microfab (#2704)
         it('should throw a specific error if gRPC returns an HTTP 503 status code', async () => {
             mockPeer1.getAllChannelNames.rejects(new Error('Received http2 header with status: 503'));
             await connection.createChannelMap()
@@ -576,6 +665,7 @@ describe('FabricEnvironmentConnection', () => {
 
         });
 
+<<<<<<< HEAD
         it('should return the list of committed smart contracts on v1 channel', async () => {
             const chaincodes: Array<FabricSmartContractDefinition> = await connection.getCommittedSmartContractDefinitions(['peer0.org3.example.com'], 'mychannel');
             chaincodes.should.deep.equal([
@@ -604,6 +694,10 @@ describe('FabricEnvironmentConnection', () => {
 
         it('should return the list of committed smart contracts on v2 channel', async () => {
             const chaincodes: Array<FabricSmartContractDefinition> = await connection.getCommittedSmartContractDefinitions(['peer0.org1.example.com'], 'mychannel');
+=======
+        it('should return the list of committed smart contracts', async () => {
+            const chaincodes: Array<FabricSmartContractDefinition> = await connection.getCommittedSmartContractDefinitions(['Org1 Peer1'], 'mychannel');
+>>>>>>> b2d920c0... Microfab (#2704)
             chaincodes.should.deep.equal([
                 {
                     name: 'myChaincode',
@@ -649,9 +743,14 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer3.getChannelCapabilities.resolves(['V1_4']);
 
             connection['lifecycle']['peers'].clear();
+<<<<<<< HEAD
             connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['lifecycle']['peers'].set('peer0.org2.example.com', mockPeer2);
             connection['lifecycle']['peers'].set('peer0.org3.example.com', mockPeer3);
+=======
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1);
+            connection['lifecycle']['peers'].set('Org2 Peer1', mockPeer2);
+>>>>>>> b2d920c0... Microfab (#2704)
 
             getAllCommittedSmartContractsStub = mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts');
             getAllCommittedSmartContractsStub.onFirstCall().resolves([
@@ -759,7 +858,7 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getAllCertificateAuthorityNames', () => {
         it('should get all of the certificate authority names', () => {
-            connection.getAllCertificateAuthorityNames().should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
+            connection.getAllCertificateAuthorityNames().should.deep.equal(['Org1 CA', 'Org2 CA', 'Org3 CA']);
         });
     });
 
@@ -770,7 +869,7 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer = mySandBox.createStubInstance(LifecyclePeer);
 
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer);
 
             mockPeer.getAllInstalledSmartContractsV1.resolves([
                 {
@@ -795,6 +894,7 @@ describe('FabricEnvironmentConnection', () => {
             ]);
         });
 
+<<<<<<< HEAD
         it('should get the v1 installed smart contracts', async () => {
             const installedSmartContracts: Array<FabricInstalledSmartContract> = await connection.getInstalledSmartContracts('peer0.org1.example.com', true);
             installedSmartContracts.length.should.equal(2);
@@ -810,6 +910,10 @@ describe('FabricEnvironmentConnection', () => {
 
         it('should get the v2 installed smart contracts', async () => {
             const installedSmartContracts: Array<FabricInstalledSmartContract> = await connection.getInstalledSmartContracts('peer0.org1.example.com');
+=======
+        it('should get the install smart contracts', async () => {
+            const installedSmartContracts: Array<FabricInstalledSmartContract> = await connection.getInstalledSmartContracts('Org1 Peer1');
+>>>>>>> b2d920c0... Microfab (#2704)
             installedSmartContracts.length.should.equal(2);
             installedSmartContracts[0].should.deep.equal({
                 label: 'biscuit-network',
@@ -823,18 +927,18 @@ describe('FabricEnvironmentConnection', () => {
 
         it('should handle and swallow an access denied error', async () => {
             mockPeer.getAllInstalledSmartContracts.rejects(new Error('wow u cannot see cc cos access denied as u is not an admin'));
-            const installedSmartContracts: Array<{ label: string, packageId: string }> = await connection.getInstalledSmartContracts('peer0.org1.example.com');
+            const installedSmartContracts: Array<{ label: string, packageId: string }> = await connection.getInstalledSmartContracts('Org1 Peer1');
             installedSmartContracts.length.should.equal(0);
             Array.from(installedSmartContracts.keys()).should.deep.equal([]);
         });
 
         it('should rethrow any error other than access denied', async () => {
             mockPeer.getAllInstalledSmartContracts.rejects(new Error('wow u cannot see cc cos peer no works'));
-            await connection.getInstalledSmartContracts('peer0.org1.example.com').should.be.rejectedWith(/peer no works/);
+            await connection.getInstalledSmartContracts('Org1 Peer1').should.be.rejectedWith(/peer no works/);
         });
 
         it('should throw an error getting installed smart contracts from a peer that does not exist', async () => {
-            await connection.getInstalledSmartContracts('nosuch.peer0.org1.example.com')
+            await connection.getInstalledSmartContracts('nosuch.Org1 Peer1')
                 .should.be.rejectedWith(/does not exist/);
         });
     });
@@ -854,7 +958,7 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer = mySandBox.createStubInstance(LifecyclePeer);
 
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('peer0.org1.example.com', mockPeer);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer);
 
             mockPeer.getAllInstalledSmartContracts.resolves([
                 {
@@ -876,7 +980,7 @@ describe('FabricEnvironmentConnection', () => {
             }]];
             mockPeer.installSmartContractPackage.resolves(responseStub);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'myContract_0.0.1', 90000);
+            await connection.installSmartContract(packagePath, 'Org1 Peer1', 'myContract_0.0.1', 90000);
             mockPeer.installSmartContractPackage.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
@@ -906,7 +1010,7 @@ describe('FabricEnvironmentConnection', () => {
             const error: Error = new Error('some error');
             mockPeer.installSmartContractPackage.rejects(error);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'some_label').should.be.rejectedWith(/some error/);
+            await connection.installSmartContract(packagePath, 'Org1 Peer1', 'some_label').should.be.rejectedWith(/some error/);
             mockPeer.installSmartContractPackage.should.have.been.calledWith(
                 sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
@@ -920,19 +1024,19 @@ describe('FabricEnvironmentConnection', () => {
         it('should handle an error if the smart contract package does not exist', async () => {
             const invalidPackagePath: string = path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds');
 
-            await connection.installSmartContract(invalidPackagePath, 'peer0.org1.example.com', 'vscode-pkg-doesnotexist_0.0.1')
+            await connection.installSmartContract(invalidPackagePath, 'Org1 Peer1', 'vscode-pkg-doesnotexist_0.0.1')
                 .should.have.been.rejectedWith(/ENOENT/);
         });
 
         it('should handle an error installing the smart contract package', async () => {
             mockPeer.installSmartContractPackage.rejects(new Error('such error'));
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'some_label')
+            await connection.installSmartContract(packagePath, 'Org1 Peer1', 'some_label')
                 .should.have.been.rejectedWith(/such error/);
         });
 
         it('should throw an error installing smart contract onto a peer that does not exist', async () => {
-            await connection.installSmartContract(packagePath, 'nosuch.peer0.org1.example.com', 'some_label')
+            await connection.installSmartContract(packagePath, 'nosuch.Org1 Peer1', 'some_label')
                 .should.be.rejectedWith(/does not exist/);
         });
 
@@ -940,7 +1044,7 @@ describe('FabricEnvironmentConnection', () => {
             const error: Error = new Error('failed to invoke backing implementation of \'InstallChaincode\': chaincode already successfully installed');
             mockPeer.installSmartContractPackage.rejects(error);
 
-            const packageId: string = await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'cake_network');
+            const packageId: string = await connection.installSmartContract(packagePath, 'Org1 Peer1', 'cake_network');
 
             mockPeer.getAllInstalledSmartContracts.should.have.been.called;
             packageId.should.equal('cake_network:12345');
@@ -950,7 +1054,7 @@ describe('FabricEnvironmentConnection', () => {
             const error: Error = new Error('failed to invoke backing implementation of \'InstallChaincode\': chaincode already successfully installed');
             mockPeer.installSmartContractPackage.rejects(error);
 
-            await connection.installSmartContract(packagePath, 'peer0.org1.example.com', 'cookie_network').should.be.rejectedWith(`Unable to find installed contract for cookie_network after receiving: ${error.message}`);
+            await connection.installSmartContract(packagePath, 'Org1 Peer1', 'cookie_network').should.be.rejectedWith(`Unable to find installed contract for cookie_network after receiving: ${error.message}`);
 
             mockPeer.getAllInstalledSmartContracts.should.have.been.called;
         });
@@ -961,9 +1065,9 @@ describe('FabricEnvironmentConnection', () => {
         it('should approve a smart contract', async () => {
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
 
-            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
 
-            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 packageId: 'myPackageId',
@@ -978,9 +1082,9 @@ describe('FabricEnvironmentConnection', () => {
             const collectionconfig: FabricCollectionDefinition = new FabricCollectionDefinition('myCollection', `OR('Org1MSP.member')`, 5, 4);
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
 
-            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]));
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]));
 
-            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 packageId: 'myPackageId',
@@ -995,9 +1099,9 @@ describe('FabricEnvironmentConnection', () => {
             const collectionconfig: FabricCollectionDefinition = new FabricCollectionDefinition('myCollection', `OR('Org1MSP.member')`, 5, 4);
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition');
 
-            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]), 5000);
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`, [collectionconfig]), 5000);
 
-            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 packageId: 'myPackageId',
@@ -1014,9 +1118,9 @@ describe('FabricEnvironmentConnection', () => {
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition').rejects(approvedError);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(connection, 'getCommitReadiness').resolves();
 
-            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId')).should.be.rejectedWith(approvedError);
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId')).should.be.rejectedWith(approvedError);
 
-            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 packageId: 'myPackageId',
@@ -1032,9 +1136,9 @@ describe('FabricEnvironmentConnection', () => {
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition').rejects(approvedError);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(connection, 'getCommitReadiness').resolves(true);
 
-            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
+            const result: boolean = await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId'));
 
-            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 packageId: 'myPackageId',
@@ -1042,7 +1146,7 @@ describe('FabricEnvironmentConnection', () => {
                 endorsementPolicy: undefined,
                 collectionConfig: undefined
             });
-            getCommitReadinessStub.should.have.been.calledWith('myChannel', 'peer0.org1.example.com', {
+            getCommitReadinessStub.should.have.been.calledWith('myChannel', 'Org1 Peer1', {
                 name: 'myContract',
                 version: '0.0.1',
                 packageId: 'myPackageId',
@@ -1058,9 +1162,9 @@ describe('FabricEnvironmentConnection', () => {
             const approveSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'approveSmartContractDefinition').rejects(approvedError);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(connection, 'getCommitReadiness').resolves(false);
 
-            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId')).should.be.rejectedWith(approvedError);
+            await connection.approveSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, 'myPackageId')).should.be.rejectedWith(approvedError);
 
-            approveSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            approveSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 packageId: 'myPackageId',
@@ -1068,7 +1172,7 @@ describe('FabricEnvironmentConnection', () => {
                 endorsementPolicy: undefined,
                 collectionConfig: undefined
             });
-            getCommitReadinessStub.should.have.been.calledWith('myChannel', 'peer0.org1.example.com', {
+            getCommitReadinessStub.should.have.been.calledWith('myChannel', 'Org1 Peer1', {
                 name: 'myContract',
                 version: '0.0.1',
                 packageId: 'myPackageId',
@@ -1084,9 +1188,9 @@ describe('FabricEnvironmentConnection', () => {
         it('should commit a smart contract', async () => {
             const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
 
-            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1));
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1));
 
-            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1098,9 +1202,9 @@ describe('FabricEnvironmentConnection', () => {
         it('should commit a smart contract with endorsement policy', async () => {
             const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
 
-            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member)`));
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member)`));
 
-            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1114,9 +1218,9 @@ describe('FabricEnvironmentConnection', () => {
 
             const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
 
-            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined, undefined, [collectionconfig]));
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined, undefined, [collectionconfig]));
 
-            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1128,9 +1232,9 @@ describe('FabricEnvironmentConnection', () => {
         it('should commit a smart contract within a given timeout', async () => {
             const commitSmartContractDefinitionStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'commitSmartContractDefinition');
 
-            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['peer0.org1.example.com'], new FabricSmartContractDefinition('myContract', '0.0.1', 1), 9000000);
+            await connection.commitSmartContractDefinition('myOrderer', 'myChannel', ['Org1 Peer1'], new FabricSmartContractDefinition('myContract', '0.0.1', 1), 9000000);
 
-            commitSmartContractDefinitionStub.should.have.been.calledWith(['peer0.org1.example.com'], 'myOrderer', {
+            commitSmartContractDefinitionStub.should.have.been.calledWith(['Org1 Peer1'], 'myOrderer', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1147,11 +1251,11 @@ describe('FabricEnvironmentConnection', () => {
             resultMap.set('org2', true);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
 
-            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
+            const result: boolean = await connection.getCommitReadiness('myChannel', 'Org1 Peer1', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
 
             result.should.equal(true);
 
-            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', {
+            getCommitReadinessStub.should.have.been.calledWith('Org1 Peer1', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1166,11 +1270,11 @@ describe('FabricEnvironmentConnection', () => {
             resultMap.set('org2', false);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
 
-            const result: boolean = await connection.getCommitReadiness('myChannel', 'peer0.org1.example.com', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
+            const result: boolean = await connection.getCommitReadiness('myChannel', 'Org1 Peer1', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
 
             result.should.equal(false);
 
-            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', {
+            getCommitReadinessStub.should.have.been.calledWith('Org1 Peer1', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1187,11 +1291,11 @@ describe('FabricEnvironmentConnection', () => {
             resultMap.set('org2', true);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
 
-            const result: Map<string, boolean> = await connection.getOrgApprovals('myChannel', 'peer0.org1.example.com', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
+            const result: Map<string, boolean> = await connection.getOrgApprovals('myChannel', 'Org1 Peer1', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
 
             result.should.deep.equal(resultMap);
 
-            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', {
+            getCommitReadinessStub.should.have.been.calledWith('Org1 Peer1', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1206,11 +1310,11 @@ describe('FabricEnvironmentConnection', () => {
             resultMap.set('org2', false);
             const getCommitReadinessStub: sinon.SinonStub = mySandBox.stub(LifecycleChannel.prototype, 'getCommitReadiness').resolves(resultMap);
 
-            const result: Map<string, boolean> = await connection.getOrgApprovals('myChannel', 'peer0.org1.example.com', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
+            const result: Map<string, boolean> = await connection.getOrgApprovals('myChannel', 'Org1 Peer1', new FabricSmartContractDefinition('myContract', '0.0.1', 1, undefined));
 
             result.should.deep.equal(resultMap);
 
-            getCommitReadinessStub.should.have.been.calledWith('peer0.org1.example.com', {
+            getCommitReadinessStub.should.have.been.calledWith('Org1 Peer1', {
                 smartContractName: 'myContract',
                 smartContractVersion: '0.0.1',
                 sequence: 1,
@@ -1247,14 +1351,14 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('instantiateChaincode', () => {
         it('should instantiate the specified chaincode', async () => {
-            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'), undefined);
+            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['Org1 Peer1', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'), undefined);
             payload.should.deep.equal(Buffer.from('TODO'));
         });
     });
 
     describe('upgradeChaincode', () => {
         it('should upgrade the specified chaincode', async () => {
-            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'), undefined);
+            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.1', ['Org1 Peer1', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'), undefined);
             payload.should.deep.equal(Buffer.from('TODO'));
         });
     });
@@ -1263,12 +1367,12 @@ describe('FabricEnvironmentConnection', () => {
         beforeEach(() => {
             const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
             mockFabricCA.enroll.resolves({ certificate: 'myCert', key: { toBytes: mySandBox.stub().returns('myKey') } });
-            connection['certificateAuthorities'].has('ca.example.com').should.be.true;
-            connection['certificateAuthorities'].set('ca.example.com', mockFabricCA);
+            connection['certificateAuthorities'].has('Org1 CA').should.be.true;
+            connection['certificateAuthorities'].set('Org1 CA', mockFabricCA);
         });
 
         it('should enroll an identity using a certificate authority that exists', async () => {
-            const result: { certificate: string, privateKey: string } = await connection.enroll('ca.example.com', 'myId', 'mySecret');
+            const result: { certificate: string, privateKey: string } = await connection.enroll('Org1 CA', 'myId', 'mySecret');
             result.should.deep.equal({ certificate: 'myCert', privateKey: 'myKey' });
         });
 
@@ -1284,12 +1388,12 @@ describe('FabricEnvironmentConnection', () => {
         beforeEach(() => {
             mockFabricCA = mySandBox.createStubInstance(FabricCAServices);
             mockFabricCA.register.resolves('its a secret');
-            connection['certificateAuthorities'].has('ca.example.com').should.be.true;
-            connection['certificateAuthorities'].set('ca.example.com', mockFabricCA);
+            connection['certificateAuthorities'].has('Org1 CA').should.be.true;
+            connection['certificateAuthorities'].set('Org1 CA', mockFabricCA);
         });
 
         it('should register a new user and return a secret using a certificate authority that exists ', async () => {
-            const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE');
+            const secret: string = await connection.register('Org1 CA', 'enrollThis', 'departmentE');
             secret.should.deep.equal('its a secret');
             mockFabricCA.register.should.have.been.calledOnceWith({
                 enrollmentID: 'enrollThis',
@@ -1306,7 +1410,7 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should be able to register a new user with attribtues', async () => {
-            const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE', [{
+            const secret: string = await connection.register('Org1 CA', 'enrollThis', 'departmentE', [{
                 name: 'hello',
                 value: 'world',
                 ecert: true
@@ -1326,13 +1430,13 @@ describe('FabricEnvironmentConnection', () => {
 
     describe('getNode', () => {
         it('should return a certificate authority node', () => {
-            const node: FabricNode = connection.getNode('ca.example.com');
-            node.short_name.should.equal('ca.example.com');
-            node.name.should.equal('ca.example.com');
+            const node: FabricNode = connection.getNode('Org1 CA');
+            node.short_name.should.equal('org1ca');
+            node.name.should.equal('Org1 CA');
             node.type.should.equal(FabricNodeType.CERTIFICATE_AUTHORITY);
-            node.api_url.should.equal('http://localhost:7054');
+            node.api_url.should.equal('http://org1ca-api.127-0-0-1.nip.io:8080');
             node.wallet.should.equal('Org1');
-            node.identity.should.equal(FabricRuntimeUtil.ADMIN_USER);
+            node.identity.should.equal('Org1 CA Admin');
         });
 
         it('should throw for a node that does not exist', () => {

@@ -30,10 +30,9 @@ import { FabricEnvironmentTreeItem } from '../../extension/explorer/runtimeOps/d
 import { RuntimeTreeItem } from '../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../../extension/fabric/environments/EnvironmentFactory';
-import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -69,7 +68,7 @@ describe('EnvironmentConnectCommand', () => {
         let stopEnvironmentRefreshSpy: sinon.SinonSpy;
         let getStateStub: sinon.SinonStub;
 
-        let localEnvironment: LocalEnvironment;
+        let localEnvironment: LocalMicroEnvironment;
         let fabricEnvironment: FabricEnvironment;
 
         let getEnvironmentStub: sinon.SinonStub;
@@ -106,7 +105,7 @@ describe('EnvironmentConnectCommand', () => {
             await FabricEnvironmentRegistry.instance().clear();
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
 
-            await TestUtil.setupLocalFabric();
+            await TestUtil.startLocalFabric();
 
             localFabricRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
 
@@ -382,9 +381,10 @@ describe('EnvironmentConnectCommand', () => {
             });
         });
 
-        describe('LocalEnvironment', () => {
+        describe('LocalMicroEnvironment', () => {
 
             let isRunningStub: sinon.SinonStub;
+            let waitForStub: sinon.SinonStub;
 
             beforeEach(async () => {
                 chooseEnvironmentQuickPick.resolves({
@@ -392,13 +392,11 @@ describe('EnvironmentConnectCommand', () => {
                     data: localFabricRegistryEntry
                 });
 
-                localEnvironment = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {
-                    startPort: 17050,
-                    endPort: 17070
-                }, 1);
+                localEnvironment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
 
-                isRunningStub = mySandBox.stub(ManagedAnsibleEnvironment.prototype, 'isRunning').resolves(true);
-                mySandBox.stub(LocalEnvironment.prototype, 'startLogs').resolves();
+                isRunningStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isRunning').resolves(true);
+                waitForStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'waitFor').resolves(true);
+                mySandBox.stub(LocalMicroEnvironment.prototype, 'startLogs').resolves();
 
                 getEnvironmentStub = mySandBox.stub(EnvironmentFactory, 'getEnvironment');
                 getEnvironmentStub.callThrough();
@@ -408,7 +406,7 @@ describe('EnvironmentConnectCommand', () => {
                 getNodesStub.resolves([ordererNode, caNode]);
             });
 
-            it('should connect to a managed runtime environment using a quick pick', async () => {
+            it('should connect to a local environment using a quick pick', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 connectExplorerStub.should.have.been.calledOnce;
@@ -419,7 +417,7 @@ describe('EnvironmentConnectCommand', () => {
                 logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC}`);
             });
 
-            it('should connect to a managed runtime environment from the tree', async () => {
+            it('should connect to a local environment from the tree', async () => {
                 mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').resolves(false);
                 mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').resolves(false);
 
@@ -473,6 +471,22 @@ describe('EnvironmentConnectCommand', () => {
 
             it(`should return if failed to start local fabric`, async () => {
                 isRunningStub.resolves(false);
+
+                executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
+
+                connectExplorerStub.should.not.have.been.called;
+                connectManagerSpy.should.not.have.been.calledWith;
+                mockConnection.connect.should.not.have.been.called;
+                sendTelemetryEventStub.should.not.have.been.called;
+            });
+
+            it(`should return if environment never comes alive`, async () => {
+                isRunningStub.resetHistory();
+                isRunningStub.onFirstCall().resolves(false);
+                waitForStub.resolves(false);
 
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
 
