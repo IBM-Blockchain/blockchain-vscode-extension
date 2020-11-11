@@ -33,11 +33,7 @@ class App extends Component<{}, AppState> {
             tutorialData: [],
             activeTutorial: { title: '', series: '', length: '', file: '', objectives: [] },
             deployData: { channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
-<<<<<<< HEAD
-            transactionData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', peerNames: []} },
-=======
             transactionViewData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', peerNames: [] }, associatedTxdata: undefined, txdataTransactions: [], preselectedTransaction: { name: '', parameters: [], tag: [], returns: { type: '' } } },
->>>>>>> 0f5b98d1... Add associate txdata directory to transaction view (#2778)
             transactionOutput: ''
         };
     }
