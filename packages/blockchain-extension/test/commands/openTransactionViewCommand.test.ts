@@ -38,9 +38,28 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
 import { LogType } from 'ibm-blockchain-platform-common';
 import { TransactionView } from '../../extension/webview/TransactionView';
+import ITransaction from '../../extension/interfaces/ITransaction';
 
 chai.use(sinonChai);
 chai.should();
+
+interface IAppState {
+    gatewayName: string;
+    smartContract: {
+        name: string,
+        version: string,
+        channel: string,
+        label: string,
+        transactions: any[],
+        namespace: string
+    };
+    associatedTxdata: {
+        chaincodeName: string,
+        channelName: string,
+        transactionDataPath: string
+    };
+    preselectedTransaction?: ITransaction;
+}
 
 describe('OpenTransactionViewCommand', () => {
     let mySandBox: sinon.SinonSandbox = sinon.createSandbox();
@@ -129,7 +148,8 @@ describe('OpenTransactionViewCommand', () => {
                 }
             );
 
-            showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').resolves({
+            showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick');
+            showInstantiatedSmartContractQuickPickStub.resolves({
                 label: 'myContract',
                 data: { name: 'myContract', channel: 'myChannel', version: '0.0.1' }
             });
@@ -148,14 +168,74 @@ describe('OpenTransactionViewCommand', () => {
             const contracts: Array<InstantiatedTreeItem> =  await blockchainGatewayExplorerProvider.getChildren(channels[0]) as Array<InstantiatedTreeItem>;
             instantiatedSmartContract = contracts[0];
 
-            await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, instantiatedSmartContract);
+            const appstate: IAppState = await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, instantiatedSmartContract);
+            appstate.should.deep.equal({
+                associatedTxdata: undefined,
+                gatewayName: 'myGateway',
+                smartContract: {
+                    channel: 'myChannel',
+                    label: 'mySmartContract@0.0.1',
+                    name: 'mySmartContract',
+                    namespace: 'my-contract',
+                    peerNames: ['peerOne', 'peerTwo'],
+                    version: '0.0.1',
+                    transactions: [
+                        { name: 'transaction1' },
+                        { name: 'transaction2' },
+                    ],
+                },
+                preselectedTransaction: undefined,
+            });
 
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
             openViewStub.should.have.been.calledOnce;
         });
 
         it('should open the transaction web view through the command', async () => {
-            await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
+            const appstate: IAppState = await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
+            appstate.should.deep.equal({
+                associatedTxdata: undefined,
+                gatewayName: 'myGateway',
+                smartContract: undefined,
+                preselectedTransaction: undefined,
+            });
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
+            showInstantiatedSmartContractQuickPickStub.should.have.been.calledOnce;
+            openViewStub.should.have.been.calledOnce;
+        });
+
+        it('should open the transaction web view through the command', async () => {
+            const chaincode: object = {
+                chaincodeName: 'mySmartContract',
+                channelName: 'myChannel',
+                transactionDataPath: '/directory',
+            };
+            showInstantiatedSmartContractQuickPickStub.resolves({
+                label: 'mySmartContract',
+                data: { name: 'mySmartContract', channel: 'myChannel', version: '0.0.1' }
+            });
+            getGatewayRegistryStub.resolves({
+                ...gatewayRegistryEntry,
+                transactionDataDirectories: [chaincode],
+            });
+            const appstate: IAppState = await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
+            appstate.should.deep.equal({
+                associatedTxdata: chaincode,
+                gatewayName: 'myGateway',
+                smartContract: {
+                    channel: 'myChannel',
+                    label: 'mySmartContract@0.0.1',
+                    name: 'mySmartContract',
+                    namespace: 'my-contract',
+                    peerNames: ['peerOne', 'peerTwo'],
+                    version: '0.0.1',
+                    transactions: [
+                        { name: 'transaction1' },
+                        { name: 'transaction2' },
+                    ],
+                },
+                preselectedTransaction: undefined,
+            });
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
             showInstantiatedSmartContractQuickPickStub.should.have.been.calledOnce;
             openViewStub.should.have.been.calledOnce;
