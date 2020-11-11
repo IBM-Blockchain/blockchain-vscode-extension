@@ -331,8 +331,6 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.REFRESH_GATEWAYS}`,
                 `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
                 `onCommand:${ExtensionCommands.TEST_ALL_SMART_CONTRACT}`,
-                `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
-                `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
                 `onCommand:${ExtensionCommands.ASSOCIATE_WALLET}`,
                 `onCommand:${ExtensionCommands.DISSOCIATE_WALLET}`,
                 `onCommand:${ExtensionCommands.EXPORT_CONNECTION_PROFILE}`,

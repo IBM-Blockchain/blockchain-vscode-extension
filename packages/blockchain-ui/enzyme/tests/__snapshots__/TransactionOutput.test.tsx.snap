@@ -5,14 +5,14 @@ exports[`TransactionOutput component should render the expected snapshot 1`] = `
   className="output-panel"
   id="output-panel"
 >
+  <p
+    className="output-title"
+  >
+    Transaction output
+  </p>
   <div
     className="output-panel-inner"
   >
-    <p
-      className="output-title"
-    >
-      Output for untitled transaction
-    </p>
     <p
       className="output-body"
     >
@@ -27,19 +27,55 @@ exports[`TransactionOutput component should render the expected snapshot when no
   className="output-panel"
   id="output-panel"
 >
+  <p
+    className="output-title"
+  >
+    Transaction output
+  </p>
   <div
     className="output-panel-inner"
   >
-    <p
-      className="output-title"
+    <div
+      className="output-placeholder-container"
     >
-      Output for untitled transaction
-    </p>
-    <p
-      className="output-body"
-    >
-      No transaction output available. Submit/evaluate to produce an output.
-    </p>
+      <div
+        className="output-placeholder"
+      >
+        <img
+          alt="block icon"
+          src="test-file-stub"
+        />
+        <h4>
+          No transaction output, yet!
+        </h4>
+        <p>
+          Submit or evaluate a transaction to view it's output here.
+        </p>
+        <a
+          className="bx--link"
+          href=""
+          onClick={[Function]}
+        >
+          Learn more 
+          <svg
+            aria-hidden={true}
+            focusable="false"
+            height={32}
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 32 32"
+            width={32}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M26,28H6a2,2,0,0,1-2-2V6A2,2,0,0,1,6,4h9V6H6V26H26V17h2v9A2,2,0,0,1,26,28Z"
+            />
+            <polygon
+              points="21 2 21 4 26.59 4 18 12.59 19.41 14 28 5.41 28 11 30 11 30 2 21 2"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 `;

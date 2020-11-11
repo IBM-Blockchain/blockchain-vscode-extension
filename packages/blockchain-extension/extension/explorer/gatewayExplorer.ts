@@ -306,7 +306,13 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             const transactionNames: string[] = transactionNamesMap.get(contract);
             if (contract === '' || chainCodeElement.contracts.length === 1) {
                 for (const transaction of transactionNames) {
-                    tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channels[0].label, contract));
+                    const command: vscode.Command = {
+                        command: ExtensionCommands.OPEN_TRANSACTION_PAGE,
+                        title: '',
+                        arguments: [chainCodeElement, transaction]
+                    };
+
+                    tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channels[0].label, contract, command));
                 }
             } else {
                 tree.push(new ContractTreeItem(this, contract, vscode.TreeItemCollapsibleState.Collapsed, chainCodeElement, transactionNames, chainCodeElement.channels[0].label));
