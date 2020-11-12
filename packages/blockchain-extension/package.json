@@ -751,6 +751,21 @@
                     "when": "false"
                 },
                 {
+<<<<<<< HEAD
+=======
+                    "command": "environmentExplorer.installSmartContractEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.instantiateSmartContractEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.upgradeSmartContractEntry",
+                    "when": "false"
+                },
+                {
+>>>>>>> 1163530a... Remove instantiate and upgrade commands from palette (#2808)
                     "command": "environmentExplorer.approveSmartContractEntry",
                     "when": "false"
                 },
