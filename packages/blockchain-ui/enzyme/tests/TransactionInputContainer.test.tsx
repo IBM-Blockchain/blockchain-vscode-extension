@@ -448,6 +448,30 @@ describe('TransactionInputContainer component', () => {
             component.find('#evaluate-button').at(1).simulate('click');
             postToVSCodeStub.should.not.have.been.called;
         });
+
+        it('should clear the activeTransaction if a new/updated smartContract is supplied and the activeTransaction no longer exists', () => {
+            const newContract: ISmartContract = {
+                ...greenContract,
+                transactions: [transactionTwo],
+            };
+            component = updateManualInputValues(component, 'transactionOne', undefined, undefined);
+            let manualInput: any = component.find(TransactionManualInput);
+            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            let dropdown: any = component.find(transactionNameSelector);
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionOne');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+
+            act(() => {
+                component.setProps({ smartContract: newContract });
+            });
+            component = component.update();
+
+            dropdown = component.find(transactionNameSelector);
+            manualInput = component.find(TransactionManualInput);
+            manualInputState = manualInput.prop('manualInputState');
+            expect(dropdown.prop('selectedItem')).toEqual('Select the transaction name');
+            expect(manualInputState.activeTransaction).toEqual({ name: '', parameters: [], returns: { type: '' }, tag: [] });
+        });
     });
 
     describe('Data file input', () => {

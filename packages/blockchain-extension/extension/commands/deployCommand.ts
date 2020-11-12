@@ -14,10 +14,14 @@
 'use strict';
 import * as vscode from 'vscode';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, FabricSmartContractDefinition, IFabricGatewayConnection } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { TransactionView } from '../webview/TransactionView';
+import { getSmartContract } from './openTransactionViewCommand';
+import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
+import ISmartContract from '../interfaces/ISmartContract';
 
 export async function deploySmartContract(requireCommit: boolean, fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, ordererName: string, channelName: string, installApproveMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry, smartContractDefinition: FabricSmartContractDefinition, commitMap?: Map<string, string[]>): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -58,6 +62,22 @@ export async function deploySmartContract(requireCommit: boolean, fabricEnvironm
                 outputAdapter.log(LogType.SUCCESS, 'Successfully deployed smart contract');
             } else {
                 outputAdapter.log(LogType.SUCCESS, 'Partially deployed smart contract - commit not performed');
+            }
+
+            const panel: vscode.WebviewPanel = TransactionView.panel;
+            if (panel) {
+                let gatewayConnection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
+                if (!gatewayConnection) {
+                    await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
+                    gatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
+                    if (!gatewayConnection) {
+                        // either the user cancelled or there was an error so don't carry on
+                        return;
+                    }
+                }
+
+                const smartContract: ISmartContract = await getSmartContract(gatewayConnection, smartContractDefinition.name);
+                await TransactionView.updateSmartContract(smartContract);
             }
         });
 

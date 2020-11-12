@@ -21,21 +21,39 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from 'ibm-blockchain-platform-common';
 import ITransaction from '../interfaces/ITransaction';
+import ISmartContract from '../interfaces/ISmartContract';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 
 interface IAppState {
     gatewayName: string;
-    smartContract: { name: string, version: string, channel: string, label: string, transactions: ITransaction[], namespace: string };
+    smartContract: ISmartContract;
     associatedTxdata: undefined | { chaincodeName: string, channelName: string, transactionDataPath: string };
     txdataTransactions?: string[];
     preselectedTransaction?: ITransaction;
 }
 export class TransactionView extends ReactView {
+    public static panel: vscode.WebviewPanel;
+    public static appState: any;
+
+    static async updateSmartContract(smartContract: ISmartContract): Promise<void> {
+        TransactionView.appState.smartContract = smartContract;
+        TransactionView.panel.webview.postMessage({
+            transactionViewData: {
+                ...TransactionView.appState,
+                smartContract,
+            }
+        });
+    }
+
+    static closeView(): void {
+        TransactionView.panel.dispose();
+    }
+
     protected appState: any;
 
     constructor(context: vscode.ExtensionContext, appState: any) {
         super(context, 'transactionView', 'Transaction View');
-        this.appState = appState;
+        TransactionView.appState = appState;
     }
 
     async handleTransactionMessage(message: {command: string, data: any}, panel: vscode.WebviewPanel): Promise<void> {
@@ -49,8 +67,8 @@ export class TransactionView extends ReactView {
         const response: {chaincodeName: string, channelName: string, transactionDataPath: string} = await vscode.commands.executeCommand(message.command, undefined, message.data);
         const txdataTransactions: string[] = response !== undefined ? await this.readTxdataFiles(response.transactionDataPath) : [];
         const newAppState: IAppState = {
-            gatewayName: this.appState.gatewayName,
-            smartContract: this.appState.smartContract,
+            gatewayName: TransactionView.appState.gatewayName,
+            smartContract: TransactionView.appState.smartContract,
             associatedTxdata: response,
             txdataTransactions
         };
@@ -90,6 +108,11 @@ export class TransactionView extends ReactView {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
+        TransactionView.panel = panel;
+        panel.onDidDispose(() => {
+            TransactionView.panel = undefined;
+        });
+
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
 
@@ -108,13 +131,13 @@ export class TransactionView extends ReactView {
     }
 
     async loadComponent(panel: vscode.WebviewPanel): Promise<void> {
-        if (this.appState.associatedTxdata !== undefined) {
-            this.appState.txdataTransactions = await this.readTxdataFiles(this.appState.associatedTxdata.transactionDataPath);
+        if (TransactionView.appState.associatedTxdata !== undefined) {
+            TransactionView.appState.txdataTransactions = await this.readTxdataFiles(TransactionView.appState.associatedTxdata.transactionDataPath);
         }
 
         panel.webview.postMessage({
             path: '/transaction',
-            transactionViewData: this.appState
+            transactionViewData: TransactionView.appState
         });
     }
 }
