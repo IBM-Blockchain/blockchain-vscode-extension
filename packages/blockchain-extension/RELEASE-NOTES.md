@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v1.0.39
-_Release date: October 29th 2020_
+# IBM Blockchain Platform Extension updated to v1.0.40
+_Release date: November 12th 2020_
 
 Announcements
 ---
@@ -8,17 +8,12 @@ Announcements
 
 Features & Enhancements
 ---
-* New "Joining a network" tutorials [#2677](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2677).
- > The purpose of this set of tutorials is to take you through the process of joining an existing Hyperledger Fabric network using the tools provided by IBM Blockchain Platform. 
+* Added support for connecting to IBM Blockchain Platform 2.5.1 [#2791](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2791).
 
 Fixes
 ---
-* Fixed packaging to look for 'contract-metadata' directory [#2755](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2755).
-* Made the IBM Cloud Account extension optional [#2713](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2713).
+* Reverted packaging metadata path change made in v1.0.39 [#2797](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2797).
+ > We have reverted to look for the 'META-INF' directory again - sorry for the inconvenience!
 
-
-This release's Conga Comic:
----
-<img src="https://congacomic.github.io/assets/img/blockheight-81.jpg" width="800">
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
