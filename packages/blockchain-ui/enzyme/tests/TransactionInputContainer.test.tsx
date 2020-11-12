@@ -236,14 +236,14 @@ describe('TransactionInputContainer component', () => {
         it('does not generate arguments in the event that the chosen transaction doesn\'t have any parameters', () => {
             component = updateManualInputValues(component, 'transactionTwo', undefined, undefined);
             const textarea: any = component.find(transactionParametersSelector).at(0);
-            expect(textarea.prop('value')).toEqual('{}');
+            expect(textarea.prop('value')).toEqual('');
             expect(textarea.prop('disabled')).toBeFalsy();
         });
 
         it('does not generate arguments in the event that the chosen transaction doesn\'t exist', () => {
             component = updateManualInputValues(component, 'anotherTransaction', undefined, undefined);
             const textarea: any = component.find(transactionParametersSelector).at(0);
-            expect(textarea.prop('value')).toEqual('{}');
+            expect(textarea.prop('value')).toEqual('');
             expect(textarea.prop('disabled')).toBeTruthy();
         });
 
