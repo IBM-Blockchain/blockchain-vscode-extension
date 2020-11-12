@@ -747,6 +747,14 @@
                     "when": "false"
                 },
                 {
+                    "command": "environmentExplorer.instantiateSmartContractEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.upgradeSmartContractEntry",
+                    "when": "false"
+                },
+                {
                     "command": "environmentExplorer.approveSmartContractEntry",
                     "when": "false"
                 },
