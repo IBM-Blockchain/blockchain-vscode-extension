@@ -25,5 +25,60 @@
             color: inherit;
         }
 
+<<<<<<< HEAD
+=======
+        .output-placeholder {
+            width: 100%;
+            padding: 0 15%;
+
+            h4, p {
+                margin-bottom: $spacing-03;
+            }
+
+            p {
+                color: $gray-30;
+            }
+
+            a {
+                font-size: 1rem;
+                display: flex;
+                color: #0f62fe;
+            }
+
+            svg {
+                height: 1.25rem;
+                fill: #0f62fe;
+            }
+
+            img {
+                height: 30%;
+                margin-bottom: $spacing-05;
+            }
+        }
+    }
+}
+
+.vscode-light {
+    #output-panel {
+        .output-panel-inner {
+            .output-placeholder {
+                p {
+                    color: $gray-80;
+                }
+            }
+        }
+    }
+
+}
+
+
+@media (max-width: 672px) {
+    #output-panel {
+        padding-left: 0;
+
+        .output-panel-inner {
+            min-height: 70vh;
+        }
+>>>>>>> 82b051c0... Guard against empty parameters, fix css for light mode (#2814)
     }
 }

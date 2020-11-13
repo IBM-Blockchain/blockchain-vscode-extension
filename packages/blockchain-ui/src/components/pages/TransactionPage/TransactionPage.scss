@@ -2,4 +2,44 @@
 
 .page-container {
     @include default-page-styling;
+<<<<<<< HEAD
+=======
+
+    .titles-container {
+        padding: 0px;
+
+        h2 {
+            padding: $spacing-06 0px;
+        }
+
+        .breadcrumb {
+            font-size: 0.875rem;
+        }
+
+        .breadcrumb .breadcrumb-divider {
+            margin: 0 $spacing-03;
+        }
+
+        .breadcrumb, .breadcrumb .breadcrumb-divider {
+            color: $gray-10;
+        }
+    }
+
+    .bx--form {
+        .bx--dropdown__wrapper, .bx--form-item, .bx--multi-select__wrapper, .associate-tx-data {
+            margin: $spacing-06 0;
+        }
+    }
+>>>>>>> 82b051c0... Guard against empty parameters, fix css for light mode (#2814)
+}
+
+
+.vscode-light {
+    .page-container {
+        .titles-container {
+            .breadcrumb, .breadcrumb .breadcrumb-divider {
+                color: $gray-70;
+            }
+        }
+    }
 }
