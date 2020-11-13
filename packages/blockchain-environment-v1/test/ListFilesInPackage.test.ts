@@ -26,8 +26,16 @@ chai.use(chaiAsPromised);
 describe('ListFilesInPackage', () => {
     let sandbox: sinon.SinonSandbox;
     const PACKAGE_TEST_DIR: string = path.join(__dirname, 'data', 'packages');
-    const PACKAGE_PATH: string = path.join(PACKAGE_TEST_DIR, 'myContract@0.0.1.tar.gz');
-    let expectedFileNames: string[];
+    const V1PACKAGE_PATH: string = path.join(PACKAGE_TEST_DIR, 'typescript-v1-contract.cds');
+    const V2PACKAGE_PATH: string = path.join(PACKAGE_TEST_DIR, 'myContract@0.0.1.tar.gz');
+
+    const expectedFileNamesV1: string[] = [
+        'src/.DS_Store', 'src/dist/index.d.ts', 'src/dist/index.js', 'src/dist/index.js.map', 'src/dist/my-asset-contract.d.ts',
+        'src/dist/my-asset-contract.js', 'src/dist/my-asset-contract.js.map', 'src/dist/my-asset.d.ts', 'src/dist/my-asset.js',
+        'src/dist/my-asset.js.map', 'src/package-lock.json', 'src/package.json', 'src/src/index.ts', 'src/src/my-asset-contract.spec.ts',
+        'src/src/my-asset-contract.ts', 'src/src/my-asset.ts', 'src/transaction_data/my-asset-transactions.txdata',
+    ];
+    const expectedFileNamesV2: string[] = ['metadata.json', 'src/chaincode.js', 'src/chaincode.ts', 'src/package.json'];
     let readFileStub: sinon.SinonStub;
 
     beforeEach(async () => {
@@ -40,20 +48,23 @@ describe('ListFilesInPackage', () => {
 
     describe('listFiles', () => {
         beforeEach(async () => {
-            expectedFileNames = ['metadata.json', 'src/chaincode.js', 'src/chaincode.ts', 'src/package.json'];
-
             readFileStub = sandbox.stub(fs, 'readFile').callThrough();
         });
 
-        it('should list files in package', async () => {
-            const fileNames: string[] = await ListFilesInPackage.listFiles(PACKAGE_PATH);
-            fileNames.should.deep.equal(expectedFileNames);
+        it('should list files in package for a Fabric V1 package', async () => {
+            const fileNames: string[] = await ListFilesInPackage.listFiles(V1PACKAGE_PATH);
+            fileNames.should.deep.equal(expectedFileNamesV1);
+        });
+
+        it('should list files in package for a Fabric V2 package', async () => {
+            const fileNames: string[] = await ListFilesInPackage.listFiles(V2PACKAGE_PATH);
+            fileNames.should.deep.equal(expectedFileNamesV2);
         });
 
         it('handle errors when listing files in the package', async () => {
             const error: Error = new Error('some error');
             readFileStub.rejects(error);
-            await ListFilesInPackage.listFiles(PACKAGE_PATH).should.eventually.be.rejectedWith(error);
+            await ListFilesInPackage.listFiles(V2PACKAGE_PATH).should.eventually.be.rejectedWith(error);
         });
     });
 

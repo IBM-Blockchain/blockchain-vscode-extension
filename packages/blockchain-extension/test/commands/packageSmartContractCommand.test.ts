@@ -31,7 +31,6 @@ import { PackageSmartContract } from 'ibm-blockchain-platform-environment-v1';
 chai.should();
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
-// skip as tests keep stopping here
 describe('packageSmartContract', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     const rootPath: string = path.dirname(__dirname);
@@ -57,6 +56,8 @@ describe('packageSmartContract', () => {
     const gradleContentv2: string = 'fabric-chaincode-shim:2.0.0';
     const mavenContentv1: string = '<fabric-chaincode-java.version>1.4.4</fabric-chaincode-java.version>';
     const mavenContentv2: string = '<fabric-chaincode-java.version>2.0.0</fabric-chaincode-java.version>';
+    const fabricVersion1Option: string = UserInputUtil.SELECT_PACKAGING_FABRIC_VERSION_1;
+    const fabricVersion2Option: string = UserInputUtil.SELECT_PACKAGING_FABRIC_VERSION_2;
 
     let folders: Array<any> = [];
 
@@ -188,6 +189,7 @@ describe('packageSmartContract', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
     let warningStub: sinon.SinonStub;
     let packageContractSpy: sinon.SinonSpy;
+    let chooseFabricVersionStub: sinon.SinonStub;
 
     beforeEach(async () => {
         DeployView.panel = undefined;
@@ -211,6 +213,7 @@ describe('packageSmartContract', () => {
         warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
         packageContractSpy = mySandBox.spy(PackageSmartContract, 'packageContract');
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
+        chooseFabricVersionStub = mySandBox.stub(UserInputUtil, 'showQuickPick');
 
         // Create a bunch of tasks that should never get executed.
         const unscopedTask: vscode.Task = new vscode.Task({ type: 'npm' }, 'unscopedTask', 'npm');
@@ -303,11 +306,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -328,11 +332,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -352,11 +357,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -376,11 +382,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`dogechain_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'dogechain', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -400,11 +407,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], null, '0.0.3');
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -424,11 +432,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain', '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`dogechain_1.2.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'dogechain', '1.2.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -448,11 +457,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `5 file(s) packaged:`);
@@ -474,11 +484,12 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `4 file(s) packaged:`);
@@ -500,6 +511,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -511,7 +523,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -519,56 +531,6 @@ describe('packageSmartContract', () => {
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
-        });
-
-        it('should handle if user cancels packaging the Go project when contract version cannot be found', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
-
-            const testIndex: number = 2;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            warningStub.resolves(undefined);
-
-            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.not.have.been.called;
-        });
-
-        it('should handle if user selects no when warning is shown if go contract version cannot be found', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
-
-            const testIndex: number = 2;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            warningStub.resolves(false);
-
-            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should package the Go project with specified name', async () => {
@@ -581,6 +543,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -591,7 +554,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`dogechain_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'dogechain', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -611,6 +574,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -621,7 +585,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_1.2.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '1.2.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -641,6 +605,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -649,7 +614,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`dogechain_1.2.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'dogechain', '1.2.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -668,6 +633,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             const runVendorStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
 
@@ -679,7 +645,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -689,31 +655,6 @@ describe('packageSmartContract', () => {
             runVendorStub.should.have.been.called;
             executeTaskStub.should.have.not.been.called;            // executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]); // FIXME need to check this
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
-        });
-
-        it('should throw an error if the Go project module uses v1 contract', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false, true, true, false);
-
-            const testIndex: number = 2;
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            const error: Error = new Error('Unable to package contract. Contract API dependency must support Fabric 2.');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            executeTaskStub.should.have.not.been.called;
-            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should allow a low level go module chaincode to be packaged if its v2', async () => {
@@ -751,6 +692,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
@@ -760,7 +702,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -782,6 +724,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -795,7 +738,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
@@ -815,6 +758,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
@@ -822,7 +766,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -843,13 +787,14 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             showInputStub.onFirstCall().resolves('0.0.3');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`dogechain_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'dogechain', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -870,13 +815,14 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             showInputStub.onFirstCall().resolves('myProject');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_1.2.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '1.2.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -897,6 +843,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             showInputStub.onFirstCall().resolves('dogechain');
             showInputStub.onSecondCall().resolves('1.2.3');
@@ -904,7 +851,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
 
             const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`dogechain_1.2.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'dogechain', '1.2.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -913,155 +860,6 @@ describe('packageSmartContract', () => {
             logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
-        });
-
-        it('should handle if we dont find the contract api version of the Java project and user selects to decides to not package', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
-
-            const projectDir: string = path.join(testWorkspace, 'javaProject');
-            const gradleFile: string = path.join(projectDir, 'build.gradle');
-            await fs.writeFile(gradleFile, emptyContent);
-
-            warningStub.resolves(false);
-
-            const testIndex: number = 3;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
-            warningStub.should.have.been.calledWithExactly('Could not find the fabric-chaincode-shim version. Would you like to package it anyway?');
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.not.have.been.called;
-        });
-
-        it('should handle if we dont find the contract api version of the maven Java project and user cancels warning message', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false);
-
-            const projectDir: string = path.join(testWorkspace, 'javaProject');
-            const pomFile: string = path.join(projectDir, 'pom.xml');
-            await fs.writeFile(pomFile, emptyContent);
-
-            warningStub.resolves(undefined);
-
-            const fsExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            fsExistsStub.callThrough();
-            fsExistsStub.onCall(3).resolves(false);
-
-            const testIndex: number = 3;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
-            warningStub.should.have.been.calledWithExactly('Could not find the fabric-chaincode-java version. Would you like to package it anyway?');
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.not.have.been.called;
-        });
-
-        it('should error out if we dont find the pom.xml or build.gradle file', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false);
-
-            const fsExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            fsExistsStub.callThrough();
-            fsExistsStub.onCall(3).resolves(false);
-            fsExistsStub.onCall(4).resolves(false);
-
-            const testIndex: number = 3;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            const error: Error = new Error('Unable to determine contract API version - no build.gradle or pom.xml found');
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, error.message, error.toString());
-
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.not.have.been.called;
-        });
-
-        it('should handle if we dont find the contract api version of the Java project and user decides to continue anyway', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
-
-            const projectDir: string = path.join(testWorkspace, 'javaProject');
-            const gradleFile: string = path.join(projectDir, 'build.gradle');
-            await fs.writeFile(gradleFile, emptyContent);
-
-            warningStub.resolves(true);
-
-            const testIndex: number = 3;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
-            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            warningStub.should.have.been.calledWithExactly('Could not find the fabric-chaincode-shim version. Would you like to package it anyway?');
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
-        });
-
-        it('should handle if the Java (Gradle) project to package uses v1 contract api', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false, false, false, false);
-
-            const testIndex: number = 3;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            const error: Error = new Error('Unable to package contract. Contract API dependency must support Fabric 2. Your version: 1.4.4');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should package the Java (Maven) project', async () => {
@@ -1078,6 +876,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
@@ -1085,7 +884,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -1094,34 +893,6 @@ describe('packageSmartContract', () => {
             logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/pom.xml`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
-        });
-
-        it('should throw error if the Java (Maven) project uses contract api v1', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false, false, false, false);
-
-            const fsExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            fsExistsStub.callThrough();
-            fsExistsStub.onCall(3).resolves(false);
-
-            const testIndex: number = 3;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            showInputStub.onFirstCall().resolves('myProject');
-            showInputStub.onSecondCall().resolves('0.0.3');
-
-            const error: Error = new Error('Unable to package contract. Contract API dependency must support Fabric 2. Your version: 1.4.4');
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
-            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
-            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should throw an error as the package json does not contain a name or version', async () => {
@@ -1133,6 +904,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             const packageDir: string = path.join(fileDest, folders[testIndex].name + '@0.0.1');
 
@@ -1158,6 +930,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
             const packageDir: string = path.join(fileDest, folders[testIndex].name + '@0.0.1');
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/package.json'));
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/chaincode.js'));
@@ -1180,6 +953,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
@@ -1187,7 +961,7 @@ describe('packageSmartContract', () => {
 
             const error: Error = new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -1208,6 +982,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -1242,6 +1017,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
@@ -1253,7 +1029,7 @@ describe('packageSmartContract', () => {
             const error: Error = new Error('Package with name and version already exists. Please input a different name or version for your Java project.');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.have.been.calledOnceWith(`myProject_0.0.3`);
+            packageContractSpy.should.have.been.calledOnceWith(2, 'myProject', '0.0.3');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'myProject@0.0.3.tar.gz')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -1278,6 +1054,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
@@ -1302,6 +1079,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -1337,6 +1115,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
@@ -1366,6 +1145,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
@@ -1395,6 +1175,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
@@ -1420,6 +1201,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -1454,6 +1236,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -1481,6 +1264,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             warningStub.resolves(true);
 
@@ -1508,9 +1292,10 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'v2', 'packages', 'javascriptProject@0.0.1.tar.gz')}`);
@@ -1528,13 +1313,14 @@ describe('packageSmartContract', () => {
             folders.splice(1, folders.length - 1);
 
             workspaceFoldersStub.returns(folders);
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -1586,6 +1372,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
             const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
 
             warningStub.resolves(true);
@@ -1612,6 +1399,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
             const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
 
             warningStub.resolves(true);
@@ -1639,6 +1427,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
             const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
 
             showInputStub.onFirstCall().resolves();
@@ -1661,6 +1450,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
             const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
 
             showInputStub.onFirstCall().resolves('myProject');
@@ -1680,6 +1470,7 @@ describe('packageSmartContract', () => {
             const testIndex: number = 0;
 
             const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) } as vscode.WorkspaceFolder;
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock);
 
@@ -1687,7 +1478,7 @@ describe('packageSmartContract', () => {
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
@@ -1710,6 +1501,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join(folders[testIndex].uri.fsPath, 'src'));
             const mockDiagnostics: any = [[uri, [{ severity: 0 }]]];
@@ -1734,6 +1526,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             const uri: vscode.Uri = vscode.Uri.file(path.join(folders[testIndex].uri.fsPath, 'src'));
             const mockDiagnostics: any = [[uri, [{ severity: 1 }]]];
@@ -1742,7 +1535,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
@@ -1758,13 +1551,14 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             const uri: vscode.Uri = vscode.Uri.file('src');
             const mockDiagnostics: any = [[uri, [{ severity: 0 }]]];
             mySandBox.stub(vscode.languages, 'getDiagnostics').returns(mockDiagnostics);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
@@ -1782,6 +1576,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             packageContractSpy.should.not.have.been.called;
@@ -1801,6 +1596,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             DeployView.panel = {
                 webview: {}
@@ -1809,7 +1605,7 @@ describe('packageSmartContract', () => {
             const updatePackagesStub: sinon.SinonStub = mySandBox.stub(DeployView, 'updatePackages').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
@@ -1822,24 +1618,6 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
 
             updatePackagesStub.should.have.been.calledOnce;
-        });
-
-        it('should throw an error if user tries to package a Node contract which uses contract api version below v2', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false, false, false, false);
-            const testIndex: number = 0;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            const error: Error = new Error('Unable to package contract. Contract API dependency must support Fabric 2. Your version: ^1.4.6');
-
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should handle scenario where user tries to package a low level Node chaincode', async () => {
@@ -1868,9 +1646,10 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.have.been.calledOnceWith(`${folders[testIndex].name}_0.0.1`);
+            packageContractSpy.should.have.been.calledOnceWith(2, folders[testIndex].name, '0.0.1');
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.tar.gz');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
@@ -1883,25 +1662,8 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
-        it('should throw an error if user tries to package a Node contract and we cannot read the contract api version', async () => {
+        it('should package the V1 JavaScript project when the Fabric version is 1', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
-
-            const projectDir: string = path.join(testWorkspace, 'javascriptProject');
-            const packageJsonFile: string = path.join(projectDir, 'package.json');
-
-            const jsonContent: any = {
-                name: `javascriptProject`,
-                version: '0.0.1',
-                description: 'My Smart Contract',
-                author: 'John Doe',
-                license: 'Apache-2.0',
-                dependencies: {
-                    'random-Dependency': '^someVersion'
-                }
-            };
-
-            await fs.writeFile(packageJsonFile, JSON.stringify(jsonContent));
-
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -1909,13 +1671,54 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
+            chooseFabricVersionStub.resolves(fabricVersion1Option);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-            packageContractSpy.should.not.have.been.called;
-            const error: Error = new Error('Unable to determine contract API version.');
 
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            packageContractSpy.should.have.been.calledOnceWith(1, folders[testIndex].name, '0.0.1');
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should package a smart contract given a Fabric version', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) } as vscode.WorkspaceFolder;
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock, 'contractname', '0.0.1', 2);
+
+            workspaceFoldersStub.should.not.have.been.called;
+            showWorkspaceQuickPickStub.should.not.have.been.called;
+            chooseFabricVersionStub.should.not.have.been.called;
+
+            const pkgFile: string = path.join(fileDest, 'contractname@0.0.1.tar.gz');
+            packageContractSpy.should.have.been.calledOnceWith(2, 'contractname', '0.0.1');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            // logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Metadata directory not found at '${path.join(javascriptPath, 'contract-metadata')}'. Continuing with packaging.`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `3 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- metadata.json`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            logSpy.callCount.should.equal(6);
+            executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should ask to select a Fabric version when the passed in one is invalid', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) } as vscode.WorkspaceFolder;
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock, 'contractname', '0.0.1', 0);
+
+            chooseFabricVersionStub.should.have.been.called;
         });
     });
 });

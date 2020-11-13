@@ -36,9 +36,17 @@ let cucumberType: string = '';
 async function runCucumberTest(): Promise<any> {
     const featurePath: string = path.resolve(__dirname, '..', '..', 'cucumber', 'features');
 
+    // tslint:disable-next-line: prefer-const
+    let onlyRunTheseFiles: string[] = [];
+    // If you only want to run a specific few .feature files, add them in the array below
+    // Ensure that the first entry is always fabric-environments.feature or the tests won't work
+    // You'll need to lerna run compile after changing this array
+    // onlyRunTheseFiles = ['fabric-environments.feature', 'package.feature'];
+
     let featureFiles: string[] = fs.readdirSync(featurePath);
     featureFiles = featureFiles.filter((file: string) => {
-        return file.includes('.feature');
+        // Is a .feature file and either there are no onlyRun files or the onlyRun files include the current file
+        return file.includes('.feature') && (onlyRunTheseFiles.length === 0 || onlyRunTheseFiles.includes(file));
     });
 
     const features: any[] = [];
@@ -135,7 +143,8 @@ async function runCucumberTest(): Promise<any> {
     const prettyFormatter: any = Cucumber.FormatterBuilder.build('pretty', prettyOptions);
 
     const runtime: any = new Cucumber.Runtime({
-        features: features,
+        // If only a couple of test files are used we need to remove nulls from the features array
+        features: features.filter((feature) => !!feature),
         listeners: [jsonFormatter, prettyFormatter],
         options: {strict: true},
         supportCodeLibrary: supportCodeLibrary,

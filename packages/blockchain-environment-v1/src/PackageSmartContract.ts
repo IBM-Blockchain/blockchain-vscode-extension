@@ -14,21 +14,30 @@
 
 'use strict';
 
-import { SmartContractPackage, SmartContractType, PackageMetadata } from 'ibm-blockchain-platform-fabric-admin';
+import { SmartContractPackageBase, V1SmartContractPackage, V2SmartContractPackage, SmartContractType, PackagingOptions } from 'ibm-blockchain-platform-fabric-admin';
 import * as fs from 'fs-extra';
 
 export class PackageSmartContract {
-
-    public static async packageContract(name: string, contractPath: string, pkgFile: string, language: string, metadataPath?: string, golangPath?: string): Promise<Array<string>> {
-        const smartContractPackage: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({ smartContractPath: contractPath, label: name, smartContractType: language as SmartContractType, metaDataPath: metadataPath, golangPath: golangPath });
+    public static async packageContract(fabricVersion: number, name: string, version: string, contractPath: string, pkgFile: string, language: string, metadataPath?: string, golangPath?: string): Promise<Array<string>> {
+        let smartContractPackage: SmartContractPackageBase;
+        const options: PackagingOptions = {
+            smartContractPath: contractPath,
+            name,
+            version,
+            smartContractType: language as SmartContractType,
+            metaDataPath: metadataPath,
+            golangPath,
+        };
+        if (fabricVersion === 1) {
+            smartContractPackage = await V1SmartContractPackage.createSmartContractPackage(options);
+        } else if (fabricVersion === 2) {
+            smartContractPackage = await V2SmartContractPackage.createSmartContractPackage(options);
+        } else {
+            throw new Error(`Unknown fabric version passed through. Should be 1 or 2 but ${fabricVersion} was passed`);
+        }
 
         await fs.writeFile(pkgFile, smartContractPackage.smartContractPackage);
 
         return smartContractPackage.getFileNames();
-    }
-
-    public static async getPackageInfo(pkgBuffer: Buffer): Promise<PackageMetadata> {
-        const smartContractPackage: SmartContractPackage = new SmartContractPackage(pkgBuffer);
-        return smartContractPackage.getMetadata();
     }
 }

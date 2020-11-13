@@ -123,7 +123,7 @@ export class SmartContractHelper {
         return contractDirectory;
     }
 
-    public async packageSmartContract(name: string, version: string, language: string, directory: string): Promise<PackageRegistryEntry> {
+    public async packageSmartContract(name: string, version: string, language: string, directory: string, fabricVersion: string): Promise<PackageRegistryEntry> {
         // Check that the package exists!
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
         if (!_package) {
@@ -145,7 +145,10 @@ export class SmartContractHelper {
                 throw new Error(`I do not know how to handle language ${language}`);
             }
 
-            return vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version);
+            // Default the fabric version to 2
+            const sanitisedFabricVersion: number = (fabricVersion === 'v1' || fabricVersion === '1') ? 1 : 2;
+
+            return vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version, sanitisedFabricVersion);
         } else {
             return _package;
         }

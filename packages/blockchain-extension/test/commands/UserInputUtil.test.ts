@@ -933,7 +933,7 @@ describe('UserInputUtil', () => {
     });
 
     describe('showChaincodeAndVersionQuickPick', () => {
-        it('should show chaincode and version quick pick', async () => {
+        it('should show chaincode and version quick pick (Fabric v1, .cds)', async () => {
             const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'biscuit-network',
                 version: '0.0.2',
@@ -967,7 +967,7 @@ describe('UserInputUtil', () => {
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo']);
             quickPickStub.getCall(0).args[0].should.deep.equal([
                 {
-                    label: 'jaffa-network@0.0.1',
+                    label: 'jaffa-network@0.0.1.cds',
                     description: 'Packaged',
                     data: {
                         packageEntry: {
@@ -997,6 +997,33 @@ describe('UserInputUtil', () => {
                         workspace: {
                             name: 'biscuit-network', uri: uriTwo
                         }
+                    }
+                }
+            ]);
+        });
+
+        it('should show chaincode and version quick pick (Fabric v2, .tar.gz)', async () => {
+            const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'jaffa-network',
+                version: '0.0.1',
+                path: 'jaffa-network@0.0.1.tar.gz',
+                sizeKB: 34
+            });
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne]);
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo']);
+            quickPickStub.getCall(0).args[0].should.deep.equal([
+                {
+                    label: 'jaffa-network@0.0.1.tar.gz',
+                    description: 'Packaged',
+                    data: {
+                        packageEntry: {
+                            name: 'jaffa-network',
+                            path: 'jaffa-network@0.0.1.tar.gz',
+                            version: '0.0.1',
+                            sizeKB: 34
+                        },
+                        workspace: undefined
                     }
                 }
             ]);
@@ -1046,7 +1073,7 @@ describe('UserInputUtil', () => {
                     data: { packageEntry: { name: packagedOne.name, version: packagedOne.version, path: undefined, sizeKB: undefined }, workspace: undefined }
                 },
                 {
-                    label: `${packagedTwo.name}@${packagedTwo.version}`,
+                    label: `${packagedTwo.name}@${packagedTwo.version}.cds`,
                     description: 'Packaged',
                     data: { packageEntry: { name: packagedTwo.name, version: packagedTwo.version, path: packagedTwo.path, sizeKB: 23 }, workspace: undefined }
                 },

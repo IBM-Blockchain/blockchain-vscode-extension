@@ -18,45 +18,27 @@ import {JavaPackager} from './packager/Java';
 import {GolangPackager} from './packager/Golang';
 import {Utils} from 'fabric-common';
 import {SmartContractType} from './packager/BasePackager';
+import { PackagingOptions } from './SmartContractPackageBase';
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as zlib from 'zlib';
 import * as tar from 'tar-stream';
+import { SmartContractPackageBase } from './SmartContractPackageBase';
 
-const logger: any = Utils.getLogger('packager');
-
-export interface PackagingOptions {
-    smartContractPath: string,
-    label: string,
-    smartContractType: SmartContractType,
-    metaDataPath?: string,
-    golangPath?: string
-}
-
-export interface PackageMetadata {
-    label: string,
-    path: string,
-    type: SmartContractType
-}
+const logger: any = Utils.getLogger('V2SmartContractPackage');
 
 /**
  * A class to package a smart contract and get the names of the files in a package
  */
-export class SmartContractPackage {
-
-    /**
-     * The buffer containing the smart contract package
-     */
-    public smartContractPackage: Buffer;
-    private fileNames: string[] = [];
+export class V2SmartContractPackage extends SmartContractPackageBase {
 
     /**
      * Create a smart contract package instance
      * @param smartContractPackage Buffer, the buffer containg the smart contract package
      */
     constructor(smartContractPackage: Buffer) {
-        this.smartContractPackage = smartContractPackage;
+        super(smartContractPackage);
     }
 
     /**
@@ -64,16 +46,19 @@ export class SmartContractPackage {
      * @param options PackagingOptions, the options to use when creating a smart contract package
      * @return Promise<SmartContractPackage>, return an instance of this class
      */
-    public static async createSmartContractPackage(options: PackagingOptions): Promise<SmartContractPackage> {
+    public static async createSmartContractPackage(options: PackagingOptions): Promise<V2SmartContractPackage> {
         if (!options) {
             throw new Error('Missing options parameter');
         }
 
-        logger.debug('createSmartContractPackage: smartContractPath: %s, label: %s, smartContractType: %s, metadataPath: %s golangPath: %s',
-            options.smartContractPath, options.label, options.smartContractType, options.metaDataPath, options.golangPath);
+        logger.debug('createSmartContractPackage: smartContractPath: %s, name: %s, version: %s, smartContractType: %s, metadataPath: %s golangPath: %s',
+            options.smartContractPath, options.name, options.version, options.smartContractType, options.metaDataPath, options.golangPath);
 
-        if (!options.label) {
-            throw new Error('Missing option label');
+        if (!options.name) {
+            throw new Error('Missing option name');
+        }
+        if (!options.version) {
+            throw new Error('Missing option version');
         }
         if (!options.smartContractPath || options.smartContractPath.length < 1) {
             throw new Error('Missing option smartContractPath');
@@ -104,34 +89,12 @@ export class SmartContractPackage {
         try {
             const smartContractPackage: Buffer = await this.packageContract(options.smartContractPath, options.smartContractType, options.metaDataPath, options.golangPath);
 
-            const finalSmartContract: Buffer = await this.finalPackage(options.label, options.smartContractType, smartContractPackage, goPath);
+            const label: string = this.getLabel(options.name, options.version);
+            const finalSmartContract: Buffer = await this.finalPackage(label, options.smartContractType, smartContractPackage, goPath);
 
-            return new SmartContractPackage(finalSmartContract);
+            return new V2SmartContractPackage(finalSmartContract);
         } catch (error) {
             throw new Error(`Could not package smart contract, received error: ${error.message}`);
-        }
-    }
-
-    /**
-     * Get the file names from a smart contract package
-     * @return Promise<string[]>, An array of the names of the files in the smart contract package
-     */
-    public async getFileNames(): Promise<string[]> {
-        try {
-            this.fileNames = [];
-            await this.findFileNames(this.smartContractPackage);
-            return this.fileNames;
-        } catch (error) {
-            throw new Error(`Could not get file names for package, received error: ${error.message}`);
-        }
-    }
-
-    public async getMetadata(): Promise<PackageMetadata> {
-        try {
-            const metadataString: string = await this.findMetadata(this.smartContractPackage);
-            return JSON.parse(metadataString);
-        } catch (error) {
-            throw new Error(`Could not get metadata for package, received error: ${error.message}`);
         }
     }
 
@@ -169,41 +132,11 @@ export class SmartContractPackage {
         return handler;
     }
 
-    private async findMetadata(buffer: Buffer): Promise<any> {
-        let allData: string = '';
+    protected async findFileNames(buffer: Buffer): Promise<void> {
         return new Promise((resolve) => {
             const gunzip: any = zlib.createGunzip();
             const extract: any = tar.extract();
             extract.on('entry', (header, stream, next) => {
-                logger.debug('Package._findMetadata - found entry %s', header.name);
-                if (header.type === 'file') {
-                    if (header.name === 'metadata.json') {
-                        stream.on('data', (data: Buffer) => {
-                            allData = allData + data.toString();
-                        });
-                    }
-
-                    stream.on('end', () => {
-                        next();
-                    });
-
-                    stream.resume();
-                }
-            });
-            extract.on('finish', () => {
-                resolve(allData);
-            });
-            gunzip.pipe(extract);
-            gunzip.end(buffer);
-        });
-    }
-
-    private async findFileNames(buffer: Buffer): Promise<void> {
-        return new Promise((resolve) => {
-            const gunzip: any = zlib.createGunzip();
-            const extract: any = tar.extract();
-            extract.on('entry', (header, stream, next) => {
-                logger.debug('Package._findFileNames - found entry %s', header.name);
                 if (header.type === 'file') {
                     if (header.name === 'code.tar.gz') {
                         this.extractInnerZip(stream, next);
@@ -229,7 +162,6 @@ export class SmartContractPackage {
         const extract: any = tar.extract();
 
         extract.on('entry', (header, stream, next) => {
-            logger.debug('Package._findFileNames - found entry %s', header.name);
             if (header.type === 'file') {
                 this.fileNames.push(header.name);
             }

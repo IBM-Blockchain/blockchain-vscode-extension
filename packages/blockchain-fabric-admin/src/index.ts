@@ -12,7 +12,9 @@
  * limitations under the License.
 */
 
-export * from './SmartContractPackage';
+export * from './SmartContractPackageBase';
+export * from './V1SmartContractPackage';
+export * from './V2SmartContractPackage';
 export {SmartContractType} from './packager/BasePackager'
 
 export * from './Lifecycle';

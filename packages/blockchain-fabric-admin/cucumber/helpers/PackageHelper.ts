@@ -15,7 +15,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import {Helper} from './Helper';
-import {PackageMetadata, SmartContractPackage} from '../../src';
+import {SmartContractPackageBase, V1SmartContractPackage, V2SmartContractPackage} from '../../src';
 import {SmartContractType} from '../../src';
 import * as child_process from 'child_process';
 
@@ -23,7 +23,7 @@ import stripAnsi = require('strip-ansi');
 
 export class PackageHelper {
 
-    public static async packageContract(projectPath: string, label: string, type: SmartContractType, language: string): Promise<string> {
+    public static async packageContract(projectPath: string, name: string, version: string, type: SmartContractType, language: string, fabricVersion: number): Promise<string> {
 
         if (language === 'typescript') {
             await this.runCommand('npm', ['install'], projectPath);
@@ -35,27 +35,39 @@ export class PackageHelper {
             await this.runCommand('go', ['mod', 'vendor'], projectPath);
         }
 
-        const contractPackage: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({
-            smartContractPath: projectPath,
-            smartContractType: type,
-            label: label
-        });
+        let contractPackage: SmartContractPackageBase;
+        if (fabricVersion === 1) {
+            contractPackage = await V1SmartContractPackage.createSmartContractPackage({
+                smartContractPath: projectPath,
+                smartContractType: type,
+                name,
+                version,
+            });
+        } else {
+            contractPackage = await V2SmartContractPackage.createSmartContractPackage({
+                smartContractPath: projectPath,
+                smartContractType: type,
+                name,
+                version,
+            });
+        }
 
         await fs.ensureDir(Helper.PACKAGE_DIR);
 
+        const label: string = SmartContractPackageBase.getLabel(name, version);
         const packagePath: string = path.join(Helper.PACKAGE_DIR, `${label}.tar.gz`);
         await fs.writeFile(packagePath, contractPackage.smartContractPackage);
         return packagePath;
     }
 
-    public static getPackageFileList(contractBuffer: Buffer): Promise<string[]> {
-        const contractPackage: SmartContractPackage = new SmartContractPackage(contractBuffer);
+    public static getV1PackageFileList(contractBuffer: Buffer): Promise<string[]> {
+        const contractPackage: V1SmartContractPackage = new V1SmartContractPackage(contractBuffer);
         return contractPackage.getFileNames();
     }
 
-    public static getPackageMetadata(contractBuffer: Buffer): Promise<PackageMetadata> {
-        const contractPackage: SmartContractPackage = new SmartContractPackage(contractBuffer);
-        return contractPackage.getMetadata();
+    public static getV2PackageFileList(contractBuffer: Buffer): Promise<string[]> {
+        const contractPackage: V2SmartContractPackage = new V2SmartContractPackage(contractBuffer);
+        return contractPackage.getFileNames();
     }
 
     private static async runCommand(command: string, args: string[], cwd: string): Promise<void> {

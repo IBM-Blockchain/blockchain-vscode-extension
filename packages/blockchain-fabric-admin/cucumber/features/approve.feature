@@ -2,7 +2,7 @@ Feature: Approve Smart Contract
   Approve a smart contract definition
 
   Scenario Outline: Approve Smart Contract
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
     And the package exists
     And the lifecycle is setup
     And the package is installed

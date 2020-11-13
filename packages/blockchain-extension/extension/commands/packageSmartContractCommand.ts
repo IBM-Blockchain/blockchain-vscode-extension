@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as semver from 'semver';
 import { UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
@@ -26,18 +25,24 @@ import { SettingConfigurations } from '../configurations';
 import { DeployView } from '../webview/DeployView';
 import { CommandUtil } from '../util/CommandUtil';
 
+interface IProperties {
+    workspacePackageName: string;
+    workspacePackageVersion: string;
+}
+
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs successfully.
  * This will be used in other files to call the command to package a smart contract project.
  */
-export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<PackageRegistryEntry> {
+export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string, overrideFabricVersion?: number): Promise<PackageRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'packageSmartContract');
 
     let resolvedPkgDir: string;
-    let properties: { workspacePackageName: string, workspacePackageVersion: string };
+    let properties: IProperties;
     let language: string;
     let packageError: string;
+    let fabricVersion: number = overrideFabricVersion;
 
     try {
         // Determine the directory that will contain the packages and ensure it exists.
@@ -61,15 +66,30 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
         checkForProjectErrors(workspace);
 
+        const fabricVersions: { version: number, label: string }[] = [
+            { version: 2, label: UserInputUtil.SELECT_PACKAGING_FABRIC_VERSION_2 },
+            { version: 1, label: UserInputUtil.SELECT_PACKAGING_FABRIC_VERSION_1 },
+        ];
+        if (!overrideFabricVersion || fabricVersions.findIndex(({ version }) => version === overrideFabricVersion) === -1) {
+            const fabricVersionString: string = await UserInputUtil.showQuickPick('Select the packaging output format', fabricVersions.map(({ label }) => label)) as string;
+            if (!fabricVersionString) {
+                // User cancelled.
+                return;
+            }
+
+            const selectedOption: { version: number, label: string } = fabricVersions.find(({ label }) => label === fabricVersionString);
+            fabricVersion = selectedOption.version;
+        }
+
         // Determine the language.
         language = await UserInputUtil.getLanguage(workspace);
 
         // Determine the package name and version.
         if (language === 'golang') {
-            properties = await golangPackageAndVersion(workspace, overrideName, overrideVersion);
+            properties = await golangPackageAndVersion(overrideName, overrideVersion);
             packageError = 'Go package name';
         } else if (language === 'java') {
-            properties = await javaPackageAndVersion(workspace, overrideName, overrideVersion);
+            properties = await javaPackageAndVersion(overrideName, overrideVersion);
             packageError = 'Java package name';
         } else {
             properties = await packageJsonNameAndVersion(workspace, overrideName, overrideVersion);
@@ -104,7 +124,8 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         try {
 
             // Determine the filename of the new package.
-            const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.tar.gz`);
+            const pkgFileExtension: string = (fabricVersion === 1) ? 'cds' : 'tar.gz';
+            const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.${pkgFileExtension}`);
             const pkgFileExists: boolean = await fs.pathExists(pkgFile);
             if (pkgFileExists) {
                 if (language === 'golang') {
@@ -174,7 +195,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             // Create the package. Need to dynamically load the package class
             // from the Fabric SDK to avoid early native module loading.
             const { PackageSmartContract } = await import('ibm-blockchain-platform-environment-v1');
-            const fileNames: string[] = await PackageSmartContract.packageContract(`${properties.workspacePackageName}_${properties.workspacePackageVersion}`, contractPath, pkgFile, language, metadataPath);
+            const fileNames: string[] = await PackageSmartContract.packageContract(fabricVersion, properties.workspacePackageName, properties.workspacePackageVersion, contractPath, pkgFile, language, metadataPath);
 
             Reporter.instance().sendTelemetryEvent('packageCommand');
 
@@ -220,7 +241,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
  * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
  * @returns {string, string}An object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method.
  */
-async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
+async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<IProperties> {
 
     const workspacePackage: string = path.join(workspaceDir.uri.fsPath, '/package.json');
     const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
@@ -228,8 +249,6 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, o
 
     let workspacePackageName: string = workspacePackageObj.name;
     let workspacePackageVersion: string = workspacePackageObj.version;
-
-    let contractAPI: string;
 
     if (overrideName) {
         workspacePackageName = overrideName;
@@ -243,27 +262,6 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, o
         throw new Error(message);
     }
 
-    const dependencies: any = workspacePackageObj.dependencies;
-    contractAPI = dependencies['fabric-contract-api'];
-
-    if (!contractAPI) {
-        // check if low level chaincode
-        contractAPI = dependencies['fabric-shim'];
-        if (!contractAPI) {
-            throw new Error('Unable to determine contract API version.');
-        }
-    }
-
-    const contractSemver: semver.SemVer = semver.coerce(contractAPI); // Contract semver
-
-    const contractMajor: number = contractSemver.major;
-
-    // Check if fabric contract API version is greater than 2.0.0
-    if (contractMajor !== 2) {
-        // Version is not greater than or equal to 2
-        throw new Error(`Unable to package contract. Contract API dependency must support Fabric 2. Your version: ${contractAPI}`);
-    }
-
     return { workspacePackageName, workspacePackageVersion };
 }
 
@@ -273,50 +271,7 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, o
  * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
  * @returns {string, string} Returns an object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method
  */
-async function javaPackageAndVersion(workspaceDir: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
-
-    let contractVersion: string = 'fabric-chaincode-shim';
-    let projectFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle');
-
-    const exists: boolean = await fs.pathExists(projectFile);
-    if (!exists) {
-        projectFile = path.join(workspaceDir.uri.fsPath, 'pom.xml');
-        const pomExists: boolean = await fs.pathExists(projectFile);
-        if (!pomExists) {
-            throw new Error('Unable to determine contract API version - no build.gradle or pom.xml found');
-        }
-        contractVersion = 'fabric-chaincode-java';
-    }
-
-    const workspaceGradleContents: string = await fs.readFile(projectFile, 'utf8');
-
-    const regex: RegExp = new RegExp(/fabric-chaincode-shim:(.*)|'fabric-chaincode-shim', version: '(.*)'|fabric-chaincode-java.version>(.*)</);
-
-    const result: RegExpExecArray = regex.exec(workspaceGradleContents);
-
-    if (!result) {
-        const warnPackage: boolean = await UserInputUtil.showConfirmationWarningMessage(`Could not find the ${contractVersion} version. Would you like to package it anyway?`);
-        if (!warnPackage) {
-            return;
-        }
-    } else {
-
-        let contractSemver: semver.SemVer;
-        let version: string;
-        for (let i: number = 1; i < result.length; i++) {
-            if (result[i]) {
-                contractSemver = semver.coerce(result[i]); // Contract semver
-                version = result[i];
-                break;
-            }
-        }
-
-        const contractMajor: number = contractSemver.major;
-        if (contractMajor !== 2) {
-            throw new Error(`Unable to package contract. Contract API dependency must support Fabric 2. Your version: ${version}`);
-        }
-    }
-
+async function javaPackageAndVersion(overrideName?: string, overrideVersion?: string): Promise<IProperties> {
     let workspacePackageName: string = overrideName;
     if (!workspacePackageName) {
         workspacePackageName = await UserInputUtil.showInputBox('Enter a name for your Java package'); // Getting the specified name and package from the user
@@ -343,30 +298,7 @@ async function javaPackageAndVersion(workspaceDir: vscode.WorkspaceFolder, overr
  * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
  * @returns {string, string} Returns an object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method
  */
-async function golangPackageAndVersion(workspaceDir: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
-
-    // Check if go smart contract uses version greater that fabric v2
-
-    const workspaceMod: string = path.join(workspaceDir.uri.fsPath, 'go.mod');
-    let workspaceModContents: string;
-
-    const exists: boolean = await fs.pathExists(workspaceMod);
-
-    if (exists) {
-        workspaceModContents = await fs.readFile(workspaceMod, 'utf8');
-        const regex: RegExp = new RegExp(/github\.com\/hyperledger\/fabric-contract-api-go /);
-        if (!(regex.test(workspaceModContents))) {
-            const regexChaincode: RegExp = new RegExp(/github\.com\/hyperledger\/fabric-chaincode-go /);
-            if (!(regexChaincode.test(workspaceModContents))) {
-                throw new Error(`Unable to package contract. Contract API dependency must support Fabric 2.`);
-            }
-        }
-    } else {
-        const warnPackage: boolean = await UserInputUtil.showConfirmationWarningMessage(`Could not find the fabric-contract-api-go version. Would you like to package it anyway?`);
-        if (!warnPackage) {
-            return;
-        }
-    }
+async function golangPackageAndVersion(overrideName?: string, overrideVersion?: string): Promise<IProperties> {
 
     let workspacePackageName: string = overrideName;
     if (!workspacePackageName) {

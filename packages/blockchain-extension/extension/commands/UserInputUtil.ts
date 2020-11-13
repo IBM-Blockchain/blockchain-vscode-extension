@@ -106,6 +106,9 @@ export class UserInputUtil {
     static readonly V2_0: string = 'V2_0';
     static readonly V2_0_RECOMMENDED: string = `${UserInputUtil.V2_0} (Recommended)`;
 
+    static readonly SELECT_PACKAGING_FABRIC_VERSION_1: string = 'cds (V1 channel capabilities)';
+    static readonly SELECT_PACKAGING_FABRIC_VERSION_2: string = 'tar.gz (V2 channel capabilities)';
+
     public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
@@ -365,6 +368,11 @@ export class UserInputUtil {
         }
     }
 
+    public static getPackageFileExtension(packagePath: string): string {
+        // path.extname doesn't work for .tar.gz (it returns .gz)
+        return packagePath.endsWith('.tar.gz') ? '.tar.gz' : path.extname(packagePath);
+    }
+
     // TODO this is only used in v1 contracts - need to check usefulness once merge is complete
     public static async showChaincodeAndVersionQuickPick(prompt: string, channel: string, peers: Array<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
@@ -412,17 +420,24 @@ export class UserInputUtil {
             // If the tempItem is an Open Project
             if (!tempItem.data.packageEntry) {
                 const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: undefined, workspace: workspace };
-                quickPickItems.push({ label: `${tempItem.data.workspace.name}`, description: tempItem.description, data: data });
+                quickPickItems.push({ label: `${tempItem.data.workspace.name}`, description: tempItem.description, data });
 
             } else {
                 const itemName: string = tempItem.data.packageEntry.name;
                 const itemVersion: string = tempItem.data.packageEntry.version;
+                let itemExtension: string = '';
+
+                const packageEntryPath: string = tempItem.data.packageEntry.path || undefined;
+                if (packageEntryPath) {
+                    itemExtension = this.getPackageFileExtension(packageEntryPath);
+                }
+                const label: string = `${itemName}@${itemVersion}${itemExtension}`;
 
                 // If the user is performing an upgrade, we want to show all smart contracts with the same name (but not the currently instantiated version)
                 if (contractName && contractVersion) {
                     if (itemName === contractName && itemVersion !== contractVersion) {
                         const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: tempItem.data.packageEntry, workspace: workspace };
-                        quickPickItems.push({ label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data });
+                        quickPickItems.push({ label, description: tempItem.description, data });
                     }
                 } else {
                     // Show all smart contracts which haven't had a previous version instantiated
@@ -431,7 +446,7 @@ export class UserInputUtil {
                     });
                     if (searchResult === -1) { // if index of itemName in allSmartContracts is not found
                         const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: tempItem.data.packageEntry, workspace: workspace };
-                        quickPickItems.push({ label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data });
+                        quickPickItems.push({ label, description: tempItem.description, data });
                     }
                 }
             }
