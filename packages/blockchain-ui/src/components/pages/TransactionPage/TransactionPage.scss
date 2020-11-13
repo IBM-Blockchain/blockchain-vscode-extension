@@ -12,19 +12,32 @@
         }
 
         .breadcrumb {
-            color: $gray-10;
             font-size: 0.875rem;
         }
 
         .breadcrumb .breadcrumb-divider {
-            color: $gray-10;
             margin: 0 $spacing-03;
+        }
+
+        .breadcrumb, .breadcrumb .breadcrumb-divider {
+            color: $gray-10;
         }
     }
 
     .bx--form {
         .bx--dropdown__wrapper, .bx--form-item, .bx--multi-select__wrapper, .associate-tx-data {
             margin: $spacing-06 0;
+        }
+    }
+}
+
+
+.vscode-light {
+    .page-container {
+        .titles-container {
+            .breadcrumb, .breadcrumb .breadcrumb-divider {
+                color: $gray-70;
+            }
         }
     }
 }

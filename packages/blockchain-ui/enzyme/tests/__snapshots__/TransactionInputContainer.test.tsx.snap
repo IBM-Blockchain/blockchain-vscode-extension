@@ -3,7 +3,7 @@
 exports[`TransactionInputContainer component should render the expected snapshot 1`] = `
 Array [
   <div
-    className="bx--content-switcher"
+    className="bx--content-switcher transaction-input-content-switch"
     onChange={[Function]}
     role="tablist"
     selectionMode="manual"
@@ -131,7 +131,7 @@ Array [
           onClick={[Function]}
           placeholder=""
           rows={4}
-          value="{}"
+          value=""
         />
       </div>
     </div>
