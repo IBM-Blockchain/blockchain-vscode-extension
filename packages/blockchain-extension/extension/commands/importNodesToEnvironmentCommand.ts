@@ -139,6 +139,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                             if (node.tls_ca_root_cert) {
                                 node.pem = node.tls_ca_root_cert;
                                 delete node.tls_ca_root_cert;
+                            } else if (node.tls_ca_root_certs) {
+                                node.pem = node.tls_ca_root_certs.join('\n');
+                                delete node.tls_ca_root_certs;
                             }
                         }
                     }
@@ -150,7 +153,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                 }
             }
         } else {
-            const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
+            const GET_ALL_COMPONENTS: string = '/ak/api/v2/components';
             const api: string = environmentRegistryEntry.url.replace(/\/$/, '') + GET_ALL_COMPONENTS;
             let response: any;
             let requestOptions: any;
@@ -196,27 +199,32 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
                 // process node data
                 const data: any = response.data;
+                const components: any[] = data.components;
                 let filteredData: FabricNode[] = [];
 
-                if (data && data.length > 0) {
-                    filteredData = data.filter((_data: any) => _data.api_url)
-                        .map((_data: any) => {
-                            _data.name = _data.display_name;
-                            delete _data.display_name;
+                if (components && components.length > 0) {
+                    filteredData = components.filter((_component: any) => _component.api_url)
+                        .map((_component: any) => {
+                            _component.name = _component.display_name;
+                            delete _component.display_name;
 
-                            if (_data.tls_cert) {
-                                _data.pem = _data.tls_cert;
-                                delete _data.tls_cert;
+                            if (_component.tls_cert) {
+                                _component.pem = _component.tls_cert;
+                                delete _component.tls_cert;
                             }
 
-                            if (_data.type !== 'fabric-ca') {
-                                if (_data.tls_ca_root_cert) {
-                                    _data.pem = _data.tls_ca_root_cert;
-                                    delete _data.tls_ca_root_cert;
+                            if (_component.type !== 'fabric-ca') {
+                                if (_component.tls_ca_root_cert) {
+                                    _component.pem = _component.tls_ca_root_cert;
+                                    delete _component.tls_ca_root_cert;
+                                } else if (_component.tls_ca_root_certs) {
+                                    _component.pem = _component.tls_ca_root_certs.join('\n');
+                                    delete _component.tls_ca_root_certs;
                                 }
+
                             }
 
-                            return FabricNode.pruneNode(_data);
+                            return FabricNode.pruneNode(_component);
                         });
 
                     let chosenNodes: IBlockchainQuickPickItem<FabricNode>[];
