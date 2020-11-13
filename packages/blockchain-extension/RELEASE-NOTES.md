@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.9
-_Release date: October 29th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0-beta.10
+_Release date: November 13th 2020_
 
 Announcements
 ---
@@ -13,15 +13,18 @@ Announcements
 
 Features & Enhancements
 ---
-* Tutorials now open in webviews [#2645](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2645).
+* Added support for connecting to IBM Blockchain Platform 2.5.1 [#2791](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2791).
+* Updated local environment implementation [#2629](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2629)
+ > Local environments now use [Microfab](https://github.com/IBM-Blockchain/microfab), making them much faster to start!
+* Added a new transaction view, replacing the old submit/evaluate commands [#2639](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2639)
+ > Left-click on a transaction or run the `Transact with Smart Contract` command to submit/evaluate transactions!
 
 Fixes
 ---
-* Updated tutorials and fixed broken images [#2731](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2731).
-* Fixed packaging to look for 'contract-metadata' directory [#2772](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2772).
+* Reverted packaging metadata path change made in v1.0.39 [#2797](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2797).
+ > We have reverted to look for the 'META-INF' directory again - sorry for the inconvenience!
 
 Notes
 ---
-* Connecting to IBM Blockchain Platform environments will not work yet as they are not using the new lifecycle yet.
-* If you already have v1.4 local environment's running, you'll need to tear them down and start them again to use them as v2 local environments.
-* Debug doesn't work at moment
+* If you already have v1.4 local environment's running, you'll need to tear them down and start them again to use them as v2 local environments.
+* Debug doesn't work at moment
