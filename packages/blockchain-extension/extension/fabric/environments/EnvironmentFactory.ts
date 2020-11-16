@@ -12,17 +12,16 @@
  * limitations under the License.
 */
 'use strict';
-import { ManagedAnsibleEnvironment } from './ManagedAnsibleEnvironment';
 import { FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
-import { LocalEnvironment } from './LocalEnvironment';
-import { LocalEnvironmentManager } from './LocalEnvironmentManager';
 import * as path from 'path';
 import { SettingConfigurations } from '../../configurations';
-import { ManagedAnsibleEnvironmentManager } from './ManagedAnsibleEnvironmentManager';
+import { LocalMicroEnvironment } from './LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from './LocalMicroEnvironmentManager';
+import { LocalEnvironment } from './LocalEnvironment';
 
 export class EnvironmentFactory {
 
-    public static getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment | MicrofabEnvironment {
+    public static getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): FabricEnvironment | AnsibleEnvironment | LocalMicroEnvironment | MicrofabEnvironment {
         const name: string = environmentRegistryEntry.name;
         if (!name) {
             throw new Error('Unable to get environment, a name must be provided');
@@ -36,13 +35,17 @@ export class EnvironmentFactory {
         const type: EnvironmentType = environmentRegistryEntry.environmentType;
 
         if (managedRuntime && type === EnvironmentType.LOCAL_ENVIRONMENT) {
-            const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(name);
-            return runtime;
-        } else if (managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-            const runtime: ManagedAnsibleEnvironment = ManagedAnsibleEnvironmentManager.instance().getRuntime(name);
+            const extDir: string = SettingConfigurations.getExtensionDir();
+            const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
+            const envPath: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, name);
+
+            const runtime: LocalEnvironment = new LocalEnvironment(name, envPath);
             return runtime;
         } else if (!managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
             return new AnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
+        } else if (type === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
+            const runtime: LocalMicroEnvironment = LocalMicroEnvironmentManager.instance().getRuntime(name);
+            return runtime;
         } else if (type === EnvironmentType.MICROFAB_ENVIRONMENT) {
             return new MicrofabEnvironment(name, environmentRegistryEntry.environmentDirectory, environmentRegistryEntry.url);
         } else {

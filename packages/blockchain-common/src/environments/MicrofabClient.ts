@@ -13,7 +13,6 @@
 */
 
 import Axios, { AxiosResponse, AxiosInstance } from 'axios';
-import { URL } from 'url';
 
 export interface MicrofabComponent {
     id: string;
@@ -88,14 +87,16 @@ export function isIdentity(component: MicrofabComponent): component is MicrofabI
 
 export class MicrofabClient {
 
+    public url: string;
     private axios: AxiosInstance;
 
-    constructor(private url: string) {
-        this.axios = Axios.create({ timeout: 1000 });
+    constructor(url: string) {
+        this.url = url;
+        this.axios = Axios.create({ timeout: 30000 });
     }
 
     public async isAlive(): Promise<boolean> {
-        const url: URL = new URL('/ak/api/v1/health', this.url);
+        const url: string = `${this.url}/ak/api/v1/health`;
         const request: Promise<boolean> = this.axios.get(url.toString())
             .then(() => {
                 return true;
@@ -106,19 +107,20 @@ export class MicrofabClient {
         const timeout: Promise<boolean> = new Promise((resolve) => {
             setTimeout(() => {
                 resolve(false);
-            }, 1000);
+            }, 30000);
         });
         return Promise.race([request, timeout]);
     }
 
     public async getComponents(): Promise<MicrofabComponent[]> {
-        const url: URL = new URL('/ak/api/v1/components', this.url);
+        const url: string = `${this.url}/ak/api/v1/components`;
         const response: AxiosResponse = await this.axios.get(url.toString());
         return response.data as MicrofabComponent[];
     }
 
     public async getComponent(id: string): Promise<MicrofabComponent> {
-        const url: URL = new URL(`/ak/api/v1/components/${id}`, this.url);
+        const url: string = `${this.url}/ak/api/v1/components/${id}`;
+
         const response: AxiosResponse = await this.axios.get(url.toString());
         return response.data as MicrofabComponent;
     }

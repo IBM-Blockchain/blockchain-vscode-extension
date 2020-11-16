@@ -22,9 +22,9 @@ import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGat
 import { FabricRuntimeUtil, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 
 import * as vscode from 'vscode';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { FabricDebugConfigurationProvider } from '../../extension/debug/FabricDebugConfigurationProvider';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -48,7 +48,7 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     let localGateway: FabricGatewayRegistryEntry;
     let otherGateway: FabricGatewayRegistryEntry;
     let debugSessionStub: sinon.SinonStub;
-    let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
+    let mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment>;
     let getRuntimeStub: sinon.SinonStub;
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
@@ -146,11 +146,11 @@ describe('Metadata ConnectionProfileUtil tests', () => {
 
         debugSessionStub = mySandBox.stub(vscode.debug, 'activeDebugSession');
 
-        mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
+        mockRuntime = mySandBox.createStubInstance(LocalMicroEnvironment);
         mockRuntime.isRunning.resolves(true);
         mockRuntime.killChaincode.resolves();
 
-        getRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime');
+        getRuntimeStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'getRuntime');
         getRuntimeStub.returns(mockRuntime);
     });
 

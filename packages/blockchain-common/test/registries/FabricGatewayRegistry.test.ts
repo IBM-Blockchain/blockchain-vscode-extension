@@ -53,7 +53,7 @@ describe('FabricGatewayRegistry', () => {
         sandbox.restore();
     });
 
-    it('should get all the gateways and put local fabrics first', async () => {
+    it('should get all the gateways and put local microfabs first', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'gatewayOne',
             associatedWallet: '',
@@ -62,8 +62,8 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricEnvironmentRegistry.instance().add({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true });
-        await FabricEnvironmentRegistry.instance().add({ name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory: '', numberOfOrgs: 1 });
+        await FabricEnvironmentRegistry.instance().add({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true,  url: 'http://someurl:9000' });
+        await FabricEnvironmentRegistry.instance().add({ name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, environmentDirectory: '', numberOfOrgs: 1,  url: 'http://anotherurl:9000' });
 
         const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
         const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
@@ -85,8 +85,8 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.getAll().should.eventually.deep.equal([]);
 
-        await FabricEnvironmentRegistry.instance().add({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true });
-        await FabricEnvironmentRegistry.instance().add({ name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory: '' });
+        await FabricEnvironmentRegistry.instance().add({ name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: '', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, url: 'http://someurl:9000' });
+        await FabricEnvironmentRegistry.instance().add({ name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, environmentDirectory: '',  url: 'http://anotherurl:9000' });
 
         const localFabricEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: FabricRuntimeUtil.LOCAL_FABRIC, fromEnvironment: FabricRuntimeUtil.LOCAL_FABRIC, associatedWallet: 'Org1', displayName: `Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
         const otherLocalEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({ name: 'otherLocal', fromEnvironment: 'otherLocalEnv', associatedWallet: 'Org1', displayName: `Org1`, connectionProfilePath: path.join('localFabric', 'connection.json') });
@@ -117,7 +117,7 @@ describe('FabricGatewayRegistry', () => {
         await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
             name: 'microfabEnvironment',
             environmentDirectory: path.join('test', 'data', 'microfab'),
-            environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
+            environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
             managedRuntime: false,
             url: 'http://console.microfab.example.org'
         }));
@@ -166,7 +166,7 @@ describe('FabricGatewayRegistry', () => {
         await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
             name: 'microfabEnvironment',
             environmentDirectory: path.join('test', 'data', 'microfab'),
-            environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
+            environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
             managedRuntime: false,
             url: 'http://console.microfab.example.org'
         }));

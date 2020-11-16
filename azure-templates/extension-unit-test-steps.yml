@@ -12,6 +12,24 @@
 
 steps:
   - bash: |
+      cd ./packages/blockchain-extension/scripts
+      ./installdocker.sh
+    name: install_and_start_docker
+    displayName: Install Docker & pull microfab
+    condition: |
+      and
+      (
+          succeeded()
+        , eq( variables['Agent.OS'], 'Darwin')
+      )
+
+  - bash: |
+      set -ev
+      docker pull ibmcom/ibp-microfab:0.0.6
+    displayName: Pull microfab image
+    condition: succeeded()
+
+  - bash: |
       set -ev
       cd ./packages/blockchain-extension
       npm test

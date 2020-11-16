@@ -30,7 +30,7 @@ describe('gatewayExplorer', () => {
 
     const myEnvironment: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
         name: 'myEnvironment',
-        environmentType: EnvironmentType.LOCAL_ENVIRONMENT
+        environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT
     });
 
     const myGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
