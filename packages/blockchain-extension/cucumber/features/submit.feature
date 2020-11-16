@@ -7,7 +7,7 @@ Feature: Submit transaction
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
-    And I'm connected to the '1 Org Local Fabric - Org1' gateway
+    And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
     And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged
@@ -28,7 +28,7 @@ Feature: Submit transaction
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
-    And I'm connected to the '1 Org Local Fabric - Org1' gateway
+    And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
     And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
     And the contract has been packaged

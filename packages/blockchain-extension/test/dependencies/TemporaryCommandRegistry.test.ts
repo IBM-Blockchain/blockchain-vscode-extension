@@ -50,19 +50,19 @@ describe('TemporaryCommandRegistry Tests', () => {
 
         tempRegistry['delayExecution'].should.equal(true);
         should.not.exist(tempRegistry['alternativeCommand']);
-        registerCommandStub.callCount.should.equal(numberOfCommands - 2);
-        tempRegistry['tempCommands'].length.should.deep.equal(numberOfCommands - 2); // Should register all but the 'Open PreReq' & 'Open ReleaseNotes' command
+        registerCommandStub.callCount.should.equal(numberOfCommands - 4);
+        tempRegistry['tempCommands'].length.should.deep.equal(numberOfCommands - 4); // Should register all but the 'Open PreReq', 'Open ReleaseNotes', 'Teardown' and 'Delete environment' command
 
         tempRegistry.restoreCommands();
 
         registerCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
-        tempRegistry['delayedCommandsToExecute'].size.should.equal(numberOfCommands - 2);
+        tempRegistry['delayedCommandsToExecute'].size.should.equal(numberOfCommands - 4);
         tempRegistry['tempCommands'].should.deep.equal([]);
 
         const executeStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
         await tempRegistry.executeStoredCommands();
-        executeStub.callCount.should.equal(numberOfCommands - 2);
+        executeStub.callCount.should.equal(numberOfCommands - 4);
         tempRegistry['delayedCommandsToExecute'].size.should.equal(0);
     });
 
@@ -80,9 +80,9 @@ describe('TemporaryCommandRegistry Tests', () => {
 
         tempRegistry['delayExecution'].should.equal(false);
         tempRegistry['alternativeCommand'].should.equal('some.otherCommand');
-        registerCommandStub.callCount.should.equal(numberOfCommands - 2);
-        tempRegistry['tempCommands'].length.should.deep.equal(numberOfCommands - 2); // Should register all but the 'Open PreReq' & 'Open ReleaseNotes' command
-        executeStub.callCount.should.equal(numberOfCommands - 2);
+        registerCommandStub.callCount.should.equal(numberOfCommands - 4);
+        tempRegistry['tempCommands'].length.should.deep.equal(numberOfCommands - 4); // Should register all but the 'Open PreReq', 'Open ReleaseNotes', 'Teardown' and 'Delete environment' command
+        executeStub.callCount.should.equal(numberOfCommands - 4);
         executeStub.should.have.been.calledWith('some.otherCommand');
 
         executeStub.reset();
