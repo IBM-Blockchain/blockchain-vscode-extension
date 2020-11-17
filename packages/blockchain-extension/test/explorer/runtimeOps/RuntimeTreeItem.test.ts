@@ -14,9 +14,7 @@
 
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { RuntimeTreeItem } from '../../../extension/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
-import { LocalEnvironmentManager } from '../../../extension/fabric/environments/LocalEnvironmentManager';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
@@ -24,10 +22,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCode
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { BlockchainEnvironmentExplorerProvider } from '../../../extension/explorer/environmentExplorer';
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
-import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
-import { ManagedAnsibleEnvironmentManager } from '../../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
-import { ManagedAnsibleEnvironment } from '../../../extension/fabric/environments/ManagedAnsibleEnvironment';
-
+import { LocalMicroEnvironment } from '../../../extension/fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../../../extension/fabric/environments/LocalMicroEnvironmentManager';
 describe('RuntimeTreeItem', () => {
 
     const environmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
@@ -36,7 +32,7 @@ describe('RuntimeTreeItem', () => {
     let clock: sinon.SinonFakeTimers;
     let provider: BlockchainEnvironmentExplorerProvider;
     let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
-    let localRuntime: LocalEnvironment;
+    let localRuntime: LocalMicroEnvironment;
     let isBusyStub: sinon.SinonStub;
     let isRunningStub: sinon.SinonStub;
     let getStateStub: sinon.SinonStub;
@@ -57,8 +53,8 @@ describe('RuntimeTreeItem', () => {
         environmentRegistryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
-        localRuntime = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {startPort: 17050, endPort: 17070}, 1);
+        const runtimeManager: LocalMicroEnvironmentManager = LocalMicroEnvironmentManager.instance();
+        localRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
         // mockRuntime = sandbox.createStubInstance(LocalEnvironment);
         isBusyStub = sandbox.stub(localRuntime, 'isBusy');
         isRunningStub = sandbox.stub(localRuntime, 'isRunning');
@@ -267,28 +263,5 @@ describe('RuntimeTreeItem', () => {
                 logSpy.resetHistory();
             }
         });
-    });
-
-    it('should animate the label for a managed ansible runtime that is busy', async () => {
-        const managedEnvironment: ManagedAnsibleEnvironment = ManagedAnsibleEnvironmentManager.instance().ensureRuntime('managedEnvironment', path.join(__dirname, '..', '..', 'data', 'managedAnsible'));
-        sandbox.stub(managedEnvironment, 'isBusy').returns(true);
-        sandbox.stub(managedEnvironment, 'isRunning').resolves(false);
-        sandbox.stub(managedEnvironment, 'getState').returns(FabricRuntimeState.STARTING);
-        await FabricEnvironmentRegistry.instance().add({name: 'managedEnvironment', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true, environmentDirectory: path.join(__dirname, '..', '..', 'data', 'managedAnsible')});
-
-        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'managedEnvironment', environmentRegistryEntry, command, managedEnvironment);
-        await new Promise((resolve: any): any => {
-            setTimeout(resolve, 0);
-        });
-        const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
-        for (const state of states) {
-            treeItem.label.should.equal(`managedEnvironment runtime is starting... ${state}`);
-            clock.tick(500);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-        }
-
-        treeItem.command.should.deep.equal(command);
     });
 });

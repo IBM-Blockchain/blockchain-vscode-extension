@@ -18,12 +18,11 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { FabricEnvironmentRegistryEntry, LogType, FabricGatewayRegistryEntry, IFabricEnvironmentConnection, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 
 export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -44,7 +43,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
         }
 
         if ((registryEntry && !registryEntry.managedRuntime) || !registryEntry) {
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to stop', false, true, [EnvironmentFlags.MANAGED], [], true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Select an environment to stop', false, true, [EnvironmentFlags.LOCAL], [], true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             if (!chosenEnvironment) {
                 return;
             }
@@ -56,7 +55,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
         registryEntry = runtimeTreeItem.environmentRegistryEntry;
     }
 
-    const runtime: LocalEnvironment | ManagedAnsibleEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalEnvironment | ManagedAnsibleEnvironment;
+    const runtime: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(registryEntry) as LocalMicroEnvironment;
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -83,5 +82,6 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
     });
 }

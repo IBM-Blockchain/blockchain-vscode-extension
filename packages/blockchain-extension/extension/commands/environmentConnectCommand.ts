@@ -21,9 +21,8 @@ import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, AnsibleEnvironment, EnvironmentType, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
-import { ManagedAnsibleEnvironment } from '../fabric/environments/ManagedAnsibleEnvironment';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccess: boolean = true): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -32,7 +31,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
     }
 
-    let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | ManagedAnsibleEnvironment | LocalEnvironment | MicrofabEnvironment;
+    let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | LocalMicroEnvironment;
 
     try {
         if (!fabricEnvironmentRegistryEntry) {
@@ -46,17 +45,18 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
         fabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
 
-        if (fabricEnvironment instanceof MicrofabEnvironment) {
-            const isAlive: boolean = await fabricEnvironment.isAlive();
+        if (fabricEnvironmentRegistryEntry.environmentType === EnvironmentType.MICROFAB_ENVIRONMENT) {
+            const isAlive: boolean = await (fabricEnvironment as MicrofabEnvironment).isAlive();
             if (!isAlive) {
-                outputAdapter.log(LogType.ERROR, `Unable to connect to Microfab runtime ${fabricEnvironment.getURL()}`);
+                outputAdapter.log(LogType.ERROR, `Unable to connect to Microfab runtime ${(fabricEnvironment as MicrofabEnvironment).getURL()}`);
                 return;
             }
         }
 
+        // TODO JAKE: Should we just check type === LocalMicrofabEnvironment?
         if (fabricEnvironmentRegistryEntry.managedRuntime) {
 
-            let running: boolean = await (fabricEnvironment as LocalEnvironment | ManagedAnsibleEnvironment).isRunning();
+            let running: boolean = await (fabricEnvironment as LocalMicroEnvironment).isRunning();
             if (!running) {
                 try {
                     await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, fabricEnvironmentRegistryEntry);
@@ -65,11 +65,17 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
                     outputAdapter.log(LogType.ERROR, `Unable to connect as starting the Fabric failed`);
                     return;
                 }
-                running = await (fabricEnvironment as LocalEnvironment | ManagedAnsibleEnvironment).isRunning();
+                running = await (fabricEnvironment as LocalMicroEnvironment).isRunning();
                 if (!running) {
                     // failed to start local fabric so return
                     return;
                 }
+            }
+
+            const isAlive: boolean = await (fabricEnvironment as LocalMicroEnvironment).waitFor();
+            if (!isAlive) {
+                // Network isn't alive.
+                return;
             }
         }
 
@@ -103,9 +109,9 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         // need to check if the environment is setup
         const requireSetup: boolean = await fabricEnvironment.requireSetup();
 
-        if (requireSetup && !(fabricEnvironment instanceof LocalEnvironment || fabricEnvironment instanceof ManagedAnsibleEnvironment)) {
+        if (requireSetup && !(fabricEnvironment instanceof LocalMicroEnvironment)) {
             FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
-            VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
+            VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable deploy and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
             FabricEnvironmentManager.instance().stopEnvironmentRefresh();
             return;
         }

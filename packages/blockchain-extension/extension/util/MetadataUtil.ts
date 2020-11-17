@@ -14,10 +14,10 @@
 'use strict';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { IFabricGatewayConnection, LogType} from 'ibm-blockchain-platform-common';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import * as vscode from 'vscode';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
 
 // Functions for parsing metadata object
 export class MetadataUtil {
@@ -101,7 +101,7 @@ export class MetadataUtil {
             // make sure we are debugging the one getting we are getting meta data for
             if (chaincodeName === name) {
 
-                const runtime: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(FabricDebugConfigurationProvider.environmentName);
+                const runtime: LocalMicroEnvironment = LocalMicroEnvironmentManager.instance().getRuntime(FabricDebugConfigurationProvider.environmentName);
                 const isContainerRunning: boolean = await runtime.isRunning([name, version]);
                 if (isContainerRunning) {
                     await runtime.killChaincode([name, version]);

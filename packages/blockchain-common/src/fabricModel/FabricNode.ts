@@ -110,6 +110,7 @@ export class FabricNode {
     public pem?: string;
     public tls_cert?: string;
     public tls_ca_root_cert?: string;
+    public tls_ca_root_certs?: string[];
     public ssl_target_name_override?: string;
     public wallet?: string;
     public identity?: string;

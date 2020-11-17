@@ -23,8 +23,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricRuntimeUtil, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import { UserInputUtil} from '../../extension/commands/UserInputUtil';
 import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
@@ -33,6 +31,8 @@ import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsIntera
 import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
 import { SecureStoreFactory } from '../../extension/util/SecureStoreFactory';
 import { SecureStore, SecureStoreCredentials } from '../../extension/util/SecureStore';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -103,7 +103,7 @@ describe('AddEnvironmentCommand', () => {
 
         beforeEach(async () => {
             try {
-                const localEnvironment: LocalEnvironment = LocalEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
+                const localEnvironment: LocalMicroEnvironment = LocalMicroEnvironmentManager.instance().getRuntime(FabricRuntimeUtil.LOCAL_FABRIC);
                 if (localEnvironment) {
                     await localEnvironment.teardown();
                 }
@@ -116,7 +116,7 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
             chooseMethodStub = showQuickPickItemStub.withArgs('Select a method to add an environment');
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
-            environmentDirectoryPath = path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible');
+            environmentDirectoryPath = path.join(__dirname, '..', '..', '..', 'test', 'data', '1 Org Local Fabric');
             const uri: vscode.Uri = vscode.Uri.file(environmentDirectoryPath);
             openFileBrowserStub = mySandBox.stub(UserInputUtil, 'openFileBrowser').resolves(uri);
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
@@ -193,7 +193,7 @@ describe('AddEnvironmentCommand', () => {
                 }
             };
 
-            removeRuntimeSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'removeRuntime');
+            removeRuntimeSpy = mySandBox.spy(LocalMicroEnvironmentManager.instance(), 'removeRuntime');
         });
 
         afterEach(async () => {
@@ -455,34 +455,6 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
-        it('should add a managed environment from an ansible dir', async () => {
-            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
-
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
-
-            environments.length.should.equal(1);
-            environments[0].should.deep.equal({
-                name: 'myEnvironment',
-                environmentDirectory: environmentDirectoryPath,
-                managedRuntime: true,
-                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT
-            });
-
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-
-            deleteEnvironmentSpy.should.have.not.been.called;
-            removeRuntimeSpy.should.not.have.been.called;
-
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
-        });
-
         it('should add a non managed environment from an ansible dir', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
 
@@ -733,7 +705,7 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
 
-        it('should be able to add a new 1-org local network', async () => {
+        it('should be able to add a new 1-org microfab network', async () => {
             getNodesStub.restore();
 
             const envName: string = 'New 1 Org Network';
@@ -743,13 +715,13 @@ describe('AddEnvironmentCommand', () => {
 
             chooseNameStub.resolves(envName);
 
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
 
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
             });
 
-            const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+            const mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment> = mySandBox.createStubInstance(LocalMicroEnvironment);
             mockRuntime.getName.returns(envName);
 
             executeCommandStub.withArgs(ExtensionCommands.START_FABRIC, envEntry).resolves();
@@ -780,13 +752,13 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.onCall(1).resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
 
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
             });
 
-            const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+            const mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment> = mySandBox.createStubInstance(LocalMicroEnvironment);
             mockRuntime.getName.returns(envName);
 
             const globalState: ExtensionData = GlobalState.get();
@@ -820,7 +792,7 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
 
-        it('should be able to add a new 2-org local network', async () => {
+        it('should be able to add a new 2-org microfab network', async () => {
             getNodesStub.restore();
 
             const envName: string = 'New 2 Org Network';
@@ -828,13 +800,13 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 2});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
 
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
             });
 
-            const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+            const mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment> = mySandBox.createStubInstance(LocalMicroEnvironment);
             mockRuntime.getName.returns(envName);
 
             executeCommandStub.withArgs(ExtensionCommands.START_FABRIC, envEntry).resolves();
@@ -863,7 +835,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
             showQuickPickItemStub.resolves();
 
-            const initializeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'initialize');
+            const initializeSpy: sinon.SinonSpy = mySandBox.spy(LocalMicroEnvironmentManager.instance(), 'initialize');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -883,22 +855,12 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
 
-        it('should delete setting and handle any errors when creating a new 1-org local network', async () => {
+        it('should delete setting and handle any errors when creating a new 1-org microfab network', async () => {
             getNodesStub.restore();
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
-                'Failing Network': {
-                    port: {
-                        startPort: 1,
-                        endPort: 2
-                    }
-                },
-                'Other Network': {
-                    ports: {
-                        startPort: 3,
-                        endPort: 4
-                    }
-                }
+                'Failing Network': 2020,
+                'Other Network': 2021
             }, vscode.ConfigurationTarget.Global);
 
             const envName: string = 'Failing Network';
@@ -906,13 +868,13 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
 
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
             });
 
-            const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+            const mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment> = mySandBox.createStubInstance(LocalMicroEnvironment);
             mockRuntime.getName.returns(envName);
 
             const error: Error = new Error(`unable to create new environment`);
@@ -924,12 +886,7 @@ describe('AddEnvironmentCommand', () => {
 
             const runtimeSetting: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
             runtimeSetting.should.deep.equal({
-                'Other Network': {
-                    ports: {
-                        startPort: 3,
-                        endPort: 4
-                    }
-                }
+                'Other Network': 2021
             });
 
             chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
@@ -947,16 +904,11 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
-        it('should not setting and handle any errors when creating a new 1-org local network', async () => {
+        it('should not setting and handle any errors when creating a new 1-org microfab network', async () => {
             getNodesStub.restore();
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
-                'Other Network': {
-                    ports: {
-                        startPort: 3,
-                        endPort: 4
-                    }
-                }
+                'Other Network': 2021
             }, vscode.ConfigurationTarget.Global);
 
             const envName: string = 'Failing Network';
@@ -964,13 +916,13 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
 
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').callsFake(async () => {
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
             });
 
-            const mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment> = mySandBox.createStubInstance(LocalEnvironment);
+            const mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment> = mySandBox.createStubInstance(LocalMicroEnvironment);
             mockRuntime.getName.returns(envName);
 
             const error: Error = new Error(`unable to create new environment`);
@@ -982,12 +934,7 @@ describe('AddEnvironmentCommand', () => {
 
             const runtimeSetting: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
             runtimeSetting.should.deep.equal({
-                'Other Network': {
-                    ports: {
-                        startPort: 3,
-                        endPort: 4
-                    }
-                }
+                'Other Network': 2021
             });
 
             chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
@@ -1008,7 +955,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
             showQuickPickItemStub.resolves({data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA});
 
-            const initializeSpy: sinon.SinonSpy = mySandBox.spy(LocalEnvironmentManager.instance(), 'initialize');
+            const initializeSpy: sinon.SinonSpy = mySandBox.spy(LocalMicroEnvironmentManager.instance(), 'initialize');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -1315,7 +1262,7 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${deploymentError.message}`, `Failed to add a new environment: ${deploymentError.toString()}`);
         });
 
-        it('should add a Microfab environment', async () => {
+        it('should add a remote Microfab environment', async () => {
             mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
             chooseNameStub.onFirstCall().resolves('microfabEnvironment');
@@ -1337,7 +1284,7 @@ describe('AddEnvironmentCommand', () => {
             });
         });
 
-        it('should not add a Microfab environment if the user cancels the URL input box', async () => {
+        it('should not add a remote Microfab environment if the user cancels the URL input box', async () => {
             mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
             chooseNameStub.onFirstCall().resolves('microfabEnvironment');
@@ -1349,7 +1296,7 @@ describe('AddEnvironmentCommand', () => {
             environments.length.should.equal(0);
         });
 
-        it('should not add a Microfab environment if the user cancels the name input box', async () => {
+        it('should not add a remote Microfab environment if the user cancels the name input box', async () => {
             mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
             chooseNameStub.onFirstCall().resolves();

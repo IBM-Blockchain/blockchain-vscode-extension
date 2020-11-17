@@ -17,9 +17,8 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
-// import { SettingConfigurations } from '../configurations';
+import { SettingConfigurations } from '../configurations';
 
-// TODO - comment references to DISCOVER_SAAS_ENVS back in when IBP supports v2
 export async function logInAndDiscover(): Promise<void> {
     const fabricEnvironmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -27,7 +26,7 @@ export async function logInAndDiscover(): Promise<void> {
     outputAdapter.log(LogType.INFO, undefined, 'Log in and discover');
 
     // update setting configurations
-    // await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, true, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, true, vscode.ConfigurationTarget.Global);
 
     // this function will handle both logging in and retrieving resources from IBP
     const ibpResources: any = await ExtensionsInteractionUtil.cloudAccountGetIbpResources();
@@ -78,5 +77,5 @@ export async function logInAndDiscover(): Promise<void> {
     outputAdapter.log(LogType.SUCCESS, `Automatically added ${addedResources} environment(s) from IBM Cloud`);
 
     // update setting configurations
-    // await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, false, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration().update(SettingConfigurations.DISCOVER_SAAS_ENVS, false, vscode.ConfigurationTarget.Global);
 }
