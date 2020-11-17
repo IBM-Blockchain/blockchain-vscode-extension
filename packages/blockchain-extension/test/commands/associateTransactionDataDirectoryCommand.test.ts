@@ -57,6 +57,7 @@ describe('AssociateTestDataDirectoryCommand', () => {
         let getConnectionStub: sinon.SinonStub;
         let showInstantiatedSmartContractsQuickPickStub: sinon.SinonStub;
         let browseStub: sinon.SinonStub;
+        let openFileBrowserStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
@@ -72,6 +73,7 @@ describe('AssociateTestDataDirectoryCommand', () => {
         beforeEach(async () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             browseStub = mySandBox.stub(UserInputUtil, 'browseWithOptions');
+            openFileBrowserStub = mySandBox.stub(UserInputUtil, 'openFileBrowser');
 
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
@@ -381,6 +383,30 @@ describe('AssociateTestDataDirectoryCommand', () => {
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Unable to associate transaction data directory: ${error.message}`, `Unable to associate transaction data directory: ${error.toString()}`);
             should.not.exist(logSpy.getCall(2));
+        });
+
+        it('should associate a smart contract with a directory of transaction data using associateFromViewOptions and openFileBrowser', async () => {
+            getConnectionStub.onCall(3).returns(undefined);
+            openFileBrowserStub.onFirstCall().resolves(transactionDataPath);
+            const associateFromViewOptions: object = {
+                label: instantiatedSmartContract.label,
+                name: instantiatedSmartContract.name,
+                channel: instantiatedSmartContract.channels[0].label,
+            };
+
+            const newAssociation: object = await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, instantiatedSmartContract, associateFromViewOptions);
+            const expectedAssociation: object = {
+                chaincodeName: instantiatedSmartContract.name,
+                channelName: instantiatedSmartContract.channels[0].label,
+                transactionDataPath
+            };
+
+            newAssociation.should.deep.equal(expectedAssociation);
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.transactionDataDirectories.should.deep.equal([expectedAssociation]);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateTestDataDirectory');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated the directory "${transactionDataPath}" with "${instantiatedSmartContract.label}"`);
         });
     });
 });

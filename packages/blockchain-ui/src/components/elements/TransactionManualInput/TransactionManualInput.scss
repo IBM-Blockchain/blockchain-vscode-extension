@@ -34,16 +34,3 @@ fieldset > legend {
     }
 }
 
-.submit-txn-button-container {
-    display: flex;
-    flex-direction: row;
-    
-    .submit-txn-button {
-        min-width: 140px;
-    }
-
-    .button-separator {
-        width: $spacing-03;
-    }
-}
-
