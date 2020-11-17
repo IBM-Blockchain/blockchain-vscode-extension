@@ -20,6 +20,7 @@ import { FabricRuntimeUtil, FabricEnvironmentRegistryEntry, EnvironmentType, Ans
 import { LocalMicroEnvironment } from '../../../extension/fabric/environments/LocalMicroEnvironment';
 import { LocalMicroEnvironmentManager } from '../../../extension/fabric/environments/LocalMicroEnvironmentManager';
 import { LocalEnvironment } from '../../../extension/fabric/environments/LocalEnvironment';
+import { UserInputUtil } from '../../../extension/commands/UserInputUtil';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -59,8 +60,6 @@ describe('EnvironmentFactory', () => {
         registryEntry.environmentType = EnvironmentType.LOCAL_ENVIRONMENT;
         registryEntry.environmentDirectory = '/some/path';
 
-        // const localEnvironment: LocalEnvironment = new LocalEnvironment(registryEntry.name, '/some/path');
-
         const environment: LocalMicroEnvironment | LocalEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(LocalEnvironment);
 
@@ -74,7 +73,7 @@ describe('EnvironmentFactory', () => {
         registryEntry.environmentType = EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT;
         registryEntry.environmentDirectory = '/some/path';
 
-        const localEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment(registryEntry.name, 8080, 1);
+        const localEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment(registryEntry.name, 8080, 1, UserInputUtil.V2_0);
         const getRuntimeStub: sinon.SinonStub = sandbox.stub(LocalMicroEnvironmentManager.instance(), 'getRuntime').returns(localEnvironment);
 
         const environment: LocalMicroEnvironment | AnsibleEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);

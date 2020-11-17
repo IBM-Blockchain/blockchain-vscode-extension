@@ -24,18 +24,20 @@ import stripAnsi = require('strip-ansi');
 import { FabricRuntimeState } from '../FabricRuntimeState';
 import { CommandUtil } from '../../util/CommandUtil';
 import { TimerUtil } from '../../util/TimerUtil';
+import { UserInputUtil } from '../../commands/UserInputUtil';
 
 export class LocalMicroEnvironment extends MicrofabEnvironment {
     public ourLoghose: any;
     public port: number;
     public numberOfOrgs: number;
+    public fabricCapabilities: string;
     protected busy: boolean;
     protected state: FabricRuntimeState;
     protected isRunningPromise: Promise<boolean>;
     protected lh: any;
     private dockerName: string;
 
-    constructor(name: string, port: number, numberOfOrgs: number) {
+    constructor(name: string, port: number, numberOfOrgs: number, fabricCapabilities: string) {
         const extDir: string = SettingConfigurations.getExtensionDir();
         const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
         const envPath: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, name);
@@ -46,6 +48,7 @@ export class LocalMicroEnvironment extends MicrofabEnvironment {
 
         this.port = port;
         this.numberOfOrgs = numberOfOrgs;
+        this.fabricCapabilities = fabricCapabilities;
 
     }
 
@@ -68,13 +71,19 @@ export class LocalMicroEnvironment extends MicrofabEnvironment {
         this.url = `console.127-0-0-1.nip.io:${this.port}`;
         this.setClient(this.url);
 
+        if (!this.fabricCapabilities) {
+            // If the user has migrated from a previous v2-beta, assume the channel has V2 capabilities.
+            this.fabricCapabilities = UserInputUtil.V2_0;
+        }
+
         const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
             name: this.name,
             managedRuntime: true,
             environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
             environmentDirectory: path.join(this.path),
             numberOfOrgs: this.numberOfOrgs,
-            url: this.url
+            url: this.url,
+            fabricCapabilities: this.fabricCapabilities
         });
 
         await FabricEnvironmentRegistry.instance().add(registryEntry);
@@ -85,7 +94,8 @@ export class LocalMicroEnvironment extends MicrofabEnvironment {
             name: this.name,
             dockerName: this.dockerName,
             numOrganizations: this.numberOfOrgs,
-            port: this.port
+            port: this.port,
+            fabricCapabilities: this.fabricCapabilities
         });
     }
 

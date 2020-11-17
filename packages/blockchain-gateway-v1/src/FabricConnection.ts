@@ -173,6 +173,16 @@ export abstract class FabricConnection {
         }
     }
 
+    public async getChannelCapabilityFromPeer(channelName: string, peerName: string): Promise<Array<string>> {
+        try {
+            const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.gateway.getOptions().wallet, this.gateway.getOptions().identity as string);
+            const capabilities: string[] = await peer.getChannelCapabilities(channelName);
+            return capabilities;
+        } catch (error) {
+            throw new Error(`Unable to determine channel capabilities of channel ${channelName}: ${error.message}`);
+        }
+    }
+
     protected async connectInner(connectionProfile: object, wallet: Wallet, identityName: string, timeout: number): Promise<void> {
 
         this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);

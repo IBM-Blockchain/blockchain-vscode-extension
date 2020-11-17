@@ -392,7 +392,7 @@ describe('EnvironmentConnectCommand', () => {
                     data: localFabricRegistryEntry
                 });
 
-                localEnvironment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
+                localEnvironment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
 
                 isRunningStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isRunning').resolves(true);
                 waitForStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'waitFor').resolves(true);

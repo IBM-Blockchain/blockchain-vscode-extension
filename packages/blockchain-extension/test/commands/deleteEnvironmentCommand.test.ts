@@ -431,7 +431,8 @@ describe('DeleteEnvironmentCommand', () => {
                 managedRuntime: true,
                 numberOfOrgs: 1,
                 environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
-                environmentDirectory: path.join(__dirname, '..', 'data', '1 Org Local Fabric')
+                environmentDirectory: path.join(__dirname, '..', 'data', '1 Org Local Fabric'),
+                fabricCapabilities: UserInputUtil.V2_0
             });
 
             await FabricEnvironmentRegistry.instance().add(otherLocalEnvEntry);
@@ -583,7 +584,8 @@ describe('DeleteEnvironmentCommand', () => {
                 managedRuntime: true,
                 numberOfOrgs: 1,
                 environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
-                environmentDirectory: path.join(__dirname, '..', 'data', 'OtherLocalMicrofab')
+                environmentDirectory: path.join(__dirname, '..', 'data', 'OtherLocalMicrofab'),
+                fabricCapabilities: UserInputUtil.V2_0
             });
 
             await FabricEnvironmentRegistry.instance().add(otherLocalEnvEntry);

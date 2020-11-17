@@ -624,4 +624,33 @@ describe('FabricConnection', () => {
             await fabricConnection.getChannelPeersInfo(channelName).should.be.rejectedWith(`Unable to get channel peers info: ${error.message}`);
         });
     });
+
+    describe('getChannelCapabilityFromPeer', () => {
+        let mockPeer: sinon.SinonStubbedInstance<LifecyclePeer>;
+        let channelName: string;
+        let peerName: string;
+
+        beforeEach(() => {
+            channelName = 'mychannel';
+            peerName = 'Org1 Peer1';
+            mockPeer = mySandBox.createStubInstance(LifecyclePeer);
+            fabricConnection['lifecycle']['peers'].clear();
+            fabricConnection['lifecycle']['peers'].set(peerName, mockPeer);
+
+            mockPeer.getChannelCapabilities.resolves(['V2_0']);
+        });
+
+        it('should get the capabilities of channel', async () => {
+            const result: string[] = await fabricConnection.getChannelCapabilityFromPeer(channelName, peerName);
+            result.should.deep.equal(['V2_0']);
+            mockPeer.getChannelCapabilities.should.have.been.calledOnce;
+        });
+
+        it('should handle errors', async () => {
+            const error: Error = new Error('some error');
+            mockPeer.getChannelCapabilities.rejects(error);
+            await fabricConnection.getChannelCapabilityFromPeer(channelName, peerName).should.be.rejectedWith(`Unable to determine channel capabilities of channel ${channelName}: ${error.message}`);
+            mockPeer.getChannelCapabilities.should.have.been.calledOnce;
+        });
+    });
 });

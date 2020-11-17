@@ -43,4 +43,5 @@ export interface IFabricGatewayConnection {
 
     addContractListener(channelName: string, contractName: string, eventName: string, outputAdapter: OutputAdapter): Promise<void>;
 
+    getChannelCapabilityFromPeer(channelName: string, peerName: string): Promise<Array<string>>;
 }

@@ -93,6 +93,7 @@ describe('AddEnvironmentCommand', () => {
     let consoleStatusMock: any;
     let urlSaaS: string;
     let accessToken: string;
+    let selectCapabilitiesStub: sinon.SinonStub;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -122,6 +123,8 @@ describe('AddEnvironmentCommand', () => {
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             chooseNameStub = showInputBoxStub.withArgs('Enter a name for the environment', sinon.match.any);
             chooseNameStub.resolves('myEnvironment');
+            selectCapabilitiesStub = mySandBox.stub(UserInputUtil, 'selectCapabilities');
+            selectCapabilitiesStub.resolves(UserInputUtil.V2_0);
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
             executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(true);
             executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
@@ -416,6 +419,20 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.have.been.calledOnce;
+        });
+
+        it('should return if no capabilities are provided', async () => {
+            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
+            showQuickPickItemStub.resolves({data: 1});
+            chooseNameStub.resolves('newEnvironment');
+            selectCapabilitiesStub.resolves();
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+            deleteEnvironmentSpy.should.not.have.been.called;
+            removeRuntimeSpy.should.not.have.been.called;
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            sendTelemetryEventStub.should.not.been.called;
         });
 
         it('should add environment but warn if nodes are not valid', async () => {
@@ -715,7 +732,7 @@ describe('AddEnvironmentCommand', () => {
 
             chooseNameStub.resolves(envName);
 
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, fabricCapabilities: UserInputUtil.V2_0};
 
             const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
@@ -732,7 +749,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.should.have.been.calledOnceWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
             showQuickPickItemStub.should.have.been.calledWith('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
-            initializeStub.should.have.been.calledWith(envName, 1);
+            initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
@@ -752,7 +769,7 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.onCall(1).resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, fabricCapabilities: UserInputUtil.V2_0};
 
             const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
@@ -779,7 +796,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.should.have.been.calledOnceWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
             showQuickPickItemStub.should.have.been.calledWith('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
-            initializeStub.should.have.been.calledWith(envName, 1);
+            initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
@@ -800,7 +817,7 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 2});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, fabricCapabilities: UserInputUtil.V2_0};
 
             const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
@@ -817,7 +834,7 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
 
             showInputBoxStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
-            initializeStub.should.have.been.calledWith(envName, 2);
+            initializeStub.should.have.been.calledWith(envName, 2, UserInputUtil.V2_0);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
@@ -868,7 +885,7 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, fabricCapabilities: UserInputUtil.V2_0};
 
             const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
@@ -892,7 +909,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
-            initializeStub.should.have.been.calledWith(envName, 1);
+            initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
@@ -916,7 +933,7 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.resolves({data: 1});
 
             chooseNameStub.resolves(envName);
-            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT};
+            const envEntry: FabricEnvironmentRegistryEntry = {name: envName, environmentDirectory: environmentDirectoryPath, numberOfOrgs: 1, managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, fabricCapabilities: UserInputUtil.V2_0};
 
             const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').callsFake(async () => {
                 await FabricEnvironmentRegistry.instance().add(envEntry);
@@ -940,7 +957,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
-            initializeStub.should.have.been.calledWith(envName, 1);
+            initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.been.calledOnceWithExactly(envName, true);

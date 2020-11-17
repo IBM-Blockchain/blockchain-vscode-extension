@@ -23,6 +23,7 @@ import { SettingConfigurations } from '../../../extension/configurations';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, FabricEnvironmentRegistry, FabricGatewayRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { EnvironmentFactory } from '../../../extension/fabric/environments/EnvironmentFactory';
 import { LocalMicroEnvironment } from '../../../extension/fabric/environments/LocalMicroEnvironment';
+import { UserInputUtil } from '../../../extension/commands/UserInputUtil';
 
 chai.should();
 
@@ -40,7 +41,7 @@ describe('LocalMicroEnvironmentManager', () => {
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
-        backupRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
+        backupRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
     });
 
     beforeEach(async () => {
@@ -79,7 +80,7 @@ describe('LocalMicroEnvironmentManager', () => {
     describe('#updateRuntime', () => {
         it('should return the runtime', async () => {
             runtimeManager['runtimes'].size.should.equal(1);
-            const newEnv: LocalMicroEnvironment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 9080, 1);
+            const newEnv: LocalMicroEnvironment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 9080, 1, UserInputUtil.V2_0);
             runtimeManager.updateRuntime(FabricRuntimeUtil.LOCAL_FABRIC, newEnv);
             runtimeManager['runtimes'].get(FabricRuntimeUtil.LOCAL_FABRIC).should.deep.equal(newEnv);
             runtimeManager['runtimes'].size.should.equal(1);
@@ -236,6 +237,7 @@ describe('LocalMicroEnvironmentManager', () => {
         let updateUserSettingsStub: sinon.SinonStub;
         let createStub: sinon.SinonStub;
         let teardownStub: sinon.SinonStub;
+        let addRuntimeSpy: sinon.SinonSpy;
         beforeEach(async () => {
             const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
             const getEnvironmentStub: sinon.SinonStub = sandbox.stub(EnvironmentFactory, 'getEnvironment');
@@ -246,6 +248,7 @@ describe('LocalMicroEnvironmentManager', () => {
             updateUserSettingsStub = sandbox.stub(LocalMicroEnvironment.prototype, 'updateUserSettings').resolves(); // these need to be on the runtime we retrieve
             createStub = sandbox.stub(LocalMicroEnvironment.prototype, 'create').resolves();
             teardownStub = sandbox.stub(LocalMicroEnvironment.prototype, 'teardown').resolves();
+            addRuntimeSpy = sandbox.spy(LocalMicroEnvironmentManager.prototype, 'addRuntime');
         });
 
         it('should use existing configuration and import all wallets/identities', async () => {
@@ -257,6 +260,7 @@ describe('LocalMicroEnvironmentManager', () => {
             const runtime: LocalMicroEnvironment = runtimeManager['runtimes'].get(FabricRuntimeUtil.LOCAL_FABRIC);
 
             runtime.port.should.equal(8080);
+            addRuntimeSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
 
             updateUserSettingsStub.should.not.have.been.called;
         });
@@ -270,6 +274,20 @@ describe('LocalMicroEnvironmentManager', () => {
             const runtime: LocalMicroEnvironment = runtimeManager['runtimes'].get(FabricRuntimeUtil.LOCAL_FABRIC);
 
             runtime.port.should.equal(8080);
+            addRuntimeSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
+            updateUserSettingsStub.should.have.been.calledOnce;
+        });
+
+        it('should be able to initalize a V1 capability network', async () => {
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+
+            findFreePortStub.resolves([8080, 8081]);
+            await runtimeManager.initialize(FabricRuntimeUtil.LOCAL_FABRIC, 1, UserInputUtil.V1_4_2);
+            const runtime: LocalMicroEnvironment = runtimeManager['runtimes'].get(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            runtime.port.should.equal(8080);
+            addRuntimeSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V1_4_2);
             updateUserSettingsStub.should.have.been.calledOnce;
         });
 
@@ -283,6 +301,7 @@ describe('LocalMicroEnvironmentManager', () => {
 
             runtime.port.should.equal(8080);
             updateUserSettingsStub.should.have.been.calledOnce;
+            addRuntimeSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
             createStub.should.have.been.calledOnce;
         });
 

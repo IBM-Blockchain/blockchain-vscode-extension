@@ -263,8 +263,8 @@ describe('UserInputUtil', () => {
         it('should only show local microfab environments', async () => {
             quickPickStub.resolves([]);
 
-            await FabricEnvironmentRegistry.instance().add({name: 'localEnv1', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1});
-            await FabricEnvironmentRegistry.instance().add({name: 'localEnv2', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 2});
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv1', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1, fabricCapabilities: UserInputUtil.V2_0});
+            await FabricEnvironmentRegistry.instance().add({name: 'localEnv2', managedRuntime: true, environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 2, fabricCapabilities: UserInputUtil.V2_0});
 
             const results: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true, false, [EnvironmentFlags.LOCAL]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
 
@@ -3241,6 +3241,24 @@ describe('UserInputUtil', () => {
 
             showInformationMessage.should.have.been.calledWith(msg, callToAction);
             openSurvey.should.have.not.been.called;
+        });
+    });
+
+    describe('selectCapabilities', () => {
+        it('should be able to select channel capabilities', async () => {
+            const showQuickPickItemStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
+            showQuickPickItemStub.resolves({label: UserInputUtil.V1_4_2, data: UserInputUtil.V1_4_2});
+            const result: string = await UserInputUtil.selectCapabilities('Select the channel capability version to use for the network');
+            result.should.equal(UserInputUtil.V1_4_2);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select the channel capability version to use for the network', [{label: UserInputUtil.V2_0_RECOMMENDED, data: UserInputUtil.V2_0}, {label: UserInputUtil.V1_4_2, data: UserInputUtil.V1_4_2}], false);
+        });
+
+        it('should be able to cancel selecting channel capabilities', async () => {
+            const showQuickPickItemStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickItem');
+            showQuickPickItemStub.resolves();
+            const result: string = await UserInputUtil.selectCapabilities('Select the channel capability version to use for the network');
+            should.not.exist(result);
+            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select the channel capability version to use for the network', [{label: UserInputUtil.V2_0_RECOMMENDED, data: UserInputUtil.V2_0}, {label: UserInputUtil.V1_4_2, data: UserInputUtil.V1_4_2}], false);
         });
     });
 });
