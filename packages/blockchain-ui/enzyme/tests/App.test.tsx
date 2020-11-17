@@ -172,7 +172,7 @@ describe('App', () => {
     });
 
     it('should redirect to the transaction page', async () => {
-        const transactionData: {gatewayName: string, smartContract: ISmartContract} = {
+        const transactionViewData: {gatewayName: string, smartContract: ISmartContract} = {
             gatewayName: 'myGateway',
             smartContract: {
                 name: 'mySmartContract',
@@ -190,12 +190,12 @@ describe('App', () => {
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
                 path: '/transaction',
-                transactionData
+                transactionViewData
             }
         });
         dispatchEvent(msg);
         component.state().redirectPath.should.deep.equal('/transaction');
-        component.state().transactionData.should.deep.equal(transactionData);
+        component.state().transactionViewData.should.deep.equal(transactionViewData);
     });
 
     it('should handle receiving a message with transactionOutput', async () => {
@@ -203,7 +203,7 @@ describe('App', () => {
         const component: any = mount(<App/>);
         const msg: MessageEvent = new MessageEvent('message', {
             data: {
-                transactionOutput
+                transactionOutput,
             }
         });
         dispatchEvent(msg);

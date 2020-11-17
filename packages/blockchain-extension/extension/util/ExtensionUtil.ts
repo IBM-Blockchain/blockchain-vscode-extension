@@ -95,6 +95,7 @@ import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/Runtime
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { associateTransactionDataDirectory } from '../commands/associateTransactionDataDirectoryCommand';
 import { dissociateTransactionDataDirectory } from '../commands/dissociateTransactionDataDirectoryCommand';
+import { IAssociateFromViewOptions } from '../interfaces/IAssociateFromViewOptions';
 import { openReleaseNotes } from '../commands/openReleaseNotesCommand';
 import { viewPackageInformation } from '../commands/viewPackageInformationCommand';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
@@ -255,8 +256,8 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_WALLET, (treeItem: GatewayDissociatedTreeItem) => associateWallet(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_WALLET, (treeItem: GatewayAssociatedTreeItem) => dissociateWallet(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_WALLET, (treeItem?: WalletTreeItem) => exportWallet(treeItem)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => associateTransactionDataDirectory(treeItem)));
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem) => dissociateTransactionDataDirectory(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem: ContractTreeItem | InstantiatedTreeItem, associateFromViewOptions?: IAssociateFromViewOptions) => associateTransactionDataDirectory(treeItem, associateFromViewOptions)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, (treeItem?: ContractTreeItem | InstantiatedTreeItem, dissociateFromViewOptions?: IAssociateFromViewOptions) => dissociateTransactionDataDirectory(treeItem, dissociateFromViewOptions)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBSCRIBE_TO_EVENT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => subscribeToEvent(treeItem)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_DEPLOY_PAGE, (fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, channelName: string) => openDeployView(fabricEnvironmentRegistryEntry, channelName)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SAVE_TUTORIAL_AS_PDF, (tutorialObject: any, saveAll?: boolean, tutorialFolder?: string) => saveTutorial(tutorialObject, saveAll, tutorialFolder)));
@@ -290,8 +291,8 @@ export class ExtensionUtil {
             await fabric2View.openView(true, vscode.ViewColumn.Beside);
         }));
 
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, async (treeItem: InstantiatedTreeItem) => {
-            await openTransactionView(treeItem);
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, (treeItem: InstantiatedTreeItem, selectedTransactionName: string) => {
+            return openTransactionView(treeItem, selectedTransactionName);
         }));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.MANAGE_FEATURE_FLAGS, () => manageFeatureFlags()));
