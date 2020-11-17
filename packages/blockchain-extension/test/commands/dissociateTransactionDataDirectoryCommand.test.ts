@@ -251,6 +251,19 @@ describe('DissociateTestDataDirectoryCommand', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully dissociated "${instantiatedSmartContract.label}" from its transaction data directory`);
         });
 
+        it('should dissociate a smart contract from a directory of transaction data when dissociateFromViewOptions is passed in', async () => {
+            const dissociateFromViewOptions: object = {
+                label: instantiatedSmartContract.label,
+                name: instantiatedSmartContract.name,
+                channel: instantiatedSmartContract.channels[0].label,
+            };
+            await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, instantiatedSmartContract, dissociateFromViewOptions);
+            const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');
+            result.transactionDataDirectories.should.deep.equal([]);
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateTestDataDirectory');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully dissociated "${instantiatedSmartContract.label}" from its transaction data directory`);
+        });
+
         it('should error if trying to dissociate a smart contract with no associations', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY);
             const result: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGateway');

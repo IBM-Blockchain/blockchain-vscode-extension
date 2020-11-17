@@ -919,11 +919,6 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 hidden: _node.hidden
             }));
 
-            const savedNodes: FabricNode[] = [];
-            updateNodeStub.callsFake((_node: FabricNode) => {
-                savedNodes.push(_node);
-            });
-
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, opsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             const savedNodesHidden: any[] = expectedNodes.map((_node: FabricNode) => ({

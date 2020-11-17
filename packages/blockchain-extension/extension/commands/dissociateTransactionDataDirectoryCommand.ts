@@ -20,8 +20,9 @@ import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { IAssociateFromViewOptions } from '../interfaces/IAssociateFromViewOptions';
 
-export async function dissociateTransactionDataDirectory(chaincode?: InstantiatedTreeItem | ContractTreeItem): Promise<any> {
+export async function dissociateTransactionDataDirectory(chaincode?: InstantiatedTreeItem | ContractTreeItem, dissociateFromViewOptions?: IAssociateFromViewOptions): Promise<any> {
     let gateway: FabricGatewayRegistryEntry;
     let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>;
     let chaincodeName: string;
@@ -30,35 +31,41 @@ export async function dissociateTransactionDataDirectory(chaincode?: Instantiate
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'dissociateTestDataDirectory');
 
-    // If called from the command palette, ask for instantiated smart contract to test
-    if (!chaincode) {
-        if (!FabricGatewayConnectionManager.instance().getConnection()) {
-            // Connect if not already connected
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
+    if (dissociateFromViewOptions) {
+        chaincodeLabel = dissociateFromViewOptions.label;
+        chaincodeName = dissociateFromViewOptions.name;
+        channelName = dissociateFromViewOptions.channel;
+    } else {
+        // If called from the command palette, ask for instantiated smart contract to test
+        if (!chaincode) {
             if (!FabricGatewayConnectionManager.instance().getConnection()) {
-                // either the user cancelled or there was an error so don't carry on
+                // Connect if not already connected
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
+                if (!FabricGatewayConnectionManager.instance().getConnection()) {
+                    // either the user cancelled or there was an error so don't carry on
+                    return;
+                }
+            }
+
+            // Ask for instantiated smart contract
+            chosenChaincode = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
+            if (!chosenChaincode) {
                 return;
             }
-        }
-
-        // Ask for instantiated smart contract
-        chosenChaincode = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to dissociate a transaction data directory from', undefined, true);
-        if (!chosenChaincode) {
-            return;
-        }
-        chaincodeLabel = chosenChaincode.label;
-        chaincodeName = chosenChaincode.data.name;
-        channelName = chosenChaincode.data.channel;
-    } else {
-        if (chaincode instanceof ContractTreeItem) {
-            chaincodeLabel = chaincode.instantiatedChaincode.label;
-            chaincodeName = chaincode.instantiatedChaincode.name;
-            channelName = chaincode.channelName;
+            chaincodeLabel = chosenChaincode.label;
+            chaincodeName = chosenChaincode.data.name;
+            channelName = chosenChaincode.data.channel;
         } else {
-            // Smart Contract selected from the tree item, so assign label and name
-            chaincodeLabel = chaincode.label;
-            chaincodeName = chaincode.name;
-            channelName = chaincode.channels[0].label;
+            if (chaincode instanceof ContractTreeItem) {
+                chaincodeLabel = chaincode.instantiatedChaincode.label;
+                chaincodeName = chaincode.instantiatedChaincode.name;
+                channelName = chaincode.channelName;
+            } else {
+                // Smart Contract selected from the tree item, so assign label and name
+                chaincodeLabel = chaincode.label;
+                chaincodeName = chaincode.name;
+                channelName = chaincode.channels[0].label;
+            }
         }
     }
 
@@ -83,6 +90,11 @@ export async function dissociateTransactionDataDirectory(chaincode?: Instantiate
         await fabricGatewayRegistry.update(gateway);
 
         outputAdapter.log(LogType.SUCCESS, `Successfully dissociated "${chaincodeLabel}" from its transaction data directory`);
+
+        if (dissociateFromViewOptions) {
+            // tell the transaction view that this contract no longer has an associated txdata directory
+            return undefined;
+        }
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to dissociate transaction data directory: ${error.message}`, `Unable to dissociate transaction data directory: ${error.toString()}`);

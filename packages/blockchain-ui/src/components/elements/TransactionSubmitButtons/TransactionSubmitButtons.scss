@@ -1,0 +1,19 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
+.submit-txn-button-container {
+    display: flex;
+    flex-direction: row;
+
+    >.submit-txn-button.bx--btn {
+        // min-width: 140px;
+
+        padding-right: 0;
+        width: 49%;
+    }
+
+    .submit-txn-button:first-of-type {
+        margin-right: 2%; // $spacing-03;
+    }
+}
+

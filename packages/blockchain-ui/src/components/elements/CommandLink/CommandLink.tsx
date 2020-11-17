@@ -1,10 +1,10 @@
-import React, { Component } from 'react';
+import React, { Component, ReactElement } from 'react';
 import { Link } from 'carbon-components-react';
 import Utils from '../../../Utils';
 
 interface IProps {
     commandName: string;
-    linkContents: string;
+    linkContents: string | ReactElement;
     className?: string;
     commandData?: any[];
     id?: string;
