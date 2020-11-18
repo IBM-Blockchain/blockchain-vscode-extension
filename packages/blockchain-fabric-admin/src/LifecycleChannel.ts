@@ -83,6 +83,8 @@ export class LifecycleChannel {
 
     private APPROVE: string = 'approve';
     private COMMIT: string = 'commit';
+    private INSTANTIATE: string = 'deploy';
+    private UPGRADE: string = 'upgrade';
 
     /**
      * internal use only
@@ -122,6 +124,49 @@ export class LifecycleChannel {
         const method: string = 'commit';
         logger.debug('%s - start', method);
         return this.submitTransaction(peerNames, ordererName, options, this.COMMIT, requestTimeout);
+    }
+
+    public async instantiateOrUpgradeSmartContractDefinition(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, fcn: string, args: Array<string>, isUpgrade: boolean, requestTimeout?: number): Promise<void> {
+        const functionName: string = isUpgrade ? this.UPGRADE : this.INSTANTIATE
+        logger.debug('%s - start', functionName);
+
+        const specArgs: Buffer[] = [];
+        const specFcn: string = typeof fcn === 'undefined' ? 'init' : fcn;
+        if (specFcn) {
+            specArgs.push(Buffer.from(specFcn, 'utf8'));
+        }
+        if (!args) {
+            args = [];
+        }
+        for (const arg of args) {
+            specArgs.push(Buffer.from(arg, 'utf8'));
+        }
+
+        const ccSpec: any = {
+            // TODO Golang is defaul in v1 fabric-client, and v1 exension always used default. Should we try to extract language from packaged contracts somehow?
+            type: protos.protos.ChaincodeSpec.Type.GOLANG,
+            chaincode_id: {
+                name: options.smartContractName,
+                version: options.smartContractVersion
+            },
+            input: {
+                args: specArgs
+            }
+        };
+
+        const chaincodeDeploymentSpec: protos.protos.ChaincodeDeploymentSpec = new protos.protos.ChaincodeDeploymentSpec();
+        chaincodeDeploymentSpec.chaincode_spec = ccSpec;
+
+        const lcccSpecArgs: string[] = [
+            functionName,
+            this.channelName,
+            protos.protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish().toString(),
+            '',
+            'escc', // default
+            'vscc' // default
+        ];
+
+        return this.submitTransaction(peerNames, ordererName, options, functionName, requestTimeout, 'lscc', lcccSpecArgs);
     }
 
     /**
@@ -402,7 +447,7 @@ export class LifecycleChannel {
         }
     }
 
-    public static getEndorsementPolicyBytes(endorsementPolicy: string): Buffer {
+    public static getEndorsementPolicyBytes(endorsementPolicy: string, isV1: boolean = false): Buffer {
         const method: string = 'getEndorsementPolicyBytes';
         logger.debug('%s - start', method);
 
@@ -412,19 +457,25 @@ export class LifecycleChannel {
 
         const protoArgs: protos.common.IApplicationPolicy = {};
 
-
-
         if (endorsementPolicy.startsWith(EndorsementPolicy.AND) || endorsementPolicy.startsWith(EndorsementPolicy.OR) || endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
             logger.debug('%s - have an  actual policy :: %s', method, endorsementPolicy);
             const policy: EndorsementPolicy = new EndorsementPolicy();
             const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(endorsementPolicy);
             protoArgs.signature_policy = signaturePolicy;
+        } else if (isV1) {
+            throw new Error(`Cannot build endorsement policy from user input: ${endorsementPolicy}`);
         } else {
             logger.debug('%s - have a policy reference :: %s', method, endorsementPolicy);
             protoArgs.channel_config_policy_reference = endorsementPolicy;
         }
 
-        const applicationPolicy: Uint8Array = protos.common.ApplicationPolicy.encode(protoArgs).finish();
+        let applicationPolicy: Uint8Array;
+        if (isV1) {
+            applicationPolicy = protos.common.SignaturePolicyEnvelope.encode(protoArgs.signature_policy).finish();
+        } else {
+            applicationPolicy = protos.common.ApplicationPolicy.encode(protoArgs).finish();
+
+        }
 
         return Buffer.from(applicationPolicy);
     }
@@ -608,7 +659,7 @@ export class LifecycleChannel {
         return allEndorsers;
     }
 
-    private async submitTransaction(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, functionName: string, requestTimeout?: number): Promise<void> {
+    private async submitTransaction(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, functionName: string, requestTimeout?: number, smartContract: string = '_lifecycle', lcccSpecArgs?: string[]): Promise<void> {
         if (!peerNames || peerNames.length === 0
         ) {
             throw new Error('parameter peers was missing or empty array');
@@ -690,69 +741,92 @@ export class LifecycleChannel {
             await committer.connect();
             channel.addCommitter(committer, true);
 
+            const contract: Contract = network.getContract(smartContract);
+            let transaction: Transaction;
             let arg: Uint8Array;
-            const protoArgs: protos.lifecycle.IApproveChaincodeDefinitionForMyOrgArgs | protos.lifecycle.ICommitChaincodeDefinitionArgs = {};
-            if (functionName === this.APPROVE) {
+            if (functionName === this.APPROVE || functionName === this.COMMIT) {
+                const protoArgs: protos.lifecycle.IApproveChaincodeDefinitionForMyOrgArgs | protos.lifecycle.ICommitChaincodeDefinitionArgs = {};
+                if (functionName === this.APPROVE) {
 
-                logger.debug('%s - build the approve smart contract argument');
+                    logger.debug('%s - build the approve smart contract argument');
 
+                    const source: protos.lifecycle.ChaincodeSource = new protos.lifecycle.ChaincodeSource();
+                    if (options.packageId) {
+                        const local: protos.lifecycle.ChaincodeSource.Local = new protos.lifecycle.ChaincodeSource.Local();
+                        local.package_id = options.packageId;
+                        source.local_package = local;
+                    } else {
+                        const unavailable: protos.lifecycle.ChaincodeSource.Unavailable = new protos.lifecycle.ChaincodeSource.Unavailable();
+                        source.unavailable = unavailable;
+                    }
 
-                const source: protos.lifecycle.ChaincodeSource = new protos.lifecycle.ChaincodeSource();
-                if (options.packageId) {
-                    const local: protos.lifecycle.ChaincodeSource.Local = new protos.lifecycle.ChaincodeSource.Local();
-                    local.package_id = options.packageId;
-                    source.local_package = local;
+                    (protoArgs as protos.lifecycle.IApproveChaincodeDefinitionForMyOrgArgs).source = source;
                 } else {
-                    const unavailable: protos.lifecycle.ChaincodeSource.Unavailable = new protos.lifecycle.ChaincodeSource.Unavailable();
-                    source.unavailable = unavailable;
+                    logger.debug('%s - build the commit smart contract argument');
                 }
 
-                (protoArgs as protos.lifecycle.IApproveChaincodeDefinitionForMyOrgArgs).source = source;
+                protoArgs.name = options.smartContractName;
+                protoArgs.version = options.smartContractVersion;
+                protoArgs.sequence = options.sequence;
+
+                if (typeof options.initRequired === 'boolean') {
+                    protoArgs.init_required = options.initRequired;
+                }
+
+                if (options.endorsementPlugin) {
+                    protoArgs.endorsement_plugin = options.endorsementPlugin;
+                }
+                if (options.validationPlugin) {
+                    protoArgs.validation_plugin = options.validationPlugin;
+                }
+
+                if (options.endorsementPolicy) {
+                    const endorsementPolicyBuffer: Buffer = LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy);
+                    protoArgs.validation_parameter = endorsementPolicyBuffer;
+                }
+
+                if (options.collectionConfig) {
+                    protoArgs.collections = LifecycleChannel.getCollectionConfig(options.collectionConfig) as protos.common.ICollectionConfigPackage;
+                }
+
+                if (functionName === this.APPROVE) {
+                    transaction = contract.createTransaction('ApproveChaincodeDefinitionForMyOrg');
+                    arg = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
+                } else {
+                    transaction = contract.createTransaction('CommitChaincodeDefinition');
+                    arg = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
+                }
             } else {
-                logger.debug('%s - build the commit smart contract argument');
-            }
+                // functionName === this.INSTANTIATE || functionName === this.UPGRADE
+                if (options.endorsementPolicy) {
+                    const endorsementPolicyBuffer: Buffer = LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy, true);
+                    lcccSpecArgs[3] = endorsementPolicyBuffer.toString();
+                }
 
-            protoArgs.name = options.smartContractName;
-            protoArgs.version = options.smartContractVersion;
-            protoArgs.sequence = options.sequence;
+                if (options.endorsementPlugin && typeof options.endorsementPlugin === 'string') {
+                    lcccSpecArgs[4] = options.endorsementPlugin;
+                }
+                if (options.validationPlugin && typeof options.validationPlugin === 'string') {
+                    lcccSpecArgs[5] = options.validationPlugin;
+                }
 
-            if (typeof options.initRequired === 'boolean') {
-                protoArgs.init_required = options.initRequired;
-            }
+                if (options.collectionConfig) {
+                    lcccSpecArgs[6] = LifecycleChannel.getCollectionConfig(options.collectionConfig, true).toString();
+                }
 
-            if (options.endorsementPlugin) {
-                protoArgs.endorsement_plugin = options.endorsementPlugin;
-            }
-            if (options.validationPlugin) {
-                protoArgs.validation_plugin = options.validationPlugin;
-            }
-
-            if (options.endorsementPolicy) {
-                const endorsementPolicyBuffer: Buffer = LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy);
-                protoArgs.validation_parameter = endorsementPolicyBuffer;
-            }
-
-            if (options.collectionConfig) {
-                protoArgs.collections = LifecycleChannel.getCollectionConfig(options.collectionConfig) as protos.common.ICollectionConfigPackage;
-            }
-
-            const contract: Contract = network.getContract('_lifecycle');
-
-            let transaction: Transaction;
-
-            if (functionName === this.APPROVE) {
-                transaction = contract.createTransaction('ApproveChaincodeDefinitionForMyOrg');
-                arg = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
-            } else {
-                transaction = contract.createTransaction('CommitChaincodeDefinition');
-                arg = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
+                transaction = contract.createTransaction(functionName);
             }
 
             transaction.setEndorsingPeers(endorsers);
 
-
-            const txArg: Buffer = Buffer.from(arg);
-            await transaction.submit(txArg as any);
+            if (!lcccSpecArgs) {
+                const txArg: Buffer = Buffer.from(arg);
+                await transaction.submit(txArg as any);
+            } else if (options.collectionConfig) {
+                await transaction.submit(lcccSpecArgs[1], lcccSpecArgs[2], lcccSpecArgs[3], lcccSpecArgs[4], lcccSpecArgs[5], lcccSpecArgs[6]);
+            } else {
+                await transaction.submit(lcccSpecArgs[1], lcccSpecArgs[2], lcccSpecArgs[3], lcccSpecArgs[4], lcccSpecArgs[5]);
+            }
             logger.debug('%s - submitted successfully');
         } catch (error) {
             logger.error('Problem with the lifecycle approval :: %s', error);

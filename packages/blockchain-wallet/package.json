@@ -56,7 +56,7 @@
         "url": "0.11.0"
     },
     "optionalDependencies": {
-        "fabric-network": "2.1.2"
+        "fabric-network": "2.2.2"
     },
     "license-check-and-add-config": {
         "folder": ".",

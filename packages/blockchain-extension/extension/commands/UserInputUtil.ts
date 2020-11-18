@@ -372,7 +372,7 @@ export class UserInputUtil {
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
 
         // Get all installed smart contracts
-        const installedContracts: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = await this.getInstalledContracts(connection, peers);
+        const installedContracts: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = await this.getInstalledContracts(connection, peers, true);
         tempQuickPickItems.push(...installedContracts);
 
         // Get all packaged smart contracts
@@ -1279,16 +1279,18 @@ export class UserInputUtil {
         }
     }
 
-    private static async getInstalledContracts(connection: IFabricEnvironmentConnection, peers: Array<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
+    // Only being used for v1 contracts
+    private static async getInstalledContracts(connection: IFabricEnvironmentConnection, peers: Array<string>, isV1: boolean = false): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         for (const peer of peers) {
-            const chaincodes: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peer);
+            const chaincodes: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peer, isV1);
 
             // TODO: this is wrong but won't be needed later
             chaincodes.forEach((chaincode: FabricInstalledSmartContract) => {
-                const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincode.label, version: chaincode.packageId, path: undefined, sizeKB: undefined });
+                const nameAndVersion: string[] = chaincode.label.split('@');
+                const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: nameAndVersion[0], version: nameAndVersion[1], path: undefined, sizeKB: undefined });
                 const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
-                const label: string = `${chaincode.label}@${chaincode.packageId}`;
+                const label: string = chaincode.label;
                 const foundItem: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = tempQuickPickItems.find((item: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
                     return item.label === label;
                 });

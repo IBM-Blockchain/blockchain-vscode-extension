@@ -20,7 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import { Gateway, Wallet, Wallets, X509Identity } from 'fabric-network';
 import * as sinon from 'sinon';
-import { DefinedSmartContract, LifecycleChannel } from '../src/LifecycleChannel';
+import { DefinedSmartContract, LifecycleChannel, SmartContractDefinitionOptions } from '../src/LifecycleChannel';
 import { Lifecycle } from '../src/Lifecycle';
 import { EndorsementPolicy } from '../src/Policy';
 import { Collection } from '../src';
@@ -713,6 +713,259 @@ describe('LifecycleChannel', () => {
             });
         });
 
+        describe('instantiateOrUpgradeSmartContractDefinition', () => {
+
+            let mysandbox: sinon.SinonSandbox;
+
+            let gatewayConnectSpy: sinon.SinonSpy;
+
+            let transactionSetEndorsingPeersSpy: sinon.SinonSpy;
+            let transactionSubmitStub: sinon.SinonStub;
+
+            let addEndorserStub: sinon.SinonStub;
+            let addCommitterStub: sinon.SinonStub;
+
+            let peerNames: string[];
+            let ordererName: string;
+            let options: SmartContractDefinitionOptions;
+            let fcn: string;
+            let args: string[];
+            let isUpgrade: boolean;
+            let name: string;
+            let version: string;
+            let sequence: number;
+            let packageId: string;
+            let chaincodeDeploymentSpec: protos.protos.ChaincodeDeploymentSpec;
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                mysandbox.stub(Endorser.prototype, 'connect').resolves();
+                mysandbox.stub(Discoverer.prototype, 'connect').resolves();
+                mysandbox.stub(Committer.prototype, 'connect').resolves();
+
+                peerNames = ['myPeer'];
+                ordererName = 'myOrderer';
+                fcn = '';
+                args = [];
+                isUpgrade = false;
+                name = 'myContract';
+                version = '0.0.1';
+                sequence = -11;
+                packageId = 'myPackageId';
+
+                options = {
+                    sequence: sequence,
+                    smartContractName: name,
+                    smartContractVersion: version,
+                    packageId: packageId,
+                }
+
+                addEndorserStub = mysandbox.stub(Channel.prototype, 'addEndorser');
+                addCommitterStub = mysandbox.stub(Channel.prototype, 'addCommitter');
+
+                // @ts-ignore
+                mysandbox.stub(Channel.prototype, 'getEndorsers').returns([{ name: 'myPeer' }, { name: 'myPeer2' }, { name: 'myPeer:7051' }, { name: 'peer0.org2.example.com:9051' }]);
+
+                gatewayConnectSpy = mysandbox.spy(Gateway.prototype, 'connect');
+
+                mysandbox.stub(DiscoveryService.prototype, 'build');
+                mysandbox.stub(DiscoveryService.prototype, 'sign');
+                mysandbox.stub(DiscoveryService.prototype, 'send').resolves();
+
+                transactionSetEndorsingPeersSpy = mysandbox.spy(Transaction.prototype, 'setEndorsingPeers');
+                transactionSubmitStub = mysandbox.stub(Transaction.prototype, 'submit');
+
+                const specArgs: Buffer[] = [];
+                for (const arg of args) {
+                    specArgs.push(Buffer.from(arg, 'utf8'));
+                }
+
+                const ccSpec: any = {
+                    type: protos.protos.ChaincodeSpec.Type.GOLANG,
+                    chaincode_id: {
+                        name: options.smartContractName,
+                        version: options.smartContractVersion
+                    },
+                    input: {
+                        args: specArgs
+                    }
+                };
+                chaincodeDeploymentSpec = new protos.protos.ChaincodeDeploymentSpec();
+                chaincodeDeploymentSpec.chaincode_spec = ccSpec;
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+                options = {} as SmartContractDefinitionOptions;
+            });
+
+            it('should instantiate a smart contract definition', async () => {
+                const functionName: string = isUpgrade ? 'upgrade' : 'deploy';
+                const expectedArgs: string[] = [
+                    functionName,
+                    channel['channelName'],
+                    protos.protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish().toString(),
+                    '',
+                    'escc',
+                    'vscc'
+                ];
+
+                await channel.instantiateOrUpgradeSmartContractDefinition(peerNames, ordererName, options, fcn, args, isUpgrade, 1234);
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
+                transactionSubmitStub.should.have.been.calledWith(expectedArgs[1], expectedArgs[2], expectedArgs[3], expectedArgs[4], expectedArgs[5]);
+            });
+
+            it('should instantiate a smart contract definition with undefined fcn and args', async () => {
+                fcn = undefined;
+                args = undefined;
+                const derivedFcn: string = 'init';
+                const derivedArgs: string[] = [];
+                const newSpecArgs: Buffer[] = [];
+                newSpecArgs.push(Buffer.from(derivedFcn, 'utf8'));
+                for (const arg of derivedArgs) {
+                    newSpecArgs.push(Buffer.from(arg, 'utf8'));
+                }
+
+                const ccSpec: any = {
+                    type: protos.protos.ChaincodeSpec.Type.GOLANG,
+                    chaincode_id: {
+                        name: options.smartContractName,
+                        version: options.smartContractVersion
+                    },
+                    input: {
+                        args: newSpecArgs
+                    }
+                };
+                chaincodeDeploymentSpec = new protos.protos.ChaincodeDeploymentSpec();
+                chaincodeDeploymentSpec.chaincode_spec = ccSpec;
+
+                const functionName: string = isUpgrade ? 'upgrade' : 'deploy';
+                const expectedArgs: string[] = [
+                    functionName,
+                    channel['channelName'],
+                    protos.protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish().toString(),
+                    '',
+                    'escc',
+                    'vscc'
+                ];
+
+                await channel.instantiateOrUpgradeSmartContractDefinition(peerNames, ordererName, options, fcn, args, isUpgrade, 1234);
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
+                transactionSubmitStub.should.have.been.calledWith(expectedArgs[1], expectedArgs[2], expectedArgs[3], expectedArgs[4], expectedArgs[5]);
+            });
+
+            it('should instantiate a smart contract definition with instantiate function and arguments', async () => {
+                fcn = 'someFcn';
+                args = ['some', 'args'];
+                const newSpecArgs: Buffer[] = [];
+                newSpecArgs.push(Buffer.from(fcn, 'utf8'));
+                for (const arg of args) {
+                    newSpecArgs.push(Buffer.from(arg, 'utf8'));
+                }
+
+                const ccSpec: any = {
+                    type: protos.protos.ChaincodeSpec.Type.GOLANG,
+                    chaincode_id: {
+                        name: options.smartContractName,
+                        version: options.smartContractVersion
+                    },
+                    input: {
+                        args: newSpecArgs
+                    }
+                };
+                chaincodeDeploymentSpec = new protos.protos.ChaincodeDeploymentSpec();
+                chaincodeDeploymentSpec.chaincode_spec = ccSpec;
+
+                const functionName: string = isUpgrade ? 'upgrade' : 'deploy';
+                const expectedArgs: string[] = [
+                    functionName,
+                    channel['channelName'],
+                    protos.protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish().toString(),
+                    '',
+                    'escc',
+                    'vscc'
+                ];
+
+                await channel.instantiateOrUpgradeSmartContractDefinition(peerNames, ordererName, options, fcn, args, isUpgrade);
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
+                transactionSubmitStub.should.have.been.calledWith(expectedArgs[1], expectedArgs[2], expectedArgs[3], expectedArgs[4], expectedArgs[5]);
+            });
+
+            it('should upgrade a smart contract definition', async () => {
+                isUpgrade = true;
+                const functionName: string = isUpgrade ? 'upgrade' : 'deploy';
+                const expectedArgs: string[] = [
+                    functionName,
+                    channel['channelName'],
+                    protos.protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish().toString(),
+                    '',
+                    'escc',
+                    'vscc'
+                ];
+
+                await channel.instantiateOrUpgradeSmartContractDefinition(peerNames, ordererName, options, fcn, args, isUpgrade);
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
+                transactionSubmitStub.should.have.been.calledWith(expectedArgs[1], expectedArgs[2], expectedArgs[3], expectedArgs[4], expectedArgs[5]);
+            });
+
+            it('should instantiate a smart contract definition with all options and timeout', async () => {
+                const functionName: string = isUpgrade ? 'upgrade' : 'deploy';
+                options.endorsementPolicy = 'OR(\'Org1.member\')';
+                options.endorsementPlugin = 'escc';
+                options.validationPlugin = 'vscc'
+                options.collectionConfig = [
+                    {
+                        name: 'CollectionOne',
+                        policy: `OR('Org1MSP.member')`,
+                        requiredPeerCount: 1,
+                        maxPeerCount: 1,
+                        blockToLive: 0,
+                        memberOnlyRead: true
+                    }
+                ];
+                const expectedArgs: string[] = [
+                    functionName,
+                    channel['channelName'],
+                    protos.protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish().toString(),
+                    LifecycleChannel.getEndorsementPolicyBytes(options.endorsementPolicy, true).toString(),
+                    options.endorsementPlugin,
+                    options.validationPlugin,
+                    LifecycleChannel.getCollectionConfig(options.collectionConfig, true).toString()
+                ];
+
+                await channel.instantiateOrUpgradeSmartContractDefinition(peerNames, ordererName, options, fcn, args, isUpgrade, 1234);
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
+                transactionSubmitStub.should.have.been.calledWith(expectedArgs[1], expectedArgs[2], expectedArgs[3], expectedArgs[4], expectedArgs[5]);
+                const call: sinon.SinonSpyCall = gatewayConnectSpy.getCall(0);
+                call.args[1].eventHandlerOptions.should.deep.equal({
+                    commitTimeout: 1234,
+                    endorseTimeout: 1234
+                });
+            });
+
+
+        });
         describe('getCommitReadiness', () => {
 
             let mysandbox: sinon.SinonSandbox;
@@ -1695,6 +1948,30 @@ describe('LifecycleChannel', () => {
                 const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString);
 
                 result.should.deep.equal(policyBuffer);
+            });
+
+            it('should get the buffer of the endorsment policy when using a valid input for a v1 contract', () => {
+                const policyString: string = `OR('org1.member', 'org2.member')`;
+
+                const policy: EndorsementPolicy = new EndorsementPolicy();
+
+                const policyResult: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(policyString);
+
+                const applicationPolicy: protos.common.IApplicationPolicy = {};
+
+                applicationPolicy.signature_policy = policyResult;
+
+                const policyBuffer: Buffer = Buffer.from(protos.common.SignaturePolicyEnvelope.encode(applicationPolicy.signature_policy).finish());
+
+                const result: Buffer = LifecycleChannel.getEndorsementPolicyBytes(policyString, true);
+
+                result.should.deep.equal(policyBuffer);
+            });
+
+            it('should throw error if invalid input for a v1 contract', () => {
+                const policyString: string = `strange policy string`;
+
+                (() => LifecycleChannel.getEndorsementPolicyBytes(policyString, true)).should.throw(`Cannot build endorsement policy from user input: ${policyString}`);
             });
 
             it('should handle no policy string', () => {

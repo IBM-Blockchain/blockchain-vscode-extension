@@ -123,7 +123,7 @@ describe('UserInputUtil', () => {
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
         const chaincodeArray: FabricInstalledSmartContract[] = [];
-        chaincodeArray.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.2'}, {label: 'cake-network', packageId: '0.0.3'});
+        chaincodeArray.push({label: 'biscuit-network@0.0.1', packageId: '0.0.1'}, {label: 'biscuit-network@0.0.2', packageId: '0.0.2'}, {label: 'cake-network@0.0.3', packageId: '0.0.3'});
         fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne').resolves(chaincodeArray);
         fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerTwo').resolves([]);
         fabricRuntimeConnectionStub.getCommittedSmartContractDefinitions.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
@@ -1068,12 +1068,12 @@ describe('UserInputUtil', () => {
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
 
             const chaincodeArray: FabricInstalledSmartContract[] = [];
-            chaincodeArray.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.2'}, {label: 'biscuit-network', packageId: '0.0.3'});
-            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne').resolves(chaincodeArray);
+            chaincodeArray.push({label: 'biscuit-network@0.0.1', packageId: '0.0.1'}, {label: 'biscuit-network@0.0.2', packageId: '0.0.2'}, {label: 'biscuit-network@0.0.3', packageId: '0.0.3'});
+            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerOne', true).resolves(chaincodeArray);
 
             const chaincodeArray2: FabricInstalledSmartContract[] = [];
-            chaincodeArray2.push({label: 'biscuit-network', packageId: '0.0.1'}, {label: 'biscuit-network', packageId: '0.0.3'});
-            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerTwo').resolves(chaincodeArray2);
+            chaincodeArray2.push({label: 'biscuit-network@0.0.1', packageId: '0.0.1'}, {label: 'biscuit-network@0.0.3', packageId: '0.0.3'});
+            fabricRuntimeConnectionStub.getInstalledSmartContracts.withArgs('myPeerTwo', true).resolves(chaincodeArray2);
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', 'channelOne', ['myPeerOne', 'myPeerTwo'], 'biscuit-network', '0.0.1');
 

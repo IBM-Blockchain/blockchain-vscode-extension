@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as fs from 'fs-extra';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
@@ -29,7 +28,6 @@ import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/bui
 export async function instantiateSmartContract(channelName?: string, peerNames?: Array<string>): Promise<void> {
 
     let packageToInstall: PackageRegistryEntry;
-    let packageEntry: PackageRegistryEntry;
     let smartContractName: string;
     let smartContractVersion: string;
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -101,7 +99,7 @@ export async function instantiateSmartContract(channelName?: string, peerNames?:
 
                 // TODO: this is wrong but this whole file will be deleted so just making the tests pass for now
                 installedChaincode = installedChaincode.filter((chaincode: FabricInstalledSmartContract) => {
-                    return chaincode.label === smartContractName && chaincode.packageId === smartContractVersion;
+                    return chaincode.label === `${packageToInstall.name}@${packageToInstall.version}` && chaincode.packageId === packageToInstall.name;
                 });
 
                 if (installedChaincode.length > 0) {
@@ -111,14 +109,20 @@ export async function instantiateSmartContract(channelName?: string, peerNames?:
 
             if (doInstall) {
                 // Install smart contract package
-                packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, packageToInstall);
-                if (!packageEntry) {
-                    // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
-                    return;
+                const channelMap: Map<string, string[]> = await connection.createChannelMap();
+                await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, channelMap, packageToInstall);
+
+                // check install was successful:
+                let installedChaincode: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peerNames[0], true);
+                installedChaincode = installedChaincode.filter((chaincode: FabricInstalledSmartContract) => {
+                    return chaincode.label === `${packageToInstall.name}@${packageToInstall.version}` && chaincode.packageId === packageToInstall.name;
+                });
+                if (installedChaincode.length === 0) {
+                    throw new Error('failed to get contract from peer after install');
                 }
 
-                smartContractName = packageEntry.name;
-                smartContractVersion = packageEntry.version;
+                smartContractName = packageToInstall.name;
+                smartContractVersion = packageToInstall.version;
             }
         } else {
             // Installed smart contract chosen
@@ -185,30 +189,13 @@ export async function instantiateSmartContract(channelName?: string, peerNames?:
         if (!wantsContractEP) {
             return;
         } else if (wantsContractEP === UserInputUtil.CUSTOM) {
-
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                filters: {
-                    Identity: ['json']
-                }
-            };
-
-            const jsonEpPath: vscode.Uri = await UserInputUtil.browse('Browse for the JSON file containing the smart contract endorsement policy', UserInputUtil.BROWSE_LABEL, openDialogOptions, true) as vscode.Uri;
-            if (!jsonEpPath) {
+            contractEP = await UserInputUtil.showInputBox('Enter the smart contract endorsement policy: e.g. OR("Org1MSP.member","Org2MSP.member")');
+            if (!contractEP) {
+                // User cancelled dialog box
                 return;
+            } else {
+                contractEP = contractEP.replace(/"/g, "\'");
             }
-
-            const jsonEpContents: string = await fs.readFile(jsonEpPath.fsPath, 'utf8');
-            try {
-                contractEP = JSON.parse(jsonEpContents);
-            } catch (error) {
-                outputAdapter.log(LogType.ERROR, `Unable to read smart contract endorsement policy: ${error.message}`);
-                return;
-            }
-
         }
 
         await vscode.window.withProgress({
