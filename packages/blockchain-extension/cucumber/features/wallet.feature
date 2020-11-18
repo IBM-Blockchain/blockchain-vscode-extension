@@ -7,13 +7,8 @@ Feature: Fabric Wallets
         Then there should be a tree item with a label '1 Org Local Fabric' in the 'Fabric Wallets' panel
         And the 'Fabric Wallets' tree item should have a child 'Org1'
         And the tree item should have a tooltip equal to 'Org1'
-        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for the current tree item
+        And there should be a identity tree item with a label 'Org1 Admin' in the 'Fabric Wallets' panel for the current tree item
         And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
-        And there should be a tree item with a label '1 Org Local Fabric' in the 'Fabric Wallets' panel
-        And the 'Fabric Wallets' tree item should have a child 'Orderer'
-        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for the current tree item
-        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
-
 
     Scenario: create an identity with attributes
         Given the 1 Org Local Fabric environment is running

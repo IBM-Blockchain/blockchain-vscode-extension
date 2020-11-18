@@ -30,8 +30,58 @@ import { GlobalState, ExtensionData } from '../util/GlobalState';
 interface ITransactionData {
     transactionName: string;
     transactionLabel?: string;
-    arguments?: string[];
-    transientData?: any;
+    arguments: string[];
+    transientData: any;
+}
+
+function validateTxnDataObject(txnDataObject: ITransactionData): ITransactionData {
+    let args: Array<string>;
+    let transientData: { [key: string]: Buffer };
+    if (txnDataObject.arguments) {
+        args = txnDataObject.arguments.map((arg: any) => typeof arg !== 'string' ? JSON.stringify(arg) : arg);
+    } else {
+        args = [];
+    }
+
+    transientData = txnDataObject.transientData || {};
+    const keys: Array<string> = Array.from(Object.keys(transientData));
+    if (keys.length > 0) {
+        keys.forEach((key: string) => {
+            transientData[key] = Buffer.from(transientData[key]);
+        });
+    }
+
+    return { ...txnDataObject, arguments: args, transientData };
+}
+
+async function createArgs(transactionObject: any): Promise<Array<string>> {
+    let argsString: string;
+    if (transactionObject && transactionObject.args) {
+        if (Array.isArray(transactionObject.args)) {
+            return transactionObject.args;
+        }
+        argsString = transactionObject.args;
+    } else {
+        argsString = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])', '[]');
+    }
+
+    if (argsString === undefined) {
+        throw new Error('transaction cancelled');
+    } else if (argsString === '') {
+            return [];
+    } else {
+        argsString = argsString.trim();
+        if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
+            throw new Error('transaction arguments should be in the format ["arg1", {"arg2key" : "arg2value"}]');
+        }
+        const args: Array<string> = JSON.parse(argsString);
+        args.forEach((arg: any, index: number) => {
+            if ((typeof arg !== 'string')) {
+                args[index] = JSON.stringify(arg);
+            }
+        });
+        return args;
+    }
 }
 
 export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string, transactionObject?: any): Promise<void | string> {
@@ -58,7 +108,6 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     let peerTargetMessage: string = '';
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     let errorMessage: string;
-    let fileJson: ITransactionData[];
     let connection: IFabricGatewayConnection;
 
     if (transactionObject) {
@@ -127,26 +176,27 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     }
 
     if (associatedTestData) {
-        const filepaths: string[] = [];
-        const testDataDirPath: string = associatedTestData.transactionDataPath;
-        const quickPickItems: IBlockchainQuickPickItem<ITransactionData>[] = [];
+        if (transactionObject && transactionObject.txDataFile) {
+            // If txDataFile is sent, the transaction was read from file - it should've been sent with args and transient data
+            const validatedTxnDataObject: ITransactionData = validateTxnDataObject({ transactionName, arguments: transactionObject.args, transientData: transactionObject.transientData });
+            args = validatedTxnDataObject.arguments;
+            transientData = validatedTxnDataObject.transientData;
+        } else {
+            const testDataDirPath: string = associatedTestData.transactionDataPath;
+            const quickPickItems: IBlockchainQuickPickItem<ITransactionData>[] = [];
 
-        const allFiles: string[] = await fs.readdir(testDataDirPath);
-        allFiles.forEach((file: string) => {
-            if (file.endsWith('.txdata')) {
-                filepaths.push(file);
-            }
-        });
+            const allFiles: string[] = await fs.readdir(testDataDirPath);
+            const txDataFiles: string[] = allFiles.filter((file: string) => file.endsWith('.txdata'));
 
-        if (filepaths.length > 0) {
-                for (const file of filepaths) {
+            if (txDataFiles.length > 0) {
+                for (const file of txDataFiles) {
                     try {
-                        fileJson = await fs.readJSON(path.join(testDataDirPath, file));
+                        const fileJson: ITransactionData[] = await fs.readJSON(path.join(testDataDirPath, file));
                         fileJson.forEach((txn: ITransactionData) => {
                             if (txn.transactionName === transactionName) {
                                 quickPickItems.push({
                                     label: file,
-                                    description: txn.transactionLabel ? txn.transactionLabel : '',
+                                    description: txn.transactionLabel || '',
                                     data: txn
                                 });
                             }
@@ -165,63 +215,25 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                         data: undefined
                     });
                     const chosenTransaction: IBlockchainQuickPickItem = await UserInputUtil.showQuickPickItem('Do you want to provide a file of transaction data for this transaction?', quickPickItems, false) as IBlockchainQuickPickItem;
-                    if (!chosenTransaction) {
+                    if (!chosenTransaction ) {
                         return;
-                    } else if  (chosenTransaction.label !== 'No (manual entry)') {
-                        const txnDataObject: ITransactionData = chosenTransaction.data;
-
-                        if (txnDataObject.arguments) {
-                            args = txnDataObject.arguments;
-                            args.forEach((arg: any, index: number) => {
-                                if ((typeof arg !== 'string')) {
-                                    args[index] = JSON.stringify(arg);
-                                }
-                            });
-                        } else {
-                            args = [];
-                        }
-
-                        transientData = txnDataObject.transientData ? txnDataObject.transientData : {};
-                        const keys: Array<string> = Array.from(Object.keys(transientData));
-                        if (keys.length > 0) {
-                            keys.forEach((key: string) => {
-                                transientData[key] = Buffer.from(transientData[key]);
-                            });
-                        }
+                    } else if (chosenTransaction.label !== 'No (manual entry)') {
+                        const txnDataObject: ITransactionData = validateTxnDataObject(chosenTransaction.data);
+                        args = txnDataObject.arguments;
+                        transientData = txnDataObject.transientData;
                     }
                 }
+            }
         }
     }
 
     if (args === undefined) {
-        let argsString: string;
-        if (transactionObject) {
-            argsString = transactionObject.args;
-        } else {
-            argsString = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])', '[]');
-        }
-
-        if (argsString === undefined) {
-            return;
-        } else if (argsString === '') {
-             args = [];
-        } else {
-            argsString = argsString.trim();
-            try {
-                if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
-                    throw new Error('transaction arguments should be in the format ["arg1", {"key" : "value"}]');
-                }
-                args = JSON.parse(argsString);
-                args.forEach((arg: any, index: number) => {
-                    if ((typeof arg !== 'string')) {
-                        args[index] = JSON.stringify(arg);
-                    }
-                });
-            } catch (error) {
-                errorMessage = `Error with transaction arguments: ${error.message}`;
-                outputAdapter.log(LogType.ERROR, errorMessage);
-                return transactionObject ? errorMessage : undefined;
-            }
+        try {
+            args = await createArgs(transactionObject);
+        } catch (error) {
+            errorMessage = `Error with transaction arguments: ${error.message}`;
+            outputAdapter.log(LogType.ERROR, errorMessage);
+            return transactionObject ? errorMessage : undefined;
         }
     }
 
@@ -307,7 +319,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
 
             if (gatewayRegistryEntry.fromEnvironment) {
                 const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(gatewayRegistryEntry.fromEnvironment);
-                if (environmentEntry.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+                if (environmentEntry.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                     VSCodeBlockchainDockerOutputAdapter.instance(environmentEntry.name).show();
                 }
 

@@ -49,7 +49,7 @@ export class EnvironmentHelper {
         this.extensionsInteractionUtilHelper = extensionsInteractionUtilHelper;
     }
 
-    public async createEnvironment(name: string, opsType?: string): Promise<IBlockchainQuickPickItem<FabricNode>[]> {
+    public async createEnvironment(name: string, opsType?: string, createLocal?: boolean): Promise<IBlockchainQuickPickItem<FabricNode>[]> {
         let treeItem: FabricEnvironmentTreeItem;
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         // need to make sure its not showing the setup tree
@@ -86,6 +86,9 @@ export class EnvironmentHelper {
             } else if (process.env.TWO_ORG_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a configuration for a new local network').resolves({data: 2});
+            } else if (createLocal) {
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
+                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a configuration for a new local network').resolves({data: 1});
             } else {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
 

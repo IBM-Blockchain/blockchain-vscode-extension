@@ -18,6 +18,8 @@ import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { TransactionView } from '../../extension/webview/TransactionView';
 import { View } from '../../extension/webview/View';
 import { TestUtil } from '../TestUtil';
@@ -27,12 +29,60 @@ type ITransaction = any;
 type ISmartContract = any;
 chai.use(sinonChai);
 
+interface ICreateTransactionViewAndSendMessageParams {
+    mySandBox: sinon.SinonSandbox;
+    createWebviewPanelStub: sinon.SinonStub;
+    postMessageStub: sinon.SinonStub;
+    context: vscode.ExtensionContext;
+    mockAppState: { gatewayName: string, selectedSmartContract: ISmartContract, associatedTxdata?: {chaincodeName: string, channelName: string, transactionDataPath: string} };
+    command: string | undefined;
+    data: object | undefined;
+}
+
+interface ITransactionData {
+    transactionName: string;
+    transactionLabel?: string;
+    arguments: string[];
+    transientData: any;
+}
+
+async function createTransactionViewAndSendMessage({ mySandBox, createWebviewPanelStub, postMessageStub, context, mockAppState, command, data }: ICreateTransactionViewAndSendMessageParams): Promise<any> {
+    const onDidReceiveMessagePromises: any[] = [];
+
+    onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+        createWebviewPanelStub.returns({
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: async (callback: any): Promise<void> => {
+                    await callback({
+                        command,
+                        data,
+                    });
+                    resolve();
+                }
+            },
+            reveal: (): void => {
+                return;
+            },
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub()
+        });
+    }));
+
+    const transactionCreateView: TransactionView = new TransactionView(context, mockAppState);
+    await transactionCreateView.openView(false);
+    return Promise.all(onDidReceiveMessagePromises);
+}
+
 describe('TransactionView', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let context: vscode.ExtensionContext;
     let createWebviewPanelStub: sinon.SinonStub;
     let postMessageStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
+    let fsReaddirStub: sinon.SinonStub;
+    let fsReadJsonStub: sinon.SinonStub;
+    let createTransactionViewAndSendMessageDefaults: ICreateTransactionViewAndSendMessageParams;
 
     const transactionOne: ITransaction = {
         name: 'transactionOne',
@@ -84,6 +134,27 @@ describe('TransactionView', () => {
         peerTargetNames: undefined
     };
 
+    const chaincodeDetails: {label: string, name: string, channel: string} = {
+        label: greenContract.label,
+        name: greenContract.name,
+        channel: greenContract.channel,
+    };
+
+    const dummyPath: string = '/dummyPath';
+    const dummyTxdataFile: string = 'file.txdata';
+    const badTxdataFile: string = 'throwerror.txdata';
+
+    const associateTransactionDataDirectoryResponse: {chaincodeName: string, channelName: string, transactionDataPath: string} = {
+        chaincodeName: chaincodeDetails.name,
+        channelName: chaincodeDetails.channel,
+        transactionDataPath: dummyPath,
+    };
+
+    const dummyTxdataFileContents: ITransactionData[] = [
+        {transactionName: 'myTransaction', transactionLabel: 'This is my transaction', arguments: ['arg1', 'arg2'], transientData: {} },
+        {transactionName: 'anotherTransaction', transactionLabel: 'This is another transaction', arguments: [JSON.stringify({ key: 'value' })], transientData: undefined },
+    ];
+
     before(async () => {
         await TestUtil.setupTests(mySandBox);
     });
@@ -94,12 +165,30 @@ describe('TransactionView', () => {
         executeCommandStub.callThrough();
         executeCommandStub.withArgs(ExtensionCommands.SUBMIT_TRANSACTION).resolves();
         executeCommandStub.withArgs(ExtensionCommands.EVALUATE_TRANSACTION).resolves();
+        executeCommandStub.withArgs(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY).resolves(associateTransactionDataDirectoryResponse);
+        executeCommandStub.withArgs(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY ).resolves(undefined);
+
+        fsReaddirStub = mySandBox.stub(fs, 'readdir');
+        fsReaddirStub.withArgs(dummyPath).resolves([dummyTxdataFile, badTxdataFile]);
+
+        fsReadJsonStub = mySandBox.stub(fs, 'readJSON').resolves();
 
         createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
 
         postMessageStub = mySandBox.stub().resolves();
 
         View['openPanels'].splice(0, View['openPanels'].length);
+
+        // Make sure this is last in the beforeEach loop
+        createTransactionViewAndSendMessageDefaults = {
+            mySandBox,
+            createWebviewPanelStub,
+            postMessageStub,
+            mockAppState,
+            context,
+            command: undefined,
+            data: undefined,
+        };
     });
 
     afterEach(() => {
@@ -124,68 +213,168 @@ describe('TransactionView', () => {
         createWebviewPanelStub.should.have.been.called;
         postMessageStub.should.have.been.calledWith({
             path: '/transaction',
-            transactionData: mockAppState
+            transactionViewData: mockAppState
         });
     });
 
     it(`should handle a 'submit' message`, async () => {
-        const onDidReceiveMessagePromises: any[] = [];
-
-        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.returns({
-                webview: {
-                    postMessage: mySandBox.stub(),
-                    onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({
-                            command: ExtensionCommands.SUBMIT_TRANSACTION,
-                            data: transactionObject
-                        });
-                        resolve();
-                    }
-                },
-                reveal: (): void => {
-                    return;
-                },
-                onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
-            });
-        }));
-
-        const transactionCreateView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionCreateView.openView(false);
-        await Promise.all(onDidReceiveMessagePromises);
+        await createTransactionViewAndSendMessage({
+            ...createTransactionViewAndSendMessageDefaults,
+            command: ExtensionCommands.SUBMIT_TRANSACTION,
+            data: transactionObject,
+        });
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, undefined, undefined, transactionObject);
     });
 
     it(`should handle an 'evaluate' message`, async () => {
-        const onDidReceiveMessagePromises: any[] = [];
-
-        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.returns({
-                webview: {
-                    postMessage: mySandBox.stub(),
-                    onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({
-                            command: ExtensionCommands.EVALUATE_TRANSACTION,
-                            data: transactionObject
-                        });
-                        resolve();
-                    }
-                },
-                reveal: (): void => {
-                    return;
-                },
-                onDidDispose: mySandBox.stub(),
-                onDidChangeViewState: mySandBox.stub()
-            });
-        }));
-
-        const transactionCreateView: TransactionView = new TransactionView(context, mockAppState);
-        await transactionCreateView.openView(false);
-        await Promise.all(onDidReceiveMessagePromises);
+        await createTransactionViewAndSendMessage({
+            ...createTransactionViewAndSendMessageDefaults,
+            command: ExtensionCommands.EVALUATE_TRANSACTION,
+            data: transactionObject,
+        });
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION, undefined, undefined, undefined, transactionObject);
     });
 
+    it(`should handle an 'ASSOCIATE_TRANSACTION_DATA_DIRECTORY' message and calls postMessage with associatedTxData`, async () => {
+        fsReadJsonStub.withArgs(path.join(dummyPath, dummyTxdataFile)).resolves(dummyTxdataFileContents);
+
+        await createTransactionViewAndSendMessage({
+            ...createTransactionViewAndSendMessageDefaults,
+            command: ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY,
+            data: chaincodeDetails,
+        });
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
+        const txDataFile: string = path.join(dummyPath, dummyTxdataFile);
+        const expectedParameters: any = {
+            transactionViewData: {
+                gatewayName: mockAppState.gatewayName,
+                smartContract: undefined,
+                associatedTxdata: associateTransactionDataDirectoryResponse,
+                txdataTransactions: [
+                    {
+                        ...dummyTxdataFileContents[0],
+                        txDataFile,
+                    },
+                    {
+                        ...dummyTxdataFileContents[1],
+                        txDataFile,
+                    }
+                ],
+            },
+        };
+        postMessageStub.should.have.been.calledWith(expectedParameters);
+    });
+
+    it(`should handle an 'ASSOCIATE_TRANSACTION_DATA_DIRECTORY' message when the data directory is empty`, async () => {
+        fsReaddirStub.withArgs(dummyPath).resolves([]);
+        await createTransactionViewAndSendMessage({
+            ...createTransactionViewAndSendMessageDefaults,
+            command: ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY,
+            data: chaincodeDetails,
+        });
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
+        postMessageStub.should.have.been.calledWith({
+            transactionViewData: {
+                gatewayName: mockAppState.gatewayName,
+                smartContract: undefined,
+                associatedTxdata: associateTransactionDataDirectoryResponse,
+                txdataTransactions: [],
+            },
+        });
+    });
+
+    it(`should handle an 'ASSOCIATE_TRANSACTION_DATA_DIRECTORY' message when no .txdata files are found in the transaction directory`, async () => {
+        fsReaddirStub.withArgs(dummyPath).resolves(['invalidfile.txt']);
+        await createTransactionViewAndSendMessage({
+            ...createTransactionViewAndSendMessageDefaults,
+            command: ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY,
+            data: chaincodeDetails,
+        });
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
+        postMessageStub.should.have.been.calledWith({
+            transactionViewData: {
+                gatewayName: mockAppState.gatewayName,
+                smartContract: undefined,
+                associatedTxdata: associateTransactionDataDirectoryResponse,
+                txdataTransactions: [],
+            },
+        });
+    });
+
+    it(`should handle an 'DISSOCIATE_TRANSACTION_DATA_DIRECTORY' message and calls postMessage with no associatedTxData`, async () => {
+        await createTransactionViewAndSendMessage({
+            ...createTransactionViewAndSendMessageDefaults,
+            command: ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY,
+            data: chaincodeDetails,
+        });
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
+        postMessageStub.should.have.been.calledWith({
+            transactionViewData: {
+                gatewayName: mockAppState.gatewayName,
+                smartContract: undefined,
+                associatedTxdata: undefined,
+                txdataTransactions: [],
+            },
+        });
+    });
+
+    it(`should handle an unexpected command and pass through the parameters`, async () => {
+        const command: string = ExtensionCommands.OPEN_TUTORIAL_PAGE;
+        executeCommandStub.withArgs(command).resolves();
+        const data: string[] = ['Basic Tutorials', 'A4: A Tutorial'];
+        await createTransactionViewAndSendMessage({
+            ...createTransactionViewAndSendMessageDefaults,
+            command,
+            data,
+        });
+
+        executeCommandStub.should.have.been.calledWith(command, ...data);
+    });
+
+    it('should get txdataTransactions when there is a transaction data directory in the appState in loadComponent', async () => {
+        fsReadJsonStub.withArgs(path.join(dummyPath, dummyTxdataFile)).resolves(dummyTxdataFileContents);
+        createWebviewPanelStub.returns({
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub().resolves(),
+            },
+            reveal: (): void => {
+                return;
+            },
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub()
+        });
+        const transactionCreateView: TransactionView = new TransactionView(context, {
+            ...mockAppState,
+            associatedTxdata: associateTransactionDataDirectoryResponse,
+        });
+        await transactionCreateView.openView(false);
+        const txDataFile: string = path.join(dummyPath, dummyTxdataFile);
+        const expectedParameters: any = {
+            path: '/transaction',
+            transactionViewData: {
+                associatedTxdata: associateTransactionDataDirectoryResponse,
+                gatewayName: mockAppState.gatewayName,
+                selectedSmartContract: greenContract,
+                txdataTransactions: [
+                    {
+                        ...dummyTxdataFileContents[0],
+                        txDataFile,
+                    },
+                    {
+                        ...dummyTxdataFileContents[1],
+                        txDataFile,
+                    }
+                ],
+            },
+        };
+
+        postMessageStub.should.have.been.calledWith(expectedParameters);
+    });
 });

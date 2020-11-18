@@ -24,7 +24,7 @@ do
         break
     else
         # Sleep and try again
-        sleep 1
+        sleep 3
     fi
 done
 echo Hyperledger Fabric started in $i seconds

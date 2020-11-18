@@ -187,7 +187,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             fsPathExistsStub = mySandBox.stub(fs, 'pathExists');
             fsPathExistsStub.resolves(true);
 
-            axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
+            axiosGetStub.onFirstCall().resolves({data: {components: opsToolNodes}});
             showNodesQuickPickBoxStub.resolves(opsToolNodes.map((_node: any) => ({ label: _node.display_name, data: _node })));
             const mockSecureStore: sinon.SinonStubbedInstance<TestSecureStore> = sinon.createStubInstance(TestSecureStore);
             getPasswordStub = mockSecureStore.getPassword;
@@ -230,7 +230,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported nodes');
         });
 
-        it('should test nodes with display_name, tls_cert or tls_ca_root_cert properties can be added', async () => {
+        it('should test nodes with display_name, tls_cert, tls_ca_root_cert or tls_ca_root_certs properties can be added', async () => {
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
             browseStub.onFirstCall().resolves([uri]);
 
@@ -256,13 +256,25 @@ describe('ImportNodesToEnvironmentCommand', () => {
                     location: 'some_saas',
                     ca_name: 'ca.org1.example.com',
                     tls_cert: 'someCertPeer'
+                },
+                {
+                    short_name: 'peer0.org2.example.com',
+                    display_name: 'peer0.org2.example.com',
+                    api_url: 'grpc://localhost:17058',
+                    chaincode_url: 'grpc://localhost:17059',
+                    type: 'fabric-peer',
+                    wallet: 'Org2',
+                    identity: 'admin',
+                    msp_id: 'Org2MSP',
+                    container_name: 'fabricvscodelocalfabric_peer0.org2.example.com',
+                    tls_ca_root_certs: ['someCertPeer', 'anotherCert']
                 }
             ]);
 
             await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
 
             ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.been.calledTwice;
+            updateNodeStub.should.have.been.calledThrice;
             getNodesStub.should.have.been.calledTwice;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             stopEnvironmentRefreshStub.should.not.have.been.called;
@@ -287,9 +299,9 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
         });
 
-        it('should test nodes with tls_cert or tls_ca_root_cert properties can be added to a new OpsTool instance', async () => {
+        it('should test nodes with tls_cert, tls_ca_root_cert or tls_ca_root_certs properties can be added to a new OpsTool instance', async () => {
             axiosGetStub.onFirstCall().resolves({
-                data: [{
+                data: {components: [{
                     short_name: 'peer0.org1.example.com',
                     name: 'peer0.org1.example.com',
                     display_name: 'Peer0 Org1',
@@ -316,13 +328,28 @@ describe('ImportNodesToEnvironmentCommand', () => {
                     location: 'some_saas',
                     ca_name: 'ca.org1.example.com',
                     ssl_target_name_override: 'sslTgtNameOverride'
+                },
+                {
+                    short_name: 'peer0.org2.example.com',
+                    name: 'peer0.org2.example.com',
+                    display_name: 'Peer0 Org2',
+                    api_url: 'grpcs://someHost:somePort3',
+                    type: 'fabric-peer',
+                    wallet: 'fabric_wallet',
+                    identity: 'admin',
+                    msp_id: 'Org2MSP',
+                    tls_ca_root_certs: ['someCertPeer', 'anotherOne'],
+                    location: 'some_saas',
+                    id: 'peer0rg2',
+                    cluster_name: 'someClusterName',
+                    hidden: false
                 }
-            ]});
+            ]}});
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, opsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
             ensureDirStub.should.have.been.calledOnce;
-            updateNodeStub.should.have.been.calledTwice;
+            updateNodeStub.should.have.been.calledThrice;
             getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Edit node filters');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully filtered nodes');
@@ -428,7 +455,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
 
             axiosGetStub.resolves(
                 {
-                    data:
+                    data: {components:
                         [
                             {
                                 short_name: 'peer0.org1.example.com',
@@ -455,7 +482,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
                                 ca_name: 'ca.org1.example.com',
                             }
                         ]
-                });
+                }});
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, opsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -811,7 +838,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             }].concat(opsToolNodes);
             getNodesStub.reset();
             getNodesStub.resolves(someNodes);
-            axiosGetStub.onFirstCall().resolves({data: someNodes});
+            axiosGetStub.onFirstCall().resolves({data: {components: someNodes}});
             showNodesQuickPickBoxStub.resolves();
 
             const result: boolean = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, opsToolRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -891,11 +918,6 @@ describe('ImportNodesToEnvironmentCommand', () => {
                 short_name: _node.short_name,
                 hidden: _node.hidden
             }));
-
-            const savedNodes: FabricNode[] = [];
-            updateNodeStub.callsFake((_node: FabricNode) => {
-                savedNodes.push(_node);
-            });
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, opsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
@@ -1099,7 +1121,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             }];
             getNodesStub.resetBehavior();
             getNodesStub.resolves(originalNodes);
-            axiosGetStub.onFirstCall().resolves({data: nodesFromOpsTools});
+            axiosGetStub.onFirstCall().resolves({data: {components: nodesFromOpsTools}});
             showNodesQuickPickBoxStub.resolves({ label: nodesFromOpsTools[0].display_name, data: nodesFromOpsTools[0] });
             const error: Error = new Error('Some error');
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).throws(error);
@@ -1120,7 +1142,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves([]);
             getNodesStub.onSecondCall().throws(new Error('should never get this far'));
-            axiosGetStub.onFirstCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves({data: {components: []}});
 
             const yesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
@@ -1155,7 +1177,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves(originalNodes);
             getNodesStub.onSecondCall().throws(new Error('should never get this far'));
-            axiosGetStub.onFirstCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves({data: {components: []}});
             showConfirmationWarningMessageStub.resolves(true);
             getAllStub.resolves([]);
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
@@ -1178,7 +1200,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves([]);
             getNodesStub.onSecondCall().resolves([]);
-            axiosGetStub.onFirstCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves({data: {components: []}});
 
             const yesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.YES);
 
@@ -1213,7 +1235,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             getNodesStub.resetBehavior();
             getNodesStub.onFirstCall().resolves(originalNodes);
             getNodesStub.onSecondCall().resolves([]);
-            axiosGetStub.onFirstCall().resolves([]);
+            axiosGetStub.onFirstCall().resolves({data: {components: []}});
             showConfirmationWarningMessageStub.resolves(false);
             getAllStub.resolves([opsToolRegistryEntry]);
             executeCommandStub.withArgs(ExtensionCommands.DELETE_NODE).resolves();
@@ -1234,7 +1256,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
         });
 
         it('should test nodes can be added to a new OpsTool (SaaS) instance', async () => {
-            axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
+            axiosGetStub.onFirstCall().resolves({data: {components: opsToolNodes}});
             getNodesStub.onSecondCall().resolves(opsToolNodes);
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, SaaSOpsToolRegistryEntry, true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
@@ -1251,7 +1273,7 @@ describe('ImportNodesToEnvironmentCommand', () => {
             showEnvironmentQuickPickStub.resolves({ label: SaaSOpsToolRegistryEntry.name, data: SaaSOpsToolRegistryEntry });
             getConnectedEnvironmentRegistryEntry.returns(SaaSOpsToolRegistryEntry);
             getNodesStub.onSecondCall().resolves(opsToolNodes);
-            axiosGetStub.onFirstCall().resolves({data: opsToolNodes});
+            axiosGetStub.onFirstCall().resolves({data: {components: opsToolNodes}});
 
             await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 

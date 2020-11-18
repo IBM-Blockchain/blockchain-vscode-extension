@@ -35,7 +35,6 @@ import { DependencyManager } from '../../extension/dependencies/DependencyManage
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../../extension/dependencies/TemporaryCommandRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
-import { LocalEnvironmentManager } from '../../extension/fabric/environments/LocalEnvironmentManager';
 import {
     EnvironmentType,
     FabricEnvironmentRegistry,
@@ -50,16 +49,15 @@ import {
 } from 'ibm-blockchain-platform-common';
 import { TestUtil } from '../TestUtil';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
-import { LocalEnvironment } from '../../extension/fabric/environments/LocalEnvironment';
 import { FabricConnectionFactory } from '../../extension/fabric/FabricConnectionFactory';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
-import { ManagedAnsibleEnvironmentManager } from '../../extension/fabric/environments/ManagedAnsibleEnvironmentManager';
-import { ManagedAnsibleEnvironment } from '../../extension/fabric/environments/ManagedAnsibleEnvironment';
 import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
 import { defaultDependencies } from '../../extension/dependencies/Dependencies';
+import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
+import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -266,7 +264,6 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.STOP_FABRIC,
                 ExtensionCommands.RESTART_FABRIC,
                 ExtensionCommands.RESTART_FABRIC_SHORT,
-                ExtensionCommands.TEARDOWN_FABRIC,
                 ExtensionCommands.TEARDOWN_FABRIC_SHORT,
                 ExtensionCommands.EXPORT_CONNECTION_PROFILE,
                 ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED,
@@ -275,7 +272,6 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.IMPORT_SMART_CONTRACT,
                 ExtensionCommands.VIEW_PACKAGE_INFORMATION,
                 ExtensionCommands.ADD_ENVIRONMENT,
-                ExtensionCommands.DELETE_ENVIRONMENT,
                 ExtensionCommands.DELETE_ENVIRONMENT_SHORT,
                 ExtensionCommands.ASSOCIATE_IDENTITY_NODE,
                 ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
@@ -312,6 +308,8 @@ describe('ExtensionUtil Tests', () => {
                 ExtensionCommands.OPEN_HOME_PAGE,
                 ExtensionCommands.OPEN_PRE_REQ_PAGE,
                 ExtensionCommands.OPEN_RELEASE_NOTES,
+                ExtensionCommands.DELETE_ENVIRONMENT,
+                ExtensionCommands.TEARDOWN_FABRIC
             ]);
         });
 
@@ -331,8 +329,6 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.REFRESH_GATEWAYS}`,
                 `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
                 `onCommand:${ExtensionCommands.TEST_ALL_SMART_CONTRACT}`,
-                `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
-                `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
                 `onCommand:${ExtensionCommands.ASSOCIATE_WALLET}`,
                 `onCommand:${ExtensionCommands.DISSOCIATE_WALLET}`,
                 `onCommand:${ExtensionCommands.EXPORT_CONNECTION_PROFILE}`,
@@ -823,7 +819,7 @@ describe('ExtensionUtil Tests', () => {
             const registerCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'registerCommand').withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).yields({} as vscode.Command);
 
             const context: vscode.ExtensionContext = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(ctx);
-            context.subscriptions.length.should.equal(2);
+            context.subscriptions.length.should.equal(4);
             registerCommandStub.should.have.been.calledOnce;
             preReqViewStub.should.have.been.calledOnce;
 
@@ -911,7 +907,7 @@ describe('ExtensionUtil Tests', () => {
                 connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
             });
 
-            await TestUtil.setupLocalFabric();
+            await TestUtil.startLocalFabric();
 
             globalStateGetStub.returns({
                 version: '1.0.0'
@@ -922,7 +918,7 @@ describe('ExtensionUtil Tests', () => {
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
             getExtensionLocalFabricSettingStub.returns(false);
-            const removeRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
+            const removeRuntimeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'removeRuntime').returns(undefined);
             const deleteEnvironmentSpy: sinon.SinonSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
             const globalState: ExtensionData = GlobalState.get();
@@ -963,27 +959,26 @@ describe('ExtensionUtil Tests', () => {
         let globalStateGetStub: sinon.SinonStub;
         let executeCommandStub: sinon.SinonStub;
         let showConfirmationWarningMessageStub: sinon.SinonStub;
-        let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
+        let mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment>;
         let globalStateUpdateStub: sinon.SinonStub;
         let ensureRuntimeStub: sinon.SinonStub;
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        const runtimeManager: LocalMicroEnvironmentManager = LocalMicroEnvironmentManager.instance();
         beforeEach(async () => {
             mySandBox.restore();
+            await FabricEnvironmentRegistry.instance().clear();
+            await TestUtil.startLocalFabric();
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             globalStateGetStub = mySandBox.stub(GlobalState, 'get');
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
+            mockRuntime = mySandBox.createStubInstance(LocalMicroEnvironment);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
 
             ensureRuntimeStub = mySandBox.stub(runtimeManager, 'ensureRuntime').returns(undefined);
             ensureRuntimeStub.withArgs(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1).resolves(mockRuntime);
             globalStateUpdateStub = mySandBox.stub(GlobalState, 'update');
-
-            await FabricEnvironmentRegistry.instance().clear();
-            await TestUtil.setupLocalFabric();
         });
 
         it(`shouldn't open home page if disabled in user settings`, async () => {
@@ -1101,14 +1096,14 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(false);
+            mockRuntime.isCreated.resolves(false);
             showConfirmationWarningMessageStub.resolves(true);
 
             await ExtensionUtil.completeActivation(false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            mockRuntime.isGenerated.should.have.been.calledOnce;
+            mockRuntime.isCreated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
@@ -1126,7 +1121,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(false);
+            mockRuntime.isCreated.resolves(false);
 
             showConfirmationWarningMessageStub.resolves(true);
 
@@ -1134,7 +1129,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            mockRuntime.isGenerated.should.not.have.been.calledOnce;
+            mockRuntime.isCreated.should.not.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.not.have.been.calledWith(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             globalStateUpdateStub.should.have.been.calledWith({
                 generatorVersion: dependencies['generator-fabric']
@@ -1152,7 +1147,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
@@ -1161,7 +1156,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            mockRuntime.isGenerated.should.have.been.calledOnce;
+            mockRuntime.isCreated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
@@ -1182,7 +1177,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -1192,7 +1187,7 @@ describe('ExtensionUtil Tests', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
 
-            mockRuntime.isGenerated.should.have.been.calledOnce;
+            mockRuntime.isCreated.should.have.been.calledOnce;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
@@ -1203,17 +1198,17 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it(`should update generator version to latest when the user selects 'Yes' (and started) for multiple local fabrics`, async () => {
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             mockRuntime.isRunning.resolves(true);
 
-            const generatedLocalEnvironment: LocalEnvironment = new LocalEnvironment('generatedLocal', undefined, 1);
-            const nonGeneratedLocalEnvironment: LocalEnvironment = new LocalEnvironment('nonGeneratedLocal', undefined, 1);
+            const generatedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('generatedLocal', undefined, 1);
+            const nonGeneratedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('nonGeneratedLocal', undefined, 1);
 
-            const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isGenerated');
+            const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isCreated');
             isGeneratedStub.onCall(0).resolves(true); // generatedLocal
             isGeneratedStub.onCall(1).resolves(false); // nonGeneratedLocal
 
-            const isRunningStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
+            const isRunningStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isRunning').resolves(true);
             isRunningStub.onCall(0).resolves(true); // generatedLocal
             isRunningStub.onCall(1).resolves(false); // nonGeneratedLocal
 
@@ -1237,14 +1232,14 @@ describe('ExtensionUtil Tests', () => {
             const generatedLocal: FabricEnvironmentRegistryEntry = {
                 name: 'generatedLocal',
                 environmentDirectory: localEnv.environmentDirectory,
-                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
                 managedRuntime: true,
                 numberOfOrgs: 1
             };
             const nonGeneratedLocal: FabricEnvironmentRegistryEntry = {
                 name: 'nonGeneratedLocal',
                 environmentDirectory: '',
-                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
                 managedRuntime: true,
                 numberOfOrgs: 1
             };
@@ -1287,17 +1282,17 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it(`should force teardown and update generator version to latest when new major version is available`, async () => {
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             mockRuntime.isRunning.resolves(true);
 
-            const generatedLocalEnvironment: LocalEnvironment = new LocalEnvironment('generatedLocal', undefined, 1);
-            const nonGeneratedLocalEnvironment: LocalEnvironment = new LocalEnvironment('nonGeneratedLocal', undefined, 1);
+            const generatedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('generatedLocal', undefined, 1);
+            const nonGeneratedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('nonGeneratedLocal', undefined, 1);
 
-            const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isGenerated');
+            const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isCreated');
             isGeneratedStub.onCall(0).resolves(true); // generatedLocal
             isGeneratedStub.onCall(1).resolves(false); // nonGeneratedLocal
 
-            const isRunningStub: sinon.SinonStub = mySandBox.stub(LocalEnvironment.prototype, 'isRunning').resolves(true);
+            const isRunningStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isRunning').resolves(true);
             isRunningStub.onCall(0).resolves(true); // generatedLocal
             isRunningStub.onCall(1).resolves(false); // nonGeneratedLocal
 
@@ -1319,14 +1314,14 @@ describe('ExtensionUtil Tests', () => {
             const generatedLocal: FabricEnvironmentRegistryEntry = {
                 name: 'generatedLocal',
                 environmentDirectory: localEnv.environmentDirectory,
-                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
                 managedRuntime: true,
                 numberOfOrgs: 1
             };
             const nonGeneratedLocal: FabricEnvironmentRegistryEntry = {
                 name: 'nonGeneratedLocal',
                 environmentDirectory: '',
-                environmentType: EnvironmentType.LOCAL_ENVIRONMENT,
+                environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
                 managedRuntime: true,
                 numberOfOrgs: 1
             };
@@ -1377,14 +1372,14 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             showConfirmationWarningMessageStub.resolves(false);
 
             await ExtensionUtil.completeActivation(false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            mockRuntime.isGenerated.should.not.have.been.called;
+            mockRuntime.isCreated.should.not.have.been.called;
             showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
             mockRuntime.isRunning.should.not.have.been.called;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
@@ -1407,7 +1402,7 @@ describe('ExtensionUtil Tests', () => {
 
             logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
-            mockRuntime.isGenerated.should.not.have.been.called;
+            mockRuntime.isCreated.should.not.have.been.called;
             showConfirmationWarningMessageStub.should.not.have.been.called;
             mockRuntime.isRunning.should.not.have.been.called;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
@@ -1427,7 +1422,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
 
@@ -1457,7 +1452,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -1486,7 +1481,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
 
@@ -1517,7 +1512,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             executeCommandStub.resolves();
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime.isCreated.resolves(true);
             showConfirmationWarningMessageStub.resolves(true);
             mockRuntime.isRunning.resolves(false);
 
@@ -1553,7 +1548,7 @@ describe('ExtensionUtil Tests', () => {
         it(`should initialize the runtime manager`, async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'initialize').resolves();
+            const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').resolves();
 
             await ExtensionUtil.setupLocalRuntime();
 
@@ -1564,7 +1559,7 @@ describe('ExtensionUtil Tests', () => {
     });
 
     describe('onDidChangeConfiguration', () => {
-        let mockRuntime: sinon.SinonStubbedInstance<LocalEnvironment>;
+        let mockRuntime: sinon.SinonStubbedInstance<LocalMicroEnvironment>;
         let affectsConfigurationStub: sinon.SinonStub;
         let executeCommandStub: sinon.SinonStub;
         let onDidChangeConfiguration: sinon.SinonStub;
@@ -1578,7 +1573,7 @@ describe('ExtensionUtil Tests', () => {
         let registerStub: sinon.SinonStub;
         let disposeExtensionStub: sinon.SinonStub;
         let initializeStub: sinon.SinonStub;
-        const runtimeManager: LocalEnvironmentManager = LocalEnvironmentManager.instance();
+        const runtimeManager: LocalMicroEnvironmentManager = LocalMicroEnvironmentManager.instance();
         let ensureRuntimeStub: sinon.SinonStub;
         beforeEach(async () => {
             mySandBox.restore();
@@ -1588,18 +1583,18 @@ describe('ExtensionUtil Tests', () => {
                 await ExtensionUtil.activateExtension();
             }
 
-            await TestUtil.setupLocalFabric();
+            await TestUtil.startLocalFabric();
 
-            mockRuntime = mySandBox.createStubInstance(LocalEnvironment);
-            mockRuntime.isGenerated.resolves(true);
+            mockRuntime = mySandBox.createStubInstance(LocalMicroEnvironment);
+            mockRuntime.isCreated.resolves(true);
             mockRuntime.isRunning.resolves(true);
             mockRuntime.getGateways.resolves([]);
 
-            ensureRuntimeStub = mySandBox.stub(LocalEnvironmentManager.instance(), 'ensureRuntime');
+            ensureRuntimeStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'ensureRuntime');
             ensureRuntimeStub.withArgs(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1).resolves(mockRuntime);
 
             runtimeManager['runtimes'] = new Map();
-            runtimeManager['runtimes'].set(FabricRuntimeUtil.LOCAL_FABRIC, mockRuntime as unknown as LocalEnvironment);
+            runtimeManager['runtimes'].set(FabricRuntimeUtil.LOCAL_FABRIC, mockRuntime as unknown as LocalMicroEnvironment);
 
             initializeStub = mySandBox.stub(runtimeManager, 'initialize');
             initializeStub.resolves();
@@ -1699,12 +1694,7 @@ describe('ExtensionUtil Tests', () => {
             beforeEach(async () => {
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(true);
                 getSettingsStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
-                    '1 Org Local Fabric': {
-                        ports: {
-                            startPort: 17050,
-                            endPort: 17070
-                        }
-                    }
+                    '1 Org Local Fabric': 8080
                 });
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
                 updateSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC, false, vscode.ConfigurationTarget.Global).resolves();
@@ -1945,17 +1935,12 @@ describe('ExtensionUtil Tests', () => {
 
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC).returns(false);
                 getSettingsStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
-                    '1 Org Local Fabric': {
-                        ports: {
-                            startPort: 17050,
-                            endPort: 17070
-                        }
-                    }
+                    '1 Org Local Fabric': 8080
                 });
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(TestUtil.EXTENSION_TEST_DIR);
                 updateSettingsStub.withArgs(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global).resolves();
 
-                mockRuntime.isGenerated.resetHistory();
+                mockRuntime.isCreated.resetHistory();
                 mockRuntime.isRunning.resetHistory();
                 mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
                 deleteEnvironmentSpy = mySandBox.spy(FabricEnvironmentRegistry.instance(), 'delete');
@@ -1994,7 +1979,7 @@ describe('ExtensionUtil Tests', () => {
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                mockRuntime.isGenerated.should.have.been.calledOnce;
+                // mockRuntime.isCreated.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
 
@@ -2008,9 +1993,10 @@ describe('ExtensionUtil Tests', () => {
 
             });
 
-            it(`should set context if there are no generated runtimes`, async () => {
+            it(`should set context if there are no runtimes`, async () => {
 
-                mockRuntime.isGenerated.resolves(false);
+                // mockRuntime.isCreated.resolves(false);
+                await FabricEnvironmentRegistry.instance().clear();
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                 await ExtensionUtil.registerCommands(ctx);
@@ -2018,7 +2004,7 @@ describe('ExtensionUtil Tests', () => {
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                mockRuntime.isGenerated.should.have.been.calledOnce;
+                // mockRuntime.isCreated.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
 
@@ -2029,7 +2015,7 @@ describe('ExtensionUtil Tests', () => {
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-                ensureRuntimeStub.should.have.been.calledOnce;
+                ensureRuntimeStub.should.not.have.been.called;
 
             });
 
@@ -2042,7 +2028,7 @@ describe('ExtensionUtil Tests', () => {
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                mockRuntime.isGenerated.should.not.have.been.calledOnce;
+                // mockRuntime.isCreated.should.not.have.been.calledOnce;
                 mockRuntime.isRunning.should.not.have.been.called;
                 showConfirmationWarningMessageStub.should.not.have.been.calledOnceWith(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
@@ -2059,13 +2045,13 @@ describe('ExtensionUtil Tests', () => {
                 showConfirmationWarningMessageStub.resolves(true);
 
                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-                mySandBox.stub(LocalEnvironmentManager.instance(), 'removeRuntime').throws(error);
+                mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'removeRuntime').throws(error);
                 await ExtensionUtil.registerCommands(ctx);
 
                 await Promise.all(promises);
 
                 affectsConfigurationStub.should.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
-                mockRuntime.isGenerated.should.have.been.calledOnce;
+                // mockRuntime.isCreated.should.have.been.calledOnce;
                 showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`Toggling this feature will remove the world state and ledger data for all local runtimes. Do you want to continue?`);
                 updateSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
 
@@ -2085,7 +2071,7 @@ describe('ExtensionUtil Tests', () => {
     describe('environment logs', () => {
 
         let getEnvironmentRegistryEntryStub: sinon.SinonStub;
-        let originalRuntime: LocalEnvironment;
+        let originalRuntime: LocalMicroEnvironment;
         let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let startLogsStub: sinon.SinonStub;
         let stopLogsStub: sinon.SinonStub;
@@ -2097,22 +2083,19 @@ describe('ExtensionUtil Tests', () => {
         });
         beforeEach(async () => {
             await FabricEnvironmentRegistry.instance().clear();
-            await TestUtil.setupLocalFabric();
+            await TestUtil.startLocalFabric();
 
             const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
             getEnvironmentRegistryEntryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
             mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
-            startLogsStub = mySandBox.stub(LocalEnvironment.prototype, 'startLogs').returns(undefined);
-            stopLogsStub = mySandBox.stub(LocalEnvironment.prototype, 'stopLogs').returns(undefined);
-            originalRuntime = new LocalEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, {
-                startPort: 17050,
-                endPort: 17070
-            }, 1);
+            startLogsStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'startLogs').returns(undefined);
+            stopLogsStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'stopLogs').returns(undefined);
+            originalRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
         });
 
         it(`should start logs if ${FabricRuntimeUtil.LOCAL_FABRIC} is connected`, async () => {
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(originalRuntime);
+            mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'getRuntime').returns(originalRuntime);
             FabricEnvironmentManager.instance().removeAllListeners(); // For some reason, there seemed to be multiple listener - as startLogsStub was being called many times.
 
             await ExtensionUtil.registerCommands(ctx);
@@ -2139,7 +2122,7 @@ describe('ExtensionUtil Tests', () => {
         });
 
         it('should stop the logs when disconnected', async () => {
-            mySandBox.stub(LocalEnvironmentManager.instance(), 'getRuntime').returns(originalRuntime);
+            mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'getRuntime').returns(originalRuntime);
 
             FabricEnvironmentManager.instance()['connection'] = undefined;
 
@@ -2157,29 +2140,6 @@ describe('ExtensionUtil Tests', () => {
             stopLogsStub.should.have.been.calledOnce;
         });
 
-        it('should do nothing when disconnected from a non-local environment', async () => {
-            mySandBox.stub(ManagedAnsibleEnvironmentManager.instance(), 'getRuntime').returns(new ManagedAnsibleEnvironment('managedAnsible', path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible')));
-            await FabricEnvironmentRegistry.instance().add({
-                name: 'managedAnsible',
-                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-                managedRuntime: true,
-                environmentDirectory: path.join(__dirname, '..', '..', '..', 'test', 'data', 'managedAnsible')
-            });
-
-            const registryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get('managedAnsible');
-            getEnvironmentRegistryEntryStub.returns(registryEntry);
-
-            FabricEnvironmentManager.instance()['connection'] = undefined;
-
-            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            await ExtensionUtil.registerCommands(ctx);
-
-            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
-
-            FabricEnvironmentManager.instance().disconnect();
-
-            stopLogsStub.should.not.have.been.called;
-        });
     });
 
     describe('getExtensionSaasConfigUpdatesSetting', () => {
@@ -2250,7 +2210,7 @@ describe('ExtensionUtil Tests', () => {
             updateStub.should.not.have.been.called;
         });
 
-        it('should discover and add a new environment for a Microfab instance running in Eclipse Che', async () => {
+        it('should discover and add a new environment for a remote Microfab instance running in Eclipse Che', async () => {
             mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.MICROFAB_SERVICE_HOST = 'console.microfab.example.org';
             process.env.MICROFAB_SERVICE_PORT = '9876';
@@ -2264,7 +2224,7 @@ describe('ExtensionUtil Tests', () => {
             });
         });
 
-        it('should discover and update an existing environment for a Microfab instance running in Eclipse Che', async () => {
+        it('should discover and update an existing environment for a remote Microfab instance running in Eclipse Che', async () => {
             mySandBox.stub(ExtensionUtil, 'isChe').returns(true);
             process.env.MICROFAB_SERVICE_HOST = 'console.microfab.example.org';
             process.env.MICROFAB_SERVICE_PORT = '9876';

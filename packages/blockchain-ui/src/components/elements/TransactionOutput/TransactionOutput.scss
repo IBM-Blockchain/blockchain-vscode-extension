@@ -1,32 +1,39 @@
 @import '@carbon/type/scss/font-face/_mono';
 @import '@carbon/layout/scss/_spacing';
+@import '@carbon/colors/scss/colors';
 
-.output-panel {
-    position: fixed;
-    top: 0px;
+#output-panel {
     height: 100%;
-    width: 55%;
-    background-color: #F4F4F4;
+    padding-left: $spacing-07;
+
+    .output-title {
+        font-size: 0.875rem;
+    }
 
     .output-panel-inner {
-        margin: $spacing-07;
-        padding-right: $spacing-07 + $spacing-09;
-
-
-        .output-title {
-            font-size: 0.875rem;
-            color: #393939;
-        }
+        margin-top: $spacing-01;
+        padding: $spacing-04;
+        background-color: #F4F4F4;
+        min-height: 100%;
+        height: 1px;
 
         .output-body {
             @include carbon--font-face-mono;
             font-family: 'IBM Plex Mono', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
             font-size: 0.875rem;
             color: inherit;
+            word-break: break-all;
         }
 
-<<<<<<< HEAD
-=======
+        .output-placeholder-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
         .output-placeholder {
             width: 100%;
             padding: 0 15%;
@@ -79,6 +86,5 @@
         .output-panel-inner {
             min-height: 70vh;
         }
->>>>>>> 82b051c0... Guard against empty parameters, fix css for light mode (#2814)
     }
 }

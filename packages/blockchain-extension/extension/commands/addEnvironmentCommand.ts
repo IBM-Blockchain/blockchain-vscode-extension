@@ -13,7 +13,6 @@
 */
 'use strict';
 import Axios from 'axios';
-import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as vscode from 'vscode';
 import * as path from 'path';
@@ -23,7 +22,6 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, LogType, EnvironmentType, FabricEnvironment, FabricNode, FabricRuntimeUtil, FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
@@ -31,6 +29,7 @@ import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
 import { FeatureFlagManager } from '../util/FeatureFlags';
 import { SecureStore } from '../util/SecureStore';
 import { SecureStoreFactory } from '../util/SecureStoreFactory';
+import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
 
 export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -181,7 +180,7 @@ export async function addEnvironment(): Promise<void> {
 
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
 
-            await LocalEnvironmentManager.instance().initialize(environmentName, configurationChosen);
+            await LocalMicroEnvironmentManager.instance().initialize(environmentName, configurationChosen);
 
             const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
             // Generate all nodes, gateways and wallets
@@ -199,11 +198,6 @@ export async function addEnvironment(): Promise<void> {
 
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
             fabricEnvironmentEntry.environmentDirectory = envDir;
-
-            const files: string[] = await fs.readdir(envDir);
-            if (files.includes('start.sh')) {
-                fabricEnvironmentEntry.managedRuntime = true;
-            }
             fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
         }
 
@@ -231,7 +225,7 @@ export async function addEnvironment(): Promise<void> {
 
             if (addedAllNodes === undefined) {
                 await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
-                // No need to try and delete from LocalEnvironmentManager, as it can't be a LocalEnvironment entry.
+                // No need to try and delete from LocalMicroEnvironmentManager, as it can't be a LocalMicroEnvironment entry.
                 return;
             } else if (addedAllNodes) {
                 const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
@@ -255,7 +249,7 @@ export async function addEnvironment(): Promise<void> {
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
 
                 // If attempting to create a new environment from a template fails, we should delete the setting if it was set.
-                const _settings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
+                const _settings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
                 const localSettings: any = JSON.parse(JSON.stringify(_settings));
 
                 if (localSettings[fabricEnvironmentEntry.name]) {
@@ -278,9 +272,9 @@ export async function addEnvironment(): Promise<void> {
             await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name, true);
 
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
-                // Can only be a LocalEnvironment if created using template.
+                // Can only be a LocalMicroEnvironment if created using template.
                 // Need to remove runtime after deleting entry.
-                LocalEnvironmentManager.instance().removeRuntime(fabricEnvironmentEntry.name);
+                LocalMicroEnvironmentManager.instance().removeRuntime(fabricEnvironmentEntry.name);
             }
 
         }
@@ -290,8 +284,8 @@ export async function addEnvironment(): Promise<void> {
     async function getOpsToolsAccessInfo(): Promise<string> {
         const secureStore: SecureStore = await SecureStoreFactory.getSecureStore();
 
-        const HEALTH_CHECK: string = '/ak/api/v1/health';
-        const GET_ALL_COMPONENTS: string = '/ak/api/v1/components';
+        const HEALTH_CHECK: string = '/ak/api/v2/health';
+        const GET_ALL_COMPONENTS: string = '/ak/api/v2/components';
         let url: string;
         const userUrl: string = await UserInputUtil.showInputBox('Enter the URL of the IBM Blockchain Platform Console you want to connect to');
         if (!userUrl) {
