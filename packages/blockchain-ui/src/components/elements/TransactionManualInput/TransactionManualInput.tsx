@@ -13,10 +13,15 @@ interface IProps {
 
 function convertArgsToJSON(parameters: Array<{ description: string, name: string, schema: {} }>, values?: Array<string>): string {
     const args: { [key: string]: any } = {};
-    parameters.forEach(({ name }, i) => {
-        args[name] = (values && values[i]) ? values[i] : '';
-    });
-    return JSON.stringify(args, null, 2);
+
+    if (parameters && parameters.length > 0) {
+        parameters.forEach(({ name }, i) => {
+            args[name] = (values && values[i]) ? values[i] : '';
+        });
+        return JSON.stringify(args, null, 2);
+    }
+
+    return '';
 }
 
 function convertJSONToArgs(transactionArguments: string): Array<string> {
