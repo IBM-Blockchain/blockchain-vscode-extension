@@ -6,324 +6,298 @@ exports[`TransactionPage component should render the expected snapshot 1`] = `
   data-test-id="txn-page"
 >
   <div
-    className="inner-container bx--row"
+    className="inner-container"
   >
     <div
-      className="page-contents bx--col"
+      className="page-contents contents-container"
     >
       <div
-        className="titles-container"
-      >
-        <span
-          className="home-link"
-        >
-          Transacting with: 
-          myGateway
-           &gt; 
-          mychannel
-           &gt; 
-          greenContract@0.0.1
-        </span>
-        <h2>
-          Create a new transaction
-        </h2>
-      </div>
-      <div
-        className="contents-container bx--row"
+        className="bx--row"
       >
         <div
-          className="bx--col"
+          className="titles-container"
         >
+          <p
+            className="breadcrumb"
+          >
+            Transacting with: 
+            myGateway
+            <span
+              className="breadcrumb-divider"
+            >
+              /
+            </span>
+            mychannel
+            <span
+              className="breadcrumb-divider"
+            >
+              /
+            </span>
+            greenContract@0.0.1
+            <span
+              className="breadcrumb-divider"
+            >
+              /
+            </span>
+          </p>
+          <h2>
+            Create transaction
+          </h2>
+        </div>
+      </div>
+      <div
+        className="bx--row"
+      >
+        <div
+          className="bx--col-lg-6 bx--col-md-4 bx--col-sm-4"
+        >
+          <div
+            className="bx--content-switcher transaction-input-content-switch"
+            onChange={[Function]}
+            role="tablist"
+            selectionMode="manual"
+          >
+            <button
+              aria-selected={true}
+              className="bx--content-switcher-btn bx--content-switcher--selected"
+              data-testid="content-switch-manual"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              role="tab"
+              tabIndex="0"
+            >
+              <span
+                className="bx--content-switcher__label"
+              >
+                Manual input
+              </span>
+            </button>
+            <button
+              aria-selected={false}
+              className="bx--content-switcher-btn"
+              data-testid="content-switch-data"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              role="tab"
+              tabIndex="-1"
+            >
+              <span
+                className="bx--content-switcher__label"
+              >
+                Transaction data directory
+              </span>
+            </button>
+          </div>
           <form
             className="bx--form"
             id="create-txn-form"
           >
              
-            <fieldset
-              className="bx--fieldset"
+            <div
+              className="bx--dropdown__wrapper bx--list-box__wrapper"
             >
-              <legend
-                className="bx--label"
-              >
-                Transaction label
-              </legend>
-              <div
-                className="bx--row inline-row hide-label"
-              >
-                <div
-                  className="bx--form-item bx--text-input-wrapper"
-                >
-                  <label
-                    className="bx--label bx--visually-hidden"
-                    htmlFor="transaction-label-input"
-                  >
-                    Enter transaction label
-                  </label>
-                  <div
-                    className="bx--text-input__field-wrapper"
-                    data-invalid={null}
-                  >
-                    <input
-                      className="bx--text-input bx--text__input"
-                      disabled={false}
-                      id="transaction-label-input"
-                      onChange={[Function]}
-                      onClick={[Function]}
-                      placeholder="Enter transaction label"
-                      title="Enter transaction label"
-                      type="text"
-                    />
-                  </div>
-                </div>
-                <button
-                  className="bx--btn bx--btn--field bx--btn--primary"
-                  disabled={false}
-                  id="save-txn-button"
-                  tabIndex={0}
-                  type="button"
-                >
-                  Save
-                </button>
-              </div>
-            </fieldset>
-            <fieldset
-              className="bx--fieldset"
-            >
-              <legend
+              <span
                 className="bx--label"
               >
                 Transaction name
-              </legend>
+              </span>
               <div
-                className="bx--dropdown__wrapper bx--list-box__wrapper"
+                aria-label="dropdown"
+                className="bx--dropdown bx--list-box"
+                id="transaction-select"
+                onClick={[Function]}
+                onKeyDown={[Function]}
               >
-                <span
-                  className="bx--label"
-                >
-                  Transaction name*
-                </span>
                 <div
-                  aria-label="dropdown"
-                  className="bx--dropdown bx--list-box"
-                  id="transaction-select"
+                  aria-controls={null}
+                  aria-disabled={false}
+                  aria-expanded={false}
+                  aria-haspopup={true}
+                  aria-labelledby="dropdown-label-transaction-select dropdown-field-label-transaction-select"
+                  aria-owns={null}
+                  className="bx--list-box__field"
+                  data-toggle={true}
+                  onBlur={[Function]}
                   onClick={[Function]}
                   onKeyDown={[Function]}
+                  role="button"
+                  tabIndex="0"
+                  type="button"
                 >
-                  <div
-                    aria-controls={null}
-                    aria-disabled={false}
-                    aria-expanded={false}
-                    aria-haspopup={true}
-                    aria-labelledby="dropdown-label-transaction-select dropdown-field-label-transaction-select"
-                    aria-owns={null}
-                    className="bx--list-box__field"
-                    data-toggle={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onKeyDown={[Function]}
-                    role="button"
-                    tabIndex="0"
-                    type="button"
+                  <span
+                    className="bx--list-box__label"
+                    htmlFor="downshift-0-input"
+                    id="dropdown-field-label-transaction-select"
                   >
-                    <span
-                      className="bx--list-box__label"
-                      htmlFor="downshift-0-input"
-                      id="dropdown-field-label-transaction-select"
+                    Select the transaction name
+                  </span>
+                  <div
+                    className="bx--list-box__menu-icon"
+                  >
+                    <svg
+                      aria-label="Open menu"
+                      focusable="false"
+                      height={16}
+                      name="chevron--down"
+                      preserveAspectRatio="xMidYMid meet"
+                      role="img"
+                      viewBox="0 0 16 16"
+                      width={16}
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      Select the transaction name
-                    </span>
-                    <div
-                      className="bx--list-box__menu-icon"
-                    >
-                      <svg
-                        aria-label="Open menu"
-                        focusable="false"
-                        height={16}
-                        name="chevron--down"
-                        preserveAspectRatio="xMidYMid meet"
-                        role="img"
-                        viewBox="0 0 16 16"
-                        width={16}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <polygon
-                          points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
-                        />
-                        <title>
-                          Open menu
-                        </title>
-                      </svg>
-                    </div>
+                      <polygon
+                        points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+                      />
+                      <title>
+                        Open menu
+                      </title>
+                    </svg>
                   </div>
                 </div>
               </div>
-            </fieldset>
-            <fieldset
-              className="bx--fieldset"
-              id="target-peer-input"
+            </div>
+            <div
+              className="bx--form-item"
             >
-              <legend
-                className="bx--label"
+              <label
+                className="bx--label bx--label--disabled"
+                htmlFor="arguments-text-area"
               >
-                Peer targeting
-              </legend>
+                Transaction arguments
+              </label>
               <div
-                className="bx--multi-select__wrapper bx--list-box__wrapper"
+                className="bx--text-area__wrapper"
+                data-invalid={null}
               >
-                <span
-                  className="bx--label"
-                  id="multiselect-label-1"
-                >
-                  Target specific peer (optional)
-                </span>
+                <textarea
+                  aria-describedby={null}
+                  aria-invalid={null}
+                  className="bx--text-area"
+                  cols={50}
+                  disabled={true}
+                  id="arguments-text-area"
+                  onChange={[Function]}
+                  onClick={[Function]}
+                  placeholder=""
+                  rows={4}
+                  value=""
+                />
+              </div>
+            </div>
+            <div
+              className="bx--form-item"
+            >
+              <label
+                className="bx--label"
+                htmlFor="transient-data-input"
+              >
+                Transient data (optional)
+              </label>
+              <div
+                className="bx--text-area__wrapper"
+                data-invalid={null}
+              >
+                <textarea
+                  aria-describedby={null}
+                  aria-invalid={null}
+                  className="bx--text-area"
+                  cols={50}
+                  disabled={false}
+                  id="transient-data-input"
+                  onChange={[Function]}
+                  onClick={[Function]}
+                  placeholder=""
+                  rows={4}
+                  value=""
+                />
+              </div>
+            </div>
+            <div
+              className="bx--multi-select__wrapper bx--list-box__wrapper"
+            >
+              <span
+                className="bx--label"
+                id="multiselect-label-1"
+              >
+                Target specific peer (optional)
+              </span>
+              <div
+                className="bx--multi-select bx--multi-select--selected bx--list-box"
+                id="peer-select"
+                onClick={[Function]}
+                onKeyDown={[Function]}
+              >
                 <div
-                  className="bx--multi-select bx--multi-select--selected bx--list-box"
-                  id="peer-select"
+                  aria-controls={null}
+                  aria-disabled={false}
+                  aria-expanded={false}
+                  aria-haspopup={true}
+                  aria-labelledby="multiselect-label-1 multiselect-field-label-1"
+                  aria-owns={null}
+                  className="bx--list-box__field"
+                  data-toggle={true}
+                  onBlur={[Function]}
                   onClick={[Function]}
                   onKeyDown={[Function]}
+                  role="button"
+                  tabIndex="0"
+                  type="button"
                 >
                   <div
-                    aria-controls={null}
-                    aria-disabled={false}
-                    aria-expanded={false}
-                    aria-haspopup={true}
-                    aria-labelledby="multiselect-label-1 multiselect-field-label-1"
-                    aria-owns={null}
-                    className="bx--list-box__field"
-                    data-toggle={true}
-                    onBlur={[Function]}
+                    aria-label="Clear Selection"
+                    className="bx--list-box__selection bx--tag--filter bx--list-box__selection--multi"
                     onClick={[Function]}
                     onKeyDown={[Function]}
                     role="button"
-                    tabIndex="0"
-                    type="button"
+                    tabIndex={0}
+                    title="Clear all selected items"
                   >
-                    <div
-                      aria-label="Clear Selection"
-                      className="bx--list-box__selection bx--tag--filter bx--list-box__selection--multi"
-                      onClick={[Function]}
-                      onKeyDown={[Function]}
-                      role="button"
-                      tabIndex={0}
-                      title="Clear all selected items"
+                    2
+                    <svg
+                      aria-hidden={true}
+                      focusable="false"
+                      height={16}
+                      preserveAspectRatio="xMidYMid meet"
+                      viewBox="0 0 32 32"
+                      width={16}
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      2
-                      <svg
-                        aria-hidden={true}
-                        focusable="false"
-                        height={16}
-                        preserveAspectRatio="xMidYMid meet"
-                        viewBox="0 0 32 32"
-                        width={16}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <polygon
-                          points="24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4"
-                        />
-                      </svg>
-                    </div>
-                    <span
-                      className="bx--list-box__label"
-                      id="multiselect-field-label-1"
+                      <polygon
+                        points="24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    className="bx--list-box__label"
+                    id="multiselect-field-label-1"
+                  >
+                    Select peers
+                  </span>
+                  <div
+                    className="bx--list-box__menu-icon"
+                  >
+                    <svg
+                      aria-label="Open menu"
+                      focusable="false"
+                      height={16}
+                      name="chevron--down"
+                      preserveAspectRatio="xMidYMid meet"
+                      role="img"
+                      viewBox="0 0 16 16"
+                      width={16}
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      Select peers
-                    </span>
-                    <div
-                      className="bx--list-box__menu-icon"
-                    >
-                      <svg
-                        aria-label="Open menu"
-                        focusable="false"
-                        height={16}
-                        name="chevron--down"
-                        preserveAspectRatio="xMidYMid meet"
-                        role="img"
-                        viewBox="0 0 16 16"
-                        width={16}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <polygon
-                          points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
-                        />
-                        <title>
-                          Open menu
-                        </title>
-                      </svg>
-                    </div>
+                      <polygon
+                        points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+                      />
+                      <title>
+                        Open menu
+                      </title>
+                    </svg>
                   </div>
                 </div>
               </div>
-            </fieldset>
-            <fieldset
-              className="bx--fieldset"
-            >
-              <legend
-                className="bx--label"
-              >
-                Arguments
-              </legend>
-              <div
-                className="bx--form-item"
-              >
-                <label
-                  className="bx--label"
-                  htmlFor="arguments-text-area"
-                >
-                  Arguments*
-                </label>
-                <div
-                  className="bx--text-area__wrapper"
-                  data-invalid={null}
-                >
-                  <textarea
-                    aria-describedby={null}
-                    aria-invalid={null}
-                    className="bx--text-area"
-                    cols={50}
-                    disabled={false}
-                    id="arguments-text-area"
-                    onChange={[Function]}
-                    onClick={[Function]}
-                    placeholder=""
-                    rows={4}
-                    value=""
-                  />
-                </div>
-              </div>
-            </fieldset>
-            <fieldset
-              className="bx--fieldset"
-            >
-              <legend
-                className="bx--label"
-              >
-                Transient data
-              </legend>
-              <div
-                className="bx--form-item bx--text-input-wrapper"
-              >
-                <label
-                  className="bx--label"
-                  htmlFor="transient-data-input"
-                >
-                  Transient data (optional) - e.g. {"key": "value"}
-                </label>
-                <div
-                  className="bx--text-input__field-wrapper"
-                  data-invalid={null}
-                >
-                  <input
-                    className="bx--text-input bx--text__input"
-                    disabled={false}
-                    id="transient-data-input"
-                    onChange={[Function]}
-                    onClick={[Function]}
-                    type="text"
-                    value=""
-                  />
-                </div>
-              </div>
-            </fieldset>
+            </div>
             <fieldset
               className="bx--fieldset"
               id="submit-and-evaluate-buttons"
@@ -331,61 +305,58 @@ exports[`TransactionPage component should render the expected snapshot 1`] = `
               <legend
                 className="bx--label"
               >
-                Submit and Evaluate buttons
+                
               </legend>
               <div
                 className="submit-txn-button-container"
               >
                 <button
-                  className="submit-txn-button bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
+                  className="submit-txn-button bx--btn bx--btn--secondary bx--btn--disabled"
                   disabled={true}
                   id="evaluate-button"
                   onClick={[Function]}
                   tabIndex={0}
                   type="button"
                 >
-                  Evaluate
+                  Evaluate transaction
                 </button>
-                <div
-                  className="button-separator"
-                />
                 <button
-                  className="submit-txn-button bx--btn bx--btn--field bx--btn--primary bx--btn--disabled"
+                  className="submit-txn-button bx--btn bx--btn--primary bx--btn--disabled"
                   disabled={true}
                   id="submit-button"
                   onClick={[Function]}
                   tabIndex={0}
                   type="button"
                 >
-                  Submit
+                  Submit transaction
                 </button>
               </div>
             </fieldset>
              
           </form>
         </div>
-      </div>
-    </div>
-    <div
-      className="bx--col"
-    >
-      <div
-        className="output-panel"
-        id="output-panel"
-      >
         <div
-          className="output-panel-inner"
+          className="bx--col-lg-10 bx--col-md-4 bx--col-sm-4"
         >
-          <p
-            className="output-title"
+          <div
+            className="output-panel"
+            id="output-panel"
           >
-            Output for untitled transaction
-          </p>
-          <p
-            className="output-body"
-          >
-            here is some transaction output
-          </p>
+            <p
+              className="output-title"
+            >
+              Transaction output
+            </p>
+            <div
+              className="output-panel-inner"
+            >
+              <p
+                className="output-body"
+              >
+                here is some transaction output
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

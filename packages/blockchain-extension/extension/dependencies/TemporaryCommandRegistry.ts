@@ -65,7 +65,7 @@ export class TemporaryCommandRegistry {
 
     private registerTempCommand(command: string): void {
 
-        if (command !== ExtensionCommands.OPEN_PRE_REQ_PAGE && command !== ExtensionCommands.OPEN_RELEASE_NOTES) {
+        if (command !== ExtensionCommands.OPEN_PRE_REQ_PAGE && command !== ExtensionCommands.OPEN_RELEASE_NOTES && command !== ExtensionCommands.DELETE_ENVIRONMENT && command !== ExtensionCommands.TEARDOWN_FABRIC) {
             const disposableCommand: vscode.Disposable = vscode.commands.registerCommand(command, async () => {
 
                 if (this.delayExecution) {

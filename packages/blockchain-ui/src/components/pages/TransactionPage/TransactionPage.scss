@@ -1,5 +1,44 @@
+@import '@carbon/colors/scss/colors';
 @import '../../../mixins/layout-mixins.scss';
 
 .page-container {
     @include default-page-styling;
+
+    .titles-container {
+        padding: 0px;
+
+        h2 {
+            padding: $spacing-06 0px;
+        }
+
+        .breadcrumb {
+            font-size: 0.875rem;
+        }
+
+        .breadcrumb .breadcrumb-divider {
+            margin: 0 $spacing-03;
+        }
+
+        .breadcrumb, .breadcrumb .breadcrumb-divider {
+            color: $gray-10;
+            margin: 0 $spacing-03;
+        }
+    }
+
+    .bx--form {
+        .bx--dropdown__wrapper, .bx--form-item, .bx--multi-select__wrapper, .associate-tx-data {
+            margin: $spacing-06 0;
+        }
+    }
+}
+
+
+.vscode-light {
+    .page-container {
+        .titles-container {
+            .breadcrumb, .breadcrumb .breadcrumb-divider {
+                color: $gray-70;
+            }
+        }
+    }
 }

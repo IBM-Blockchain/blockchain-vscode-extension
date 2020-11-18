@@ -45,6 +45,7 @@ html {
             @import 'carbon-components/scss/components/toggle/_toggle';
             @import 'carbon-components/scss/components/multi-select/_multi-select';
             @import 'carbon-components/scss/components/data-table/_data-table';
+            @import 'carbon-components/scss/components/content-switcher/_content-switcher';
 
             // Commenting this out until I determine whether it can be deleted or not.
 
@@ -115,7 +116,7 @@ html {
                 @include checkbox-dark;
 
                 //panel containing transaction output
-                #output-panel {
+                #output-panel .output-panel-inner {
                     @include output-panel-dark;
                 }
 
@@ -164,6 +165,7 @@ html {
             @import 'carbon-components/scss/components/toggle/_toggle';
             @import 'carbon-components/scss/components/multi-select/_multi-select';
             @import 'carbon-components/scss/components/data-table/_data-table';
+            @import 'carbon-components/scss/components/content-switcher/_content-switcher';
 
             #root {
                 color: $text-01;

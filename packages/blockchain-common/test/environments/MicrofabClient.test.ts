@@ -201,15 +201,16 @@ describe('MicrofabClient', () => {
         });
 
         it('should return false if not alive (timeout)', async () => {
+
             mockAxios.onGet('http://console.microfab.example.org:8080/ak/api/v1/health').reply(() => {
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         resolve([200, {}]);
-                    }, 2000);
+                    }, 31000);
                 });
             });
             await client.isAlive().should.eventually.be.false;
-        });
+        }).timeout(35000);
 
     });
 

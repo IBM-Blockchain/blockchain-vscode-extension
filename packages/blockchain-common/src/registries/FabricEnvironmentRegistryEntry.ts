@@ -18,7 +18,7 @@ export enum EnvironmentFlags {
     ENVIRONMENT = 1 << 0,
     ANSIBLE = 1 << 1,
     MANAGED = 1 << 2,
-    LOCAL = 1 << 3,
+    LOCAL = 1 << 3, // Old
     OPS_TOOLS = 1 << 4,
     SAAS = 1 << 5,
     MICROFAB = 1 << 6
@@ -27,10 +27,10 @@ export enum EnvironmentFlags {
 export enum EnvironmentType {
     ENVIRONMENT = EnvironmentFlags.ENVIRONMENT,
     ANSIBLE_ENVIRONMENT = EnvironmentFlags.ANSIBLE,
-    MANAGED_ANSIBLE_ENVIRONMENT = EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE,
     LOCAL_ENVIRONMENT = EnvironmentFlags.LOCAL | EnvironmentFlags.MANAGED | EnvironmentFlags.ANSIBLE, // Local environments,
     OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS,
     SAAS_OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS | EnvironmentFlags.SAAS,
+    LOCAL_MICROFAB_ENVIRONMENT = EnvironmentFlags.MICROFAB | EnvironmentFlags.MANAGED | EnvironmentFlags.LOCAL,
     MICROFAB_ENVIRONMENT = EnvironmentFlags.MICROFAB
 }
 

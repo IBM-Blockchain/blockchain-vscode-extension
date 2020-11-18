@@ -26,12 +26,12 @@ import { DependencyProperties } from '../dependencies/Dependencies';
  */
 export class ExtensionsInteractionUtil {
 
-    // public static isIBMCloudExtensionInstalled(): boolean {
-    //     return !!vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
-    // }
+    public static isIBMCloudExtensionInstalled(): boolean {
+        return !!vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
+    }
 
     public static async getIBMCloudExtension(): Promise<CloudAccountApi> {
-        const  cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
+        const cloudAccountExtension: vscode.Extension<any> = vscode.extensions.getExtension(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
         if ( !cloudAccountExtension ) {
             throw new Error('IBM Cloud Account extension must be installed');
         }

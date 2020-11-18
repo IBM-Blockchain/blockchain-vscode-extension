@@ -47,7 +47,7 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
                 const environment: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(envName);
                 environmentType = environment.environmentType;
             }
-            if (environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+            if (environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                 localGateways.push(entry);
                 continue;
             }

@@ -26,6 +26,7 @@ import { FileConfigurations } from '../../src/registries/FileConfigurations';
 import { FabricWalletGeneratorFactory } from '../../src/util/FabricWalletGeneratorFactory';
 import { MicrofabEnvironment } from '../../src/environments/MicrofabEnvironment';
 import { FileRegistry } from '../../src/registries/FileRegistry';
+import { MicrofabClient } from '../../src/environments/MicrofabClient';
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -40,10 +41,22 @@ describe('FabricWalletRegistry', () => {
         registry.setRegistryPath(registryPath);
         environmentRegistry.setRegistryPath(registryPath);
         const importIdentityStub: sinon.SinonStub = sinon.stub().resolves();
-        const getIdentitiesStub: sinon.SinonStub = sinon.stub().resolves([]);
+        const getIdentitiesStub: sinon.SinonStub = sinon.stub().resolves([
+            {
+                id: 'org1admin',
+                display_name: 'Org1 Admin',
+                type: 'identity',
+                cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
+                private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
+                msp_id: 'Org1MSP',
+                wallet: 'Org1'
+            }
+        ]);
+        const existsStub: sinon.SinonStub = sinon.stub().resolves(true);
         const mockFabricWallet: any = {
             importIdentity: importIdentityStub,
-            getIdentities: getIdentitiesStub
+            getIdentities: getIdentitiesStub,
+            exists: existsStub
         };
 
         const mockFabricWalletGenerator: any = {
@@ -81,26 +94,45 @@ describe('FabricWalletRegistry', () => {
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true});
-            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true,  url: 'http://someurl:9000'});
+
+            sandbox.stub(MicrofabClient.prototype, 'isAlive').resolves(true);
+            // // This will get the code working.
+            sandbox.stub(MicrofabClient.prototype, 'getComponents').resolves([
+                {
+                    id: 'org1admin',
+                    display_name: 'Org1 Admin',
+                    type: 'identity',
+                    cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
+                    private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
+                    msp_id: 'Org1MSP',
+                    wallet: 'Org1'
+                }
+            ]);
+
+            sandbox.stub(MicrofabEnvironment.prototype, 'getIdentities').resolves([
+                {
+                    id: 'org1admin',
+                    display_name: 'Org1 Admin',
+                    type: 'identity',
+                    cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
+                    private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
+                    msp_id: 'Org1MSP',
+                    wallet: 'Org1'
+                }
+            ]);
 
             const localFabricOrgEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', FabricRuntimeUtil.LOCAL_FABRIC);
-            const localFabricOrdererEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', FabricRuntimeUtil.LOCAL_FABRIC);
-            const otherLocalOrgEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', 'otherLocalEnv');
-            const otherLocalOrdererEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Orderer', 'otherLocalEnv');
 
             await registry.add(walletOne);
             await registry.add(walletTwo);
 
             const wallets: any = await registry.getAll();
-            wallets.length.should.equal(6);
+            wallets.length.should.equal(3);
 
-            wallets[0].should.deep.equal(localFabricOrdererEntry);
-            wallets[1].should.deep.equal(localFabricOrgEntry);
-            wallets[2].should.deep.equal(otherLocalOrdererEntry);
-            wallets[3].should.deep.equal(otherLocalOrgEntry);
-            wallets[4].should.deep.equal(walletOne);
-            wallets[5].should.deep.equal(walletTwo);
+            wallets[0].should.deep.equal(localFabricOrgEntry);
+            wallets[1].should.deep.equal(walletOne);
+            wallets[2].should.deep.equal(walletTwo);
         });
 
         it('should get all wallets but not show local fabric', async () => {
@@ -111,8 +143,8 @@ describe('FabricWalletRegistry', () => {
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1});
-            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1});
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1,  url: 'http://someurl:9000'});
+            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1,  url: 'http://anotherurl:9000'});
 
             await registry.add(walletOne);
             await registry.getAll(false).should.eventually.deep.equal([walletOne]);
@@ -138,12 +170,18 @@ describe('FabricWalletRegistry', () => {
                 name: 'microfabEnvironment',
                 environmentDirectory: path.join('test', 'data', 'microfab'),
                 environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
-                managedRuntime: false
+                managedRuntime: false,
+                url: 'http://someurl:9001'
             }));
 
             const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'newMicrofabEnvironment');
             const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
             mockMicrofabEnvironment.isAlive.resolves(true);
+            const mockClient: sinon.SinonStubbedInstance<MicrofabClient> = sinon.createStubInstance(MicrofabClient);
+            mockMicrofabEnvironment.url = 'http://someurl:9001';
+            mockMicrofabEnvironment['client'] = mockClient as any;
+            mockMicrofabEnvironment.setClient.returns(undefined);
+
             mockMicrofabEnvironment.getWalletsAndIdentities.resolves([
                 {
                     name: 'myWallet',
@@ -184,14 +222,17 @@ describe('FabricWalletRegistry', () => {
             await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
                 name: 'microfabEnvironment',
                 environmentDirectory: path.join('test', 'data', 'microfab'),
-                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
-                managedRuntime: false
+                environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
+                managedRuntime: false,
+                url: 'http://someurl:9001'
             }));
 
             const newMicrofabEnvironmentStub: sinon.SinonStub = sandbox.stub(FabricWalletRegistry.instance(), 'newMicrofabEnvironment');
             const mockMicrofabEnvironment: sinon.SinonStubbedInstance<MicrofabEnvironment> = sinon.createStubInstance(MicrofabEnvironment);
             mockMicrofabEnvironment.isAlive.resolves(false);
             mockMicrofabEnvironment.getWalletsAndIdentities.rejects(new Error('should not be called'));
+            mockMicrofabEnvironment.setClient.returns(undefined);
+            mockMicrofabEnvironment.url = 'http://someurl:9001';
             newMicrofabEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<MicrofabEnvironment> => {
                 newMicrofabEnvironmentStub['wrappedMethod'](name, directory, url);
                 return mockMicrofabEnvironment;

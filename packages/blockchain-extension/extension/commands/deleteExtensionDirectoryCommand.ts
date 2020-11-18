@@ -50,7 +50,7 @@ export async function deleteExtensionDirectory(): Promise<void> {
         }
 
         for (const environment of environments) {
-            if (environment.environmentType === EnvironmentType.LOCAL_ENVIRONMENT) {
+            if (environment.environmentType === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                 try {
                     await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, environment.name);
                 } catch (error) {

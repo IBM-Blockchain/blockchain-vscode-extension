@@ -1,29 +1,90 @@
 @import '@carbon/type/scss/font-face/_mono';
 @import '@carbon/layout/scss/_spacing';
+@import '@carbon/colors/scss/colors';
 
-.output-panel {
-    position: fixed;
-    top: 0px;
+#output-panel {
     height: 100%;
-    width: 55%;
-    background-color: #F4F4F4;
+    padding-left: $spacing-07;
+
+    .output-title {
+        font-size: 0.875rem;
+    }
 
     .output-panel-inner {
-        margin: $spacing-07;
-        padding-right: $spacing-07 + $spacing-09;
-
-
-        .output-title {
-            font-size: 0.875rem;
-            color: #393939;
-        }
+        margin-top: $spacing-01;
+        padding: $spacing-04;
+        background-color: #F4F4F4;
+        min-height: 100%;
+        height: 1px;
 
         .output-body {
             @include carbon--font-face-mono;
             font-family: 'IBM Plex Mono', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
             font-size: 0.875rem;
             color: inherit;
+            word-break: break-all;
         }
 
+        .output-placeholder-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .output-placeholder {
+            width: 100%;
+            padding: 0 15%;
+
+            h4, p {
+                margin-bottom: $spacing-03;
+            }
+
+            p {
+                color: $gray-30;
+            }
+
+            a {
+                font-size: 1rem;
+                display: flex;
+                color: #0f62fe;
+            }
+
+            svg {
+                height: 1.25rem;
+                fill: #0f62fe;
+            }
+
+            img {
+                height: 30%;
+                margin-bottom: $spacing-05;
+            }
+        }
+    }
+}
+
+.vscode-light {
+    #output-panel {
+        .output-panel-inner {
+            .output-placeholder {
+                p {
+                    color: $gray-80;
+                }
+            }
+        }
+    }
+
+}
+
+
+@media (max-width: 672px) {
+    #output-panel {
+        padding-left: 0;
+
+        .output-panel-inner {
+            min-height: 70vh;
+        }
     }
 }

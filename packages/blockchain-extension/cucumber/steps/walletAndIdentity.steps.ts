@@ -37,7 +37,7 @@ module.exports = function(): any {
 
     this.Given("the '{string}' identity", this.timeout, async (identity: string) => {
         if (identity === 'Local Fabric Admin') {
-            identity = 'org1Admin';
+            identity = 'Org1 Admin';
         }
         this.identity = identity;
     });

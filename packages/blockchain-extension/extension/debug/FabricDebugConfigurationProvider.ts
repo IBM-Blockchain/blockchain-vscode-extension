@@ -13,7 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-import { LocalEnvironmentManager } from '../fabric/environments/LocalEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricSmartContractDefinition, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, IFabricGatewayConnection, FabricGatewayRegistry, EnvironmentType, FabricGatewayRegistryEntry, EnvironmentFlags } from 'ibm-blockchain-platform-common';
@@ -21,9 +20,10 @@ import { URL } from 'url';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { SettingConfigurations } from '../configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
-import { LocalEnvironment } from '../fabric/environments/LocalEnvironment';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../commands/UserInputUtil';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
+import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
+import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -56,16 +56,16 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
         if (!gatewayConnection) {
             // Connect to local_fabric gateway before submitting/evaluating transaction
-            const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName}`);
+            const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName} Gateway`);
             // Assume one runtime gateway registry entry
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, runtimeGateway);
             if (!FabricGatewayConnectionManager.instance().getConnection()) {
                 // either the user cancelled or ther was an error so don't carry on
                 return false;
             }
-        } else if (fabricGatewayRegistryEntry && fabricGatewayRegistryEntry.name !== `${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName}`) {
+        } else if (fabricGatewayRegistryEntry && fabricGatewayRegistryEntry.name !== `${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName} Gateway`) {
             // Connect to the gateway the user selected initially (for their chosen org)
-            const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName}`);
+            const runtimeGateway: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get(`${FabricDebugConfigurationProvider.environmentName} - ${FabricDebugConfigurationProvider.orgName} Gateway`);
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, runtimeGateway);
             if (!FabricGatewayConnectionManager.instance().getConnection()) {
@@ -82,7 +82,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
         if (connection) {
             let environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-            if (environmentRegistryEntry.name !== FabricDebugConfigurationProvider.environmentName || environmentRegistryEntry.environmentType !== EnvironmentType.LOCAL_ENVIRONMENT) {
+            if (environmentRegistryEntry.name !== FabricDebugConfigurationProvider.environmentName || environmentRegistryEntry.environmentType !== EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
                 environmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(FabricDebugConfigurationProvider.environmentName);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
@@ -102,7 +102,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         return connection;
     }
 
-    private runtime: LocalEnvironment;
+    private runtime: LocalMicroEnvironment;
 
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -119,11 +119,11 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 return;
             }
 
-            const localRuntimes: IBlockchainQuickPickItem<LocalEnvironment>[] = [];
+            const localRuntimes: IBlockchainQuickPickItem<LocalMicroEnvironment>[] = [];
             const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.LOCAL]); // Get only local entries
 
             for (const entry of environmentEntries) {
-                const runtime: LocalEnvironment = await LocalEnvironmentManager.instance().ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
+                const runtime: LocalMicroEnvironment = await LocalMicroEnvironmentManager.instance().ensureRuntime(entry.name, undefined, entry.numberOfOrgs);
                 const isRunning: boolean = await runtime.isRunning();
                 if (isRunning) {
                     localRuntimes.push({label: entry.name, data: runtime});
@@ -135,7 +135,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 return;
             }
 
-            const chosenEnvironment: IBlockchainQuickPickItem<LocalEnvironment> = await UserInputUtil.showQuickPickItem('Select a local environment to debug', localRuntimes) as IBlockchainQuickPickItem<LocalEnvironment>;
+            const chosenEnvironment: IBlockchainQuickPickItem<LocalMicroEnvironment> = await UserInputUtil.showQuickPickItem('Select a local environment to debug', localRuntimes) as IBlockchainQuickPickItem<LocalMicroEnvironment>;
             if (!chosenEnvironment) {
                 return;
             }

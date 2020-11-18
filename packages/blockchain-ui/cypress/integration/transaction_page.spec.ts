@@ -1,7 +1,20 @@
 /// <reference types="Cypress" />
 import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
+import IAssociatedTxdata from '../../src/interfaces/IAssociatedTxdata';
+import IDataFileTransaction from '../../src/interfaces/IDataFileTransaction';
+
 chai.should();
+
+interface IMessage {
+    path: string;
+    transactionViewData: {
+        gatewayName: string,
+        smartContract: ISmartContract,
+        associatedTxdata?: IAssociatedTxdata,
+        txdataTransactions?: IDataFileTransaction[]
+    };
+}
 
 describe('Transaction page', () => {
     const transactionOne: ITransaction = {
@@ -40,9 +53,9 @@ describe('Transaction page', () => {
         peerNames: ['peer1', 'peer2']
     };
 
-    const mockMessage: {path: string, transactionData: {gatewayName: string, smartContract: ISmartContract} } = {
+    const mockMessage: IMessage = {
         path: 'transaction',
-        transactionData: {
+        transactionViewData: {
             gatewayName: 'myGateway',
             smartContract: greenContract
         }
@@ -52,8 +65,15 @@ describe('Transaction page', () => {
         transactionOutput: 'some transaction output'
     };
 
-    beforeEach(() => {
+    const associatedTxdata: IAssociatedTxdata = {
+        chaincodeName: 'chaincodeName',
+        channelName: 'channelName',
+        transactionDataPath: 'transactionDataPath',
+    };
 
+    const txdataTransactions: IDataFileTransaction[] = [{ transactionName: transactionOne.name, transactionLabel: transactionOne.name, txDataFile: '', arguments: [], transientData: {} }];
+
+    beforeEach(() => {
         cy.visit('build/index.html').then((window: Window) => {
             window.postMessage(mockMessage, '*');
         });
@@ -61,146 +81,222 @@ describe('Transaction page', () => {
         cy.get('.vscode-dark').invoke('attr', 'class', 'vscode-light'); // Use the light theme as components render properly.
     });
 
-    it('generates appropriate arguments when a transaction is selected', () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionOne');
-        cy.get('#arguments-text-area')
-            .invoke('val')
-            .then((text: JQuery<HTMLElement>): void => {
-                expect(text).to.equal('[\n  name: ""\n]');
+    describe('Manual Input', () => {
+        it('generates appropriate arguments when a transaction is selected', () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionOne');
+            cy.get('#arguments-text-area')
+                .invoke('val')
+                .then((text: JQuery<HTMLElement>): void => {
+                    expect(text).to.equal('{\n  "name": ""\n}');
+                });
+        });
+
+        it('replaces generated arguments when a new transaction is selected', () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionOne');
+            cy.get('#arguments-text-area')
+                .invoke('val')
+                .then((text: JQuery<HTMLElement>): void => {
+                    expect(text).to.equal('{\n  "name": ""\n}');
+                });
+
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionTwo');
+            cy.get('#arguments-text-area')
+                .invoke('val')
+                .then((text: JQuery<HTMLElement>): void => {
+                    expect(text).to.equal('{\n  "size": ""\n}');
+                });
+        });
+
+        it(`can submit a transaction with the user's input`, () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionOne');
+
+            cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
+
+            cy.get('#submit-button').click();
+
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
             });
-    });
 
-    it('replaces generated arguments when a new transaction is selected', () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionOne');
-        cy.get('#arguments-text-area')
-            .invoke('val')
-            .then((text: JQuery<HTMLElement>): void => {
-                expect(text).to.equal('[\n  name: ""\n]');
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
+        });
+
+        it(`can submit a transaction with transient data`, () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionOne');
+
+            cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
+            cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
+
+            cy.get('#submit-button').click();
+
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
             });
 
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionTwo');
-        cy.get('#arguments-text-area')
-            .invoke('val')
-            .then((text: JQuery<HTMLElement>): void => {
-                expect(text).to.equal('[\n  size: ""\n]');
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
+        });
+
+        it(`can submit a transaction with custom peer`, () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionOne');
+
+            cy.get('#peer-select').contains('Select peers');
+            cy.get('#peer-select').click(); // Expand dropdown
+            cy.get('#peer-select').contains('peer1').click(); // Click on option
+            cy.get('#peer-select').contains('peer1');
+            cy.get('#peer-select').click(); // Close dropdown
+
+            cy.get('#submit-button').click();
+
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
             });
-    });
 
-    it(`can submit a transaction with the user's input`, () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionOne');
-
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
-
-        cy.get('#submit-button').click();
-
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
         });
 
-        cy.get('.output-body').contains(mockOutput.transactionOutput);
-    });
+        it(`can evaluate a transaction with the user's input`, () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionTwo');
 
-    it(`can submit a transaction with transient data`, () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionOne');
+            cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
 
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}penguin');
-        cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
+            cy.get('#evaluate-button').click();
 
-        cy.get('#submit-button').click();
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
+            });
 
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
         });
 
-        cy.get('.output-body').contains(mockOutput.transactionOutput);
-    });
+        it(`can evaluate a transaction with transient data`, () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionTwo');
 
-    it(`can submit a transaction with custom peer`, () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionOne');
+            cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
+            cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
 
-        cy.get('#peer-select').contains('Select peers');
-        cy.get('#peer-select').click(); // Expand dropdown
-        cy.get('#peer-select').contains('peer1').click(); // Click on option
-        cy.get('#peer-select').contains('peer1');
+            cy.get('#evaluate-button').click();
 
-        cy.get('#submit-button').click();
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
+            });
 
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
         });
 
-        cy.get('.output-body').contains(mockOutput.transactionOutput);
+        it(`can submit a transaction with custom peer`, () => {
+            cy.get('#transaction-select').contains('Select the transaction name');
+            cy.get('#transaction-select').click(); // Expand dropdown
+            cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-select').contains('transactionOne');
+
+            cy.get('#peer-select').contains('Select peers');
+            cy.get('#peer-select').click(); // Expand dropdown
+            cy.get('#peer-select').contains('peer1').click(); // Click on option
+            cy.get('#peer-select').contains('peer1');
+            cy.get('#peer-select').click(); // Close dropdown
+
+            cy.get('#evaluate-button').click();
+
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
+            });
+
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
+        });
     });
 
-    it(`can evaluate a transaction with the user's input`, () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionTwo');
-
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
-
-        cy.get('#evaluate-button').click();
-
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
+    describe('Data file input', () => {
+        beforeEach(() => {
+            cy.get('[data-testid="content-switch-data"]').click();
         });
 
-        cy.get('.output-body').contains(mockOutput.transactionOutput);
-    });
+        it(`can submit a transaction with custom peer when a data directory is associated`, () => {
+            const message: IMessage = {
+                path: mockMessage.path,
+                transactionViewData: {
+                    ...mockMessage.transactionViewData,
+                    associatedTxdata,
+                    txdataTransactions,
+                }
+            };
+            cy.window().then((window: Window) => {
+                window.postMessage(message, '*');
+            });
 
-    it(`can evaluate a transaction with transient data`, () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionTwo').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionTwo');
+            cy.get('#transaction-data-select').contains('Select the transaction name');
+            cy.get('#transaction-data-select').click(); // Expand dropdown
+            cy.get('#transaction-data-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-data-select').contains('transactionOne');
 
-        cy.get('#arguments-text-area').type('{leftarrow}{leftarrow}{leftarrow}big');
-        cy.get('#transient-data-input').type('{"some": "data"}', {parseSpecialCharSequences: false});
+            cy.get('#peer-select').contains('Select peers');
+            cy.get('#peer-select').click(); // Expand dropdown
+            cy.get('#peer-select').contains('peer1').click(); // Click on option
+            cy.get('#peer-select').contains('peer1');
+            cy.get('#peer-select').click(); // Close dropdown
 
-        cy.get('#evaluate-button').click();
+            cy.get('#submit-button').click();
 
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
+            });
+
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
         });
 
-        cy.get('.output-body').contains(mockOutput.transactionOutput);
-    });
+        it(`can evaluate a transaction with custom peer when a data directory is associated`, () => {
+            const message: IMessage = {
+                path: mockMessage.path,
+                transactionViewData: {
+                    ...mockMessage.transactionViewData,
+                    associatedTxdata,
+                    txdataTransactions,
+                }
+            };
+            cy.window().then((window: Window) => {
+                window.postMessage(message, '*');
+            });
 
-    it(`can submit a transaction with custom peer`, () => {
-        cy.get('#transaction-select').contains('Select the transaction name');
-        cy.get('#transaction-select').click(); // Expand dropdown
-        cy.get('#transaction-select').contains('transactionOne').click(); // Click on option
-        cy.get('#transaction-select').contains('transactionOne');
+            cy.get('#transaction-data-select').contains('Select the transaction name');
+            cy.get('#transaction-data-select').click(); // Expand dropdown
+            cy.get('#transaction-data-select').contains('transactionOne').click(); // Click on option
+            cy.get('#transaction-data-select').contains('transactionOne');
 
-        cy.get('#peer-select').contains('Select peers');
-        cy.get('#peer-select').click(); // Expand dropdown
-        cy.get('#peer-select').contains('peer1').click(); // Click on option
-        cy.get('#peer-select').contains('peer1');
+            cy.get('#peer-select').contains('Select peers');
+            cy.get('#peer-select').click(); // Expand dropdown
+            cy.get('#peer-select').contains('peer1').click(); // Click on option
+            cy.get('#peer-select').contains('peer1');
+            cy.get('#peer-select').click(); // Close dropdown
 
-        cy.get('#evaluate-button').click();
+            cy.get('#evaluate-button').click();
 
-        cy.window().then((window: Window) => {
-            window.postMessage(mockOutput, '*');
+            cy.window().then((window: Window) => {
+                window.postMessage(mockOutput, '*');
+            });
+
+            cy.get('.output-body').contains(mockOutput.transactionOutput);
         });
-
-        cy.get('.output-body').contains(mockOutput.transactionOutput);
     });
 });
