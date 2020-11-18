@@ -10,6 +10,7 @@ import { ExtensionCommands } from '../../../ExtensionCommands';
 import Utils from '../../../Utils';
 import IAssociatedTxdata from '../../../interfaces/IAssociatedTxdata';
 import ITransaction from '../../../interfaces/ITransaction';
+import './TransactionInputContainer.scss';
 
 interface IProps {
     smartContract: ISmartContract;
@@ -73,7 +74,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     const ignoreEvent: any = (e: any) => console.log('event ignored', e);
     return (
         <>
-            <ContentSwitcher selectionMode='manual' onChange={() => setIsManual(!isManual)}>
+            <ContentSwitcher className='transaction-input-content-switch' selectionMode='manual' onChange={() => setIsManual(!isManual)}>
                 {/* Typescript requires the onClick and onKeyDown functions but we don't need them */}
                 <Switch name='one' text='Manual input' data-testid='content-switch-manual' onClick={ignoreEvent} onKeyDown={ignoreEvent} />
                 <Switch name='two' text='Transaction data directory' data-testid='content-switch-data' onClick={ignoreEvent} onKeyDown={ignoreEvent}/>
