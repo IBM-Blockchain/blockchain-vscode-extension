@@ -262,11 +262,8 @@ export class LocalMicroEnvironment extends MicrofabEnvironment {
             outputAdapter = ConsoleOutputAdapter.instance();
         }
 
-        const chaincodeTimeout: number = this.getChaincodeTimeout();
-
         const env: any = Object.assign({}, process.env, {
-            CORE_CHAINCODE_MODE: 'dev',
-            CORE_CHAINCODE_EXECUTETIMEOUT: `${chaincodeTimeout}s` // This is needed as well as 'request-timeout' to change TX timeout
+            CORE_CHAINCODE_MODE: 'dev'
         });
 
         if (process.platform === 'win32') {
@@ -341,10 +338,6 @@ export class LocalMicroEnvironment extends MicrofabEnvironment {
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('start', [], outputAdapter);
-    }
-
-    private getChaincodeTimeout(): number {
-        return vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT);
     }
 
     private async killChaincodeInner(args: string[], outputAdapter?: OutputAdapter): Promise<void> {

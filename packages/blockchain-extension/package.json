@@ -254,11 +254,6 @@
                     "default": false,
                     "description": "Show the home page next time the extension is activated"
                 },
-                "ibm-blockchain-platform.fabric.chaincode.timeout": {
-                    "type": "integer",
-                    "default": 120,
-                    "description": "Used to configure the Local Fabric's chaincode timeout value (seconds)"
-                },
                 "ibm-blockchain-platform.fabric.client.timeout": {
                     "type": "integer",
                     "default": 120,
