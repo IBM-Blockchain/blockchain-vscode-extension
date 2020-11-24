@@ -1201,8 +1201,8 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isCreated.resolves(true);
             mockRuntime.isRunning.resolves(true);
 
-            const generatedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('generatedLocal', undefined, 1);
-            const nonGeneratedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('nonGeneratedLocal', undefined, 1);
+            const generatedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('generatedLocal', undefined, 1, UserInputUtil.V2_0);
+            const nonGeneratedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('nonGeneratedLocal', undefined, 1, UserInputUtil.V2_0);
 
             const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isCreated');
             isGeneratedStub.onCall(0).resolves(true); // generatedLocal
@@ -1285,8 +1285,8 @@ describe('ExtensionUtil Tests', () => {
             mockRuntime.isCreated.resolves(true);
             mockRuntime.isRunning.resolves(true);
 
-            const generatedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('generatedLocal', undefined, 1);
-            const nonGeneratedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('nonGeneratedLocal', undefined, 1);
+            const generatedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('generatedLocal', undefined, 1, UserInputUtil.V2_0);
+            const nonGeneratedLocalEnvironment: LocalMicroEnvironment = new LocalMicroEnvironment('nonGeneratedLocal', undefined, 1, UserInputUtil.V2_0);
 
             const isGeneratedStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'isCreated');
             isGeneratedStub.onCall(0).resolves(true); // generatedLocal
@@ -2090,7 +2090,7 @@ describe('ExtensionUtil Tests', () => {
             mockConnection = mySandBox.createStubInstance(FabricEnvironmentConnection);
             startLogsStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'startLogs').returns(undefined);
             stopLogsStub = mySandBox.stub(LocalMicroEnvironment.prototype, 'stopLogs').returns(undefined);
-            originalRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
+            originalRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
         });
 
         it(`should start logs if ${FabricRuntimeUtil.LOCAL_FABRIC} is connected`, async () => {

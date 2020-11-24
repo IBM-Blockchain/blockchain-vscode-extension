@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import { FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../configurations';
 import { LocalMicroEnvironment } from './LocalMicroEnvironment';
+import { UserInputUtil } from '../../commands/UserInputUtil';
 
 export class LocalMicroEnvironmentManager {
 
@@ -45,15 +46,15 @@ export class LocalMicroEnvironmentManager {
         return this.runtimes.get(name);
     }
 
-    public async ensureRuntime(name: string, port?: number, numberOfOrgs?: number): Promise<LocalMicroEnvironment> {
+    public async ensureRuntime(name: string, port?: number, numberOfOrgs?: number, fabricCapabilities?: string): Promise<LocalMicroEnvironment> {
         let runtime: LocalMicroEnvironment = this.getRuntime(name);
         if (!runtime) {
-            runtime = await this.addRuntime(name, port, numberOfOrgs);
+            runtime = await this.addRuntime(name, port, numberOfOrgs, fabricCapabilities);
         }
         return runtime;
     }
 
-    public async addRuntime(name: string, port?: number, numberOfOrgs?: number): Promise<LocalMicroEnvironment> {
+    public async addRuntime(name: string, port?: number, numberOfOrgs?: number, fabricCapabilities?: string): Promise<LocalMicroEnvironment> {
 
         let portToUse: number;
         if (!port) {
@@ -88,25 +89,25 @@ export class LocalMicroEnvironmentManager {
             orgsToUse = numberOfOrgs;
         }
 
-        const runtime: LocalMicroEnvironment = new LocalMicroEnvironment(name, portToUse, orgsToUse);
+        const runtime: LocalMicroEnvironment = new LocalMicroEnvironment(name, portToUse, orgsToUse, fabricCapabilities);
         this.runtimes.set(name, runtime);
 
         return runtime;
     }
 
-    public async initialize(name: string, numberOfOrgs: number): Promise<void> {
+    public async initialize(name: string, numberOfOrgs: number, fabricCapabilities: string = UserInputUtil.V2_0): Promise<void> {
 
         // only generate a range of ports if it doesn't already exist
         let port: any = this.getPort(name);
         let runtime: LocalMicroEnvironment;
         if (port) {
-            runtime = await this.addRuntime(name, port, numberOfOrgs);
+            runtime = await this.addRuntime(name, port, numberOfOrgs, fabricCapabilities);
         } else {
             // Generate a range of ports for this Fabric runtime.
             port = await this.generatePortConfiguration();
 
             // Add the Fabric runtime to the internal cache.
-            runtime = await this.addRuntime(name, port, numberOfOrgs);
+            runtime = await this.addRuntime(name, port, numberOfOrgs, fabricCapabilities);
 
             await runtime.updateUserSettings(name);
         }

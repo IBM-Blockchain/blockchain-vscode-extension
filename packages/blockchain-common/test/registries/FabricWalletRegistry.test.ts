@@ -94,7 +94,7 @@ describe('FabricWalletRegistry', () => {
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true,  url: 'http://someurl:9000'});
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', '..', '..', '..', 'test', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, numberOfOrgs: 1, managedRuntime: true,  url: 'http://someurl:9000', fabricCapabilities: 'V2_0'});
 
             sandbox.stub(MicrofabClient.prototype, 'isAlive').resolves(true);
             // // This will get the code working.
@@ -143,8 +143,8 @@ describe('FabricWalletRegistry', () => {
 
             await registry.getAll().should.eventually.deep.equal([]);
 
-            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1,  url: 'http://someurl:9000'});
-            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1,  url: 'http://anotherurl:9000'});
+            await FabricEnvironmentRegistry.instance().add({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentDirectory: path.join(__dirname, '..', 'data', FabricRuntimeUtil.LOCAL_FABRIC), environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, numberOfOrgs: 1,  url: 'http://someurl:9000', fabricCapabilities: 'V2_0'});
+            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1,  url: 'http://anotherurl:9000', fabricCapabilities: 'V2_0'});
 
             await registry.add(walletOne);
             await registry.getAll(false).should.eventually.deep.equal([walletOne]);

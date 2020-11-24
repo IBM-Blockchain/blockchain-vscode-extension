@@ -25,6 +25,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../../extension/logging/VSCode
 import { FabricRuntimeUtil, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { LocalMicroEnvironment } from '../../../extension/fabric/environments/LocalMicroEnvironment';
+import { UserInputUtil } from '../../../extension/commands/UserInputUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -54,7 +55,7 @@ describe('LocalGatewayTreeItem', () => {
         await gatewayRegistry.clear();
         await FabricEnvironmentRegistry.instance().clear();
         await TestUtil.setupLocalFabric();
-        localRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1);
+        localRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, undefined, 1, UserInputUtil.V2_0);
 
         gateway = new FabricGatewayRegistryEntry();
         gateway.name = `${FabricRuntimeUtil.LOCAL_FABRIC} - Org1 Gateway`;

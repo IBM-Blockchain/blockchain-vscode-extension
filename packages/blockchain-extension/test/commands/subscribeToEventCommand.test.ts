@@ -137,6 +137,7 @@ describe('SubscribeToEventCommand', () => {
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
             fabricClientConnectionMock.createChannelMap.resolves(map);
+            fabricClientConnectionMock.getChannelCapabilityFromPeer.resolves([UserInputUtil.V2_0]);
             fabricConnectionManager = FabricGatewayConnectionManager.instance();
             getConnectionStub = mySandBox.stub(FabricGatewayConnectionManager.instance(), 'getConnection').returns(fabricClientConnectionMock);
 
@@ -236,7 +237,7 @@ describe('SubscribeToEventCommand', () => {
 
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
             const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
-            channelChildren[0].tooltip.should.equal('Associated peers: peerOne');
+            channelChildren[0].tooltip.should.equal(`Associated peers: peerOne\nChannel capabilities: ${UserInputUtil.V2_0}`);
 
             const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
             await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);

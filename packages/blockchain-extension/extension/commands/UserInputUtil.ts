@@ -102,6 +102,10 @@ export class UserInputUtil {
     static readonly CREATE_ADDITIONAL_LOCAL_NETWORKS: string = `Create additional local networks (tutorial)`;
     static readonly CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA: number = 3;
 
+    static readonly V1_4_2: string = 'V1_4_2';
+    static readonly V2_0: string = 'V2_0';
+    static readonly V2_0_RECOMMENDED: string = `${UserInputUtil.V2_0} (Recommended)`;
+
     public static async showQuickPick(prompt: string, items: string[], canPickMany: boolean = false): Promise<string | string[]> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
@@ -1264,6 +1268,14 @@ export class UserInputUtil {
         if (selectedText === callToAction) {
             vscode.env.openExternal(vscode.Uri.parse(url));
         }
+    }
+
+    public static async selectCapabilities(prompt: string): Promise<string > {
+        const result: IBlockchainQuickPickItem<string> = await UserInputUtil.showQuickPickItem(prompt, [{label: UserInputUtil.V2_0_RECOMMENDED, data: UserInputUtil.V2_0}, {label: UserInputUtil.V1_4_2, data: UserInputUtil.V1_4_2}], false) as IBlockchainQuickPickItem<string>;
+        if (result) {
+            return result.data;
+        }
+
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {

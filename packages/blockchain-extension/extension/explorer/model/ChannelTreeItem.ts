@@ -25,7 +25,7 @@ export class ChannelTreeItem extends BlockchainTreeItem {
         dark: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'dark', 'channel.svg')
     };
 
-    constructor(provider: BlockchainExplorerProvider, channelName: string, public readonly peers: Array<string>, public readonly chaincodes: Array<any>, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
+    constructor(provider: BlockchainExplorerProvider, channelName: string, public readonly peers: Array<string>, public readonly chaincodes: Array<any>, public readonly capability: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(provider, channelName, collapsibleState);
 
         this.tooltip = `Associated peers:`;
@@ -36,6 +36,8 @@ export class ChannelTreeItem extends BlockchainTreeItem {
                 this.tooltip += ` ${peers[i]},`;
             }
         }
+
+        this.tooltip += `\nChannel capabilities: ${capability}`;
 
     }
 }
