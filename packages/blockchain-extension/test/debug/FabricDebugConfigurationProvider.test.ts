@@ -630,7 +630,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should get contract if already connected to another environment with different environment type', async () => {
 
-            getEnvironmentRegistryStub.returns({name: FabricRuntimeUtil.LOCAL_FABRIC, environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true} as FabricEnvironmentRegistryEntry);
+            getEnvironmentRegistryStub.returns({name: 'userEnvironment', environmentType: EnvironmentType.ENVIRONMENT} as FabricEnvironmentRegistryEntry);
 
             const fabricEnvironmentRegistryGetSpy: sinon.SinonSpy = mySandbox.spy(FabricEnvironmentRegistry.instance(), 'get');
 

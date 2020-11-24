@@ -166,12 +166,6 @@ export class SmartContractHelper {
             peers = ['peer0.org1.example.com'];
             orgMap.set('Org1MSP', peers);
             orderer = 'orderer.example.com';
-        } else if (process.env.ANSIBLE_FABRIC) {
-            // Using new Ansible Fabric
-            peers = ['Org1Peer1', 'Org1Peer2', 'Org2Peer1', 'Org1Peer2'];
-            orgMap.set('Org1MSP', ['Org1Peer1', 'Org1Peer2']);
-            orgMap.set('Org2MSP', ['Org2Peer1', 'Org2Peer2']);
-            orderer = 'Orderer1';
         } else if (process.env.TWO_ORG_FABRIC) {
             // local fabric 2 orgs
             peers = ['Org1 Peer', 'Org2 Peer'];

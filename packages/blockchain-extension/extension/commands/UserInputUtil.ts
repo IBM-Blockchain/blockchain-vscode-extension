@@ -79,8 +79,6 @@ export class UserInputUtil {
     static readonly ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION: string = '(uses Docker on your local machine)';
     static readonly ADD_ENVIRONMENT_FROM_NODES: string = 'Add any other Fabric network';
     static readonly ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION: string = '(by providing node JSON files)';
-    static readonly ADD_ENVIRONMENT_FROM_DIR: string = 'Add an Ansible-created network';
-    static readonly ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION: string = '(browse for directory)';
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS: string = 'Add an IBM Blockchain Platform network';
     static readonly ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION: string = '(connect to IBM Blockchain Platform Console)';
     static readonly ADD_ENVIRONMENT_FROM_MICROFAB: string = 'Add a Microfab network';

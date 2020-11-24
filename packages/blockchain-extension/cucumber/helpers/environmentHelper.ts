@@ -80,9 +80,6 @@ export class EnvironmentHelper {
                     this.userInputUtilHelper.showQuickPickItemStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }]).resolves({ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN });
                 }
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves([]);
-            } else if (process.env.ANSIBLE_FABRIC) {
-                this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
-                this.userInputUtilHelper.openFileBrowserStub.resolves(vscode.Uri.file(path.join(this.userInputUtilHelper.cucumberDir, 'ansible')));
             } else if (process.env.TWO_ORG_FABRIC) {
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select a method to add an environment').resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE});
                 this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a configuration for a new local network').resolves({data: 2});

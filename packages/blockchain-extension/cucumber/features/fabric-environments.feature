@@ -278,38 +278,3 @@ Feature: Fabric Environments
     Given an environment 'myFabric2' exists
     When I delete an environment 'myFabric2'
     Then there shouldn't be a tree item with a label 'myFabric2' in the 'Fabric Environments' panel
-
-  @ansibleFabric
-  Scenario: It should create an environment
-    When I create an environment 'myAnsibleFabric'
-    Then there should be a tree item with a label 'Other networks' in the 'Fabric Environments' panel
-    And the 'Fabric Environments' tree item should have a child 'myAnsibleFabric'
-    And the tree item should have a tooltip equal to 'myAnsibleFabric'
-
-  @ansibleFabric
-  Scenario Outline: It should connect to an environment
-    Given an environment 'myAnsibleFabric' exists
-    When I connect to the environment 'myAnsibleFabric'
-    Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
-    And the tree item should have a tooltip equal to '<tooltip>'
-    Examples:
-      | treeItem                    | label                                     | tooltip                                                                  |
-      | environment connected       | Connected to environment: myAnsibleFabric | Connected to environment: myAnsibleFabric                                |
-      | channel                     | channel1                                  | Associated peers: Org1Peer1, Org1Peer2, Org2Peer1, Org2Peer2\\nChannel capabilities: V2_0              |
-      | Node                        | Org1Peer1                                 | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin      |
-      | Node                        | Org1Peer2                                 | Name: Org1Peer2\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin      |
-      | Node                        | Org2Peer1                                 | Name: Org2Peer1\\nMSPID: Org2MSP\\nAssociated Identity:\\norg2Admin      |
-      | Node                        | Org2Peer2                                 | Name: Org2Peer2\\nMSPID: Org2MSP\\nAssociated Identity:\\norg2Admin      |
-      | Node                        | OrdererCA                                 | Name: OrdererCA\\nAssociated Identity:\\nadmin                           |
-      | Node                        | Org1CA                                    | Name: Org1CA\\nAssociated Identity:\\nadmin                              |
-      | Node                        | Org2CA                                    | Name: Org2CA\\nAssociated Identity:\\nadmin                              |
-      | Node                        | Orderer1                                  | Name: Orderer1\\nMSPID: OrdererMSP\\nAssociated Identity:\\nordererAdmin |
-      | Organizations               | OrdererMSP                                | OrdererMSP                                                               |
-      | Organizations               | Org1MSP                                   | Org1MSP                                                                  |
-      | Organizations               | Org2MSP                                   | Org2MSP                                                                  |
-
-  @ansibleFabric
-  Scenario: It should delete an environment
-    Given an environment 'myAnsibleFabric2' exists
-    When I delete an environment 'myAnsibleFabric2'
-    Then there shouldn't be a tree item with a label 'myAnsibleFabric2' in the 'Fabric Environments' panel

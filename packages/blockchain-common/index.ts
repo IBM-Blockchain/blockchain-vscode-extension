@@ -37,7 +37,6 @@ export * from './src/registries/FabricWalletRegistry';
 export * from './src/registries/FabricWalletRegistryEntry';
 export * from './src/interfaces/IFabricCertificateAuthority';
 export * from './src/environments/FabricEnvironment';
-export * from './src/environments/AnsibleEnvironment';
 export * from './src/environments/MicrofabEnvironment';
 export * from './src/environments/MicrofabClient';
 export * from './src/fabricModel/FabricGateway';

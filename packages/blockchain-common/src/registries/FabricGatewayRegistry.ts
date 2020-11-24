@@ -15,7 +15,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
-import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
 import { FileConfigurations } from '../registries/FileConfigurations';
 import { FileRegistry } from '../registries/FileRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType, EnvironmentFlags } from '../registries/FabricEnvironmentRegistryEntry';
@@ -65,14 +64,6 @@ export class FabricGatewayRegistry extends FileRegistry<FabricGatewayRegistryEnt
     public async getEntries(): Promise<FabricGatewayRegistryEntry[]> {
         const normalEntries: FabricGatewayRegistryEntry[] = await super.getEntries();
         const otherEntries: FabricGatewayRegistryEntry[] = [];
-
-        // Get gateways from all Ansible environments.
-        const ansibleEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.ANSIBLE]);
-        for (const ansibleEnvironmentEntry of ansibleEnvironmentEntries) {
-            const environment: AnsibleEnvironment = new AnsibleEnvironment(ansibleEnvironmentEntry.name, ansibleEnvironmentEntry.environmentDirectory);
-            const gatewayEntries: FabricGatewayRegistryEntry[] = await environment.getGateways();
-            otherEntries.push(...gatewayEntries);
-        }
 
         // Get gateways from all Microfab environments.
         const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB]);

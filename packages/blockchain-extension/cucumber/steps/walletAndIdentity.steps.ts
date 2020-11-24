@@ -31,7 +31,6 @@ module.exports = function(): any {
      */
 
     this.Given("the '{string}' wallet", this.timeout, async (wallet: string) => {
-        // Might want to detect if 'Local Fabric', then use AnsibleEnvironment/WalletUtil
         this.wallet = wallet;
     });
 

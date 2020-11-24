@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as path from 'path';
 
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../extension/explorer/environmentExplorer';
@@ -175,16 +174,9 @@ describe('environmentExplorer', () => {
                 otherEnvTwo.environmentType = EnvironmentType.ENVIRONMENT;
                 otherEnvTwo.managedRuntime = false;
 
-                const ansible: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                ansible.name = 'nonManagedAnsible';
-                ansible.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-                ansible.managedRuntime = false;
-                ansible.environmentDirectory = path.join(__dirname, '..', '..', 'data', 'nonManagedAnsible');
-
                 await FabricEnvironmentRegistry.instance().clear();
                 await FabricEnvironmentRegistry.instance().add(otherEnvOne);
                 await FabricEnvironmentRegistry.instance().add(otherEnvTwo);
-                await FabricEnvironmentRegistry.instance().add(ansible);
 
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
@@ -198,16 +190,13 @@ describe('environmentExplorer', () => {
                 allChildren[1].contextValue.should.equal('blockchain-environment-group-item');
 
                 const otherItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
-                otherItems.length.should.equal(3);
+                otherItems.length.should.equal(2);
                 otherItems[0].label.should.equal(otherEnvOne.name);
                 otherItems[0].tooltip.should.equal(otherEnvOne.name);
                 otherItems[0].contextValue.should.equal('blockchain-environment-item');
                 otherItems[1].label.should.equal(otherEnvTwo.name);
                 otherItems[1].tooltip.should.equal(otherEnvTwo.name);
                 otherItems[1].contextValue.should.equal('blockchain-environment-item');
-                otherItems[2].label.should.equal(`${ansible.name}`);
-                otherItems[2].tooltip.should.equal(`nonManagedAnsible`);
-                otherItems[2].contextValue.should.equal('blockchain-environment-item');
 
                 const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
                 ibmCloudItems.length.should.equal(1);
@@ -295,9 +284,6 @@ describe('environmentExplorer', () => {
 
                 const otherItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
                 otherItems.length.should.equal(2);
-                // otherItems[0].label.should.equal(`${managedAnsible.name}  ○ (click to start)`);
-                // otherItems[0].tooltip.should.equal(`Creates a local development runtime using Hyperledger Fabric Docker images`);
-                // otherItems[0].contextValue.should.equal('blockchain-runtime-item');
                 otherItems[0].label.should.equal(registryEntryOne.name);
                 otherItems[0].tooltip.should.equal(registryEntryOne.name);
                 otherItems[0].contextValue.should.equal('blockchain-environment-item');
@@ -305,9 +291,7 @@ describe('environmentExplorer', () => {
                 otherItems[1].tooltip.should.equal(registryEntryTwo.name);
                 otherItems[1].contextValue.should.equal('blockchain-environment-item');
 
-                // executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
-                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
 
                 ensureRuntimeLocalSpy.should.have.been.calledOnce;
             });
@@ -336,7 +320,6 @@ describe('environmentExplorer', () => {
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
-                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
 
                 ensureRuntimeLocalSpy.should.have.been.calledOnce;
             });
@@ -969,10 +952,9 @@ describe('environmentExplorer', () => {
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
-            it('should set correct context if not local runtime and not ansible', async () => {
+            it('should set correct context if not local runtime', async () => {
                 const otherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 otherEnvironmentRegistry.name = 'myFabric';
                 otherEnvironmentRegistry.managedRuntime = false;
@@ -987,25 +969,6 @@ describe('environmentExplorer', () => {
 
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
-                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', false);
-            });
-
-            it('should set correct context if ansible', async () => {
-                const otherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                otherEnvironmentRegistry.name = 'myAnsibleFabric';
-                otherEnvironmentRegistry.managedRuntime = false;
-                otherEnvironmentRegistry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-
-                environmentStub.returns(otherEnvironmentRegistry);
-
-                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-
-                const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
-                connectedTo.label.should.equal(`Connected to environment: myAnsibleFabric`);
-
-                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
-                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
-                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-ansible-connected', true);
             });
 
             it('should show the committed smart contracts', async () => {

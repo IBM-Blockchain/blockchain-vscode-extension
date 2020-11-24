@@ -57,9 +57,6 @@ async function runCucumberTest(): Promise<any> {
     if (process.env.OTHER_FABRIC) {
         tags = '@otherFabric';
         cucumberType = 'other';
-    } else if (process.env.ANSIBLE_FABRIC) {
-        tags = '@ansibleFabric';
-        cucumberType = 'ansible';
     } else if (process.env.TWO_ORG_FABRIC) {
         tags = '@twoOrgFabric';
         cucumberType = 'twoOrg';
@@ -67,7 +64,7 @@ async function runCucumberTest(): Promise<any> {
         tags = '@opsToolsFabric';
         cucumberType = 'opsTools';
     } else {
-        tags = 'not @otherFabric and not @ansibleFabric and not @opsToolsFabric and not @twoOrgFabric';
+        tags = 'not @otherFabric and not @opsToolsFabric and not @twoOrgFabric';
         cucumberType = 'oneOrg';
     }
 

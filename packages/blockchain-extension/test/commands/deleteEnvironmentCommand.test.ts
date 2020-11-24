@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import { BlockchainTreeItem } from '../../extension/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
@@ -629,52 +628,6 @@ describe('DeleteEnvironmentCommand', () => {
 
             const localSettings: any = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);
             localSettings.should.deep.equal({});
-        });
-
-        it('should remove any wallet config files when deleting an ansible environment', async () => {
-
-            const ansibleEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-                name: 'ansible',
-                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-                environmentDirectory: path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'nonManagedAnsible')
-            });
-
-            await FabricEnvironmentRegistry.instance().add(ansibleEntry);
-            commandSpy.restore();
-
-            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.callThrough();
-
-            showFabricEnvironmentQuickPickBoxStub.resolves([{
-                label: 'ansible',
-                data: ansibleEntry
-            }]);
-
-            mySandBox.stub(fs, 'readdir').resolves(['myWallet', 'anotherOne']);
-
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            pathExistsStub.onCall(0).resolves(true);
-            pathExistsStub.onCall(1).resolves(false);
-            const removeStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
-
-            await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
-
-            showFabricEnvironmentQuickPickBoxStub.should.have.been.calledOnceWithExactly('Choose the environment(s) that you want to delete', true, false);
-
-            environments =  await FabricEnvironmentRegistry.instance().getAll();
-            environments.length.should.equal(3);
-            environments[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
-            environments[1].should.deep.equal(myEnvironmentA);
-            environments[2].should.deep.equal(myEnvironmentB);
-
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, 'ansible');
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-            pathExistsStub.should.have.been.calledTwice;
-            removeStub.should.have.been.calledOnce;
-            removeLocalRuntimeSpy.should.not.have.been.called;
-
-            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `delete environment`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ansible environment`);
         });
 
         it('should warn user if error occurs whilst tearing down local microfab environment during deletion', async () => {

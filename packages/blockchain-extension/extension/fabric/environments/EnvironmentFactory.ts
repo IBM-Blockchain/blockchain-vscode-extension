@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 'use strict';
-import { FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, AnsibleEnvironment, FileConfigurations, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, EnvironmentType, FabricEnvironment, FileSystemUtil, FileConfigurations, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
 import * as path from 'path';
 import { SettingConfigurations } from '../../configurations';
 import { LocalMicroEnvironment } from './LocalMicroEnvironment';
@@ -21,7 +21,7 @@ import { LocalEnvironment } from './LocalEnvironment';
 
 export class EnvironmentFactory {
 
-    public static getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): FabricEnvironment | AnsibleEnvironment | LocalMicroEnvironment | MicrofabEnvironment {
+    public static getEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry): FabricEnvironment | LocalMicroEnvironment | MicrofabEnvironment {
         const name: string = environmentRegistryEntry.name;
         if (!name) {
             throw new Error('Unable to get environment, a name must be provided');
@@ -41,8 +41,6 @@ export class EnvironmentFactory {
 
             const runtime: LocalEnvironment = new LocalEnvironment(name, envPath);
             return runtime;
-        } else if (!managedRuntime && type === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-            return new AnsibleEnvironment(name, environmentRegistryEntry.environmentDirectory);
         } else if (type === EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT) {
             const runtime: LocalMicroEnvironment = LocalMicroEnvironmentManager.instance().getRuntime(name);
             return runtime;

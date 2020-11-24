@@ -59,6 +59,8 @@ module.exports = function(): any {
             isRunning = await runtime.isRunning();
         }
 
+        await runtime.waitFor();
+
         isRunning.should.equal(true);
     });
 

@@ -30,10 +30,6 @@ jobs:
 #        inputs:
 #          artifact: 'cucumber-opsTools-report'
 #          path: $(Build.SourcesDirectory)/packages/blockchain-extension/cucumber/report
-#      - task: DownloadPipelineArtifact@2
-#        inputs:
-#          artifact: 'cucumber-ansible-report'
-#          path: $(Build.SourcesDirectory)/packages/blockchain-extension/cucumber/report
       - task: DownloadPipelineArtifact@2
         inputs:
           artifact: 'cucumber-other-report'

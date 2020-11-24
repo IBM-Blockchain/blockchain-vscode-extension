@@ -103,7 +103,7 @@ module.exports = function(): any {
             this.userInputUtilHelper.logSpy.resetHistory();
 
             // only try and tear down local fabric if we are actually testing local fabric. This will stop it trying to get all the docker images when it doesn't need to
-            if (!process.env.OTHER_FABRIC && !process.env.ANSIBLE_FABRIC && !process.env.TWO_ORG_FABRIC && !process.env.OPSTOOLS_FABRIC) {
+            if (!process.env.OTHER_FABRIC && !process.env.TWO_ORG_FABRIC && !process.env.OPSTOOLS_FABRIC) {
                 try {
                     await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
                 } catch (error) {

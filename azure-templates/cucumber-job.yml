@@ -27,11 +27,6 @@ jobs:
           OTHER_FABRIC: 'true'
           VERSION: ${{ parameters.version }}
           type: 'other'
-        cucumber_ansible:
-          imageName: 'ubuntu-16.04'
-          ANSIBLE_FABRIC: 'true'
-          VERSION: ${{ parameters.version }}
-          type: 'ansible'
 #        cucumber_opsTools:
 #          imageName: 'ubuntu-16.04'
 #          OPSTOOLS_FABRIC: 'true'
