@@ -32,4 +32,6 @@ export interface IFabricWallet {
     getWalletPath(): string;
 
     getIdentity(identityName: string): Promise<FabricIdentity>;
+
+    migrateToV2Wallet(): Promise<void>;
 }

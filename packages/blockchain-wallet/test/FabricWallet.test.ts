@@ -19,6 +19,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { Wallet } from 'fabric-network';
 import { FabricIdentity } from 'ibm-blockchain-platform-common';
+import * as WalletMigration from 'fabric-wallet-migration';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -29,11 +30,17 @@ describe('FabricWallet', () => {
     let mySandBox: sinon.SinonSandbox;
     let putStub: sinon.SinonStub;
     let removeStub: sinon.SinonStub;
+    let getStub: sinon.SinonStub;
+    let listStub: sinon.SinonStub;
+    let newFileSystemWalletStoreStub: sinon.SinonStub;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         putStub = mySandBox.stub(Wallet.prototype, 'put');
         removeStub = mySandBox.stub(Wallet.prototype, 'remove');
+        getStub = mySandBox.stub(Wallet.prototype, 'get');
+        listStub = mySandBox.stub(Wallet.prototype, 'list');
+        newFileSystemWalletStoreStub = mySandBox.stub(WalletMigration, 'newFileSystemWalletStore').resolves({});
     });
 
     afterEach(() => {
@@ -93,7 +100,7 @@ describe('FabricWallet', () => {
     describe('getIdentityNames', () => {
         it('should get the identity names', async () => {
             const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/path');
-            mySandBox.stub(Wallet.prototype, 'list').resolves(['label1', 'label2', 'label3']);
+            listStub.resolves(['label1', 'label2', 'label3']);
 
             const identityNames: string[] = await wallet.getIdentityNames();
             identityNames.should.deep.equal(['label1', 'label2', 'label3']);
@@ -104,7 +111,6 @@ describe('FabricWallet', () => {
 
         it('should return all requested identities in wallet as an array of Fabric Identities', async () => {
             const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
-            const getStub: sinon.SinonStub = mySandBox.stub(Wallet.prototype, 'get');
 
             getStub.onFirstCall().resolves({
                 credentials: {
@@ -149,8 +155,7 @@ describe('FabricWallet', () => {
 
         it('should return any identities', async () => {
             const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
-            mySandBox.stub(Wallet.prototype, 'list').resolves(['label1', 'label2', 'label3']);
-            const getStub: sinon.SinonStub = mySandBox.stub(Wallet.prototype, 'get');
+            listStub.resolves(['label1', 'label2', 'label3']);
 
             getStub.onFirstCall().resolves({
                 credentials: {
@@ -209,7 +214,6 @@ describe('FabricWallet', () => {
     describe('#getIdentity', () => {
         it('should get the wanted identity', async () => {
             const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
-            const getStub: sinon.SinonStub = mySandBox.stub(Wallet.prototype, 'get');
 
             getStub.resolves({
                 credentials: {
@@ -236,7 +240,7 @@ describe('FabricWallet', () => {
     describe('#exists', () => {
         it('should return true if the identity exists', async () => {
             const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
-            mySandBox.stub(Wallet.prototype, 'get').resolves({
+            getStub.resolves({
                 credentials: {
                     certificate: 'myCert',
                     privateKey: 'myKey',
@@ -251,10 +255,59 @@ describe('FabricWallet', () => {
 
         it('should return false if the identity does not exists', async () => {
             const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
-            mySandBox.stub(Wallet.prototype, 'get').resolves(undefined);
+            getStub.resolves(undefined);
 
             const exists: boolean = await wallet.exists('label1');
             exists.should.equal(false);
+        });
+    });
+
+    describe('migrateToV2Wallet', () => {
+
+        it('should write v2 identity file if v1 identities found', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+            listStub.resolves(['identity1']);
+            getStub.resolves(
+                {
+                    credentials: {
+                        certificate: '---CERT---',
+                        privateKey: '---KEY---',
+                    },
+                    mspId: 'myMSP',
+                    type: 'X.509',
+                }
+            );
+            putStub.resolves();
+
+            await wallet.migrateToV2Wallet();
+
+            newFileSystemWalletStoreStub.should.have.been.calledOnceWithExactly('tmp/myPath');
+            listStub.should.have.been.calledOnceWithExactly();
+            getStub.should.have.been.calledOnceWithExactly('identity1');
+            putStub.should.have.been.calledOnceWithExactly('identity1', {
+                credentials: {
+                    certificate: '---CERT---',
+                    privateKey: '---KEY---',
+                },
+                mspId: 'myMSP',
+                type: 'X.509',
+            });
+
+        });
+
+        it('should not write v2 identity file if no v1 identities found', async () => {
+            const wallet: FabricWallet = await FabricWallet.newFabricWallet('tmp/myPath');
+            listStub.resolves(['identity1']);
+            getStub.resolves();
+
+            await wallet.migrateToV2Wallet();
+
+            newFileSystemWalletStoreStub.should.have.been.calledOnceWithExactly('tmp/myPath');
+            listStub.should.have.been.calledOnceWithExactly();
+            getStub.should.have.been.calledOnceWithExactly('identity1');
+            // tslint:disable-next-line: no-unused-expression
+            putStub.should.have.not.been.called;
+
         });
     });
 });

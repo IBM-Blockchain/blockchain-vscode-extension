@@ -81,6 +81,10 @@ class TestFabricWallet implements IFabricWallet {
         return null;
     }
 
+    async migrateToV2Wallet(): Promise<void> {
+        return;
+    }
+
 }
 
 describe('MicrofabEnvironment', () => {

@@ -76,8 +76,13 @@ export async function addWallet(createIdentity: boolean = true, environmentGroup
             wallet = await fabricWalletGenerator.getWallet(fabricWalletRegistryEntry);
             identities = await wallet.getIdentityNames();
             if (identities.length === 0) {
-                await fabricWalletRegistry.delete(walletName);
-                throw new Error(`No identities found in wallet: ${walletPath}`);
+                // This could be a v1 SDK wallet - attempt to get identities
+                await wallet.migrateToV2Wallet();
+                identities = await wallet.getIdentityNames();
+                if (identities.length === 0) {
+                    await fabricWalletRegistry.delete(walletName);
+                    throw new Error(`No identities found in wallet: ${walletPath}`);
+                }
             }
 
         } else {
