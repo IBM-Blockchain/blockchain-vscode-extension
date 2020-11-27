@@ -253,7 +253,6 @@ describe('LocalMicroEnvironment', () => {
                 isRunningStub = sandbox.stub(environment, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(LocalMicroEnvironment.prototype, 'setState');
                 getSettingsStub = sandbox.stub();
-                getSettingsStub.withArgs(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT).returns(120);
 
                 getConfigurationStub = sandbox.stub(vscode.workspace, 'getConfiguration');
                 getConfigurationStub.returns({
@@ -285,7 +284,6 @@ describe('LocalMicroEnvironment', () => {
                 spawnStub.should.have.been.calledOnce;
 
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('120s');
 
                 if (verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
@@ -462,7 +460,6 @@ describe('LocalMicroEnvironment', () => {
                 }
 
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('120s');
 
                 if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;

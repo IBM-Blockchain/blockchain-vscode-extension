@@ -21,7 +21,6 @@ export class SettingConfigurations {
     // FABRIC CONFIGURATIONS
     static readonly FABRIC_RUNTIME: string = 'ibm-blockchain-platform.v2.fabric.runtime';
     static readonly FABRIC_CLIENT_TIMEOUT: string = 'ibm-blockchain-platform.fabric.client.timeout';
-    static readonly FABRIC_CHAINCODE_TIMEOUT: string = 'ibm-blockchain-platform.fabric.chaincode.timeout';
 
     // EXTENSION CONFIGURATIONS
     static readonly EXTENSION_DIRECTORY: string = 'ibm-blockchain-platform.ext.directory';
