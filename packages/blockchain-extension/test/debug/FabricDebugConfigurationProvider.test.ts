@@ -351,25 +351,6 @@ describe('FabricDebugConfigurationProvider', () => {
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
-        it('should use CORE_CHAINCODE_EXECUTETIMEOUT if defined', async () => {
-            debugConfig.env = { CORE_CHAINCODE_EXECUTETIMEOUT: '10s' };
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            const localEnvironment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(environmentRegistry) as LocalMicroEnvironment;
-            showQuickPickItemStub.should.have.been.calledOnceWithExactly('Select a local environment to debug', [{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localEnvironment}]);            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'fake',
-                request: 'launch',
-                env: {
-                    CORE_CHAINCODE_EXECUTETIMEOUT: '10s',
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
-                },
-                args: ['127.0.0.1:54321'],
-                debugEvent: FabricDebugConfigurationProvider.debugEvent
-            });
-            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
-        });
-
         it('should return if cannot connect', async () => {
             getConnectionStub.returns(undefined);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
