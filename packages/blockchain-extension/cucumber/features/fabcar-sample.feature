@@ -4,7 +4,7 @@ Feature: FabCar Sample
 
   Scenario Outline: Clone the FabCar sample and package, install, instantiate it
     Given I have cloned the repository 'fabric-samples' and I have opened the '<language>' '<sampleName>' contract called '<contractName>' with namespace '<namespace>'
-    And a 2 org local environment called '2 Org Network' has been created
+    And a 2 org local environment called '2 Org Network' has been created with V2_0 capabilities
     And the 2 Org Network environment is running
     And the 'Local Fabric Admin' identity
     And the '2 Org Network' environment is connected

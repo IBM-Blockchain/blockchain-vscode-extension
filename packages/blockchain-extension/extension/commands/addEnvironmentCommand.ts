@@ -180,7 +180,12 @@ export async function addEnvironment(): Promise<void> {
 
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
 
-            await LocalMicroEnvironmentManager.instance().initialize(environmentName, configurationChosen);
+            const fabricCapabilities: string = await UserInputUtil.selectCapabilities('Select the channel capability version to use for the network');
+            if (!fabricCapabilities) {
+                return;
+            }
+
+            await LocalMicroEnvironmentManager.instance().initialize(environmentName, configurationChosen, fabricCapabilities);
 
             const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
             // Generate all nodes, gateways and wallets

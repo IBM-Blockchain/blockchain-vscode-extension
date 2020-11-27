@@ -64,6 +64,7 @@ export class UserInputUtilHelper {
     opsToolsNodeQuickPickStub: sinon.SinonStub;
     openFileBrowserStub: sinon.SinonStub;
     showSmartContractPackagesQuickPickBoxStub: sinon.SinonStub;
+    selectCapabilitiesStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -109,5 +110,6 @@ export class UserInputUtilHelper {
         this.vscodeWindowShowQuickPickStub = this.mySandBox.stub(vscode.window, 'showQuickPick').callThrough();
         this.opsToolsNodeQuickPickStub = this.vscodeWindowShowQuickPickStub.withArgs(sinon.match.any, {ignoreFocusOut: true, canPickMany: true, placeHolder: 'Edit filters: Which nodes would you like to include?'});
         this.showSmartContractPackagesQuickPickBoxStub = this.mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').callThrough();
+        this.selectCapabilitiesStub = this.mySandBox.stub(UserInputUtil, 'selectCapabilities').callThrough();
     }
 }

@@ -66,7 +66,7 @@ export class SmartContractHelper {
             throw new Error(`You must update this test to support the ${language} language`);
         }
 
-        this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose the version of Fabric for the smart contract:').resolves({
+        this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose the contract dependency version:').resolves({
             label: fabricVersion === 'v1' ? 'v1.4' : 'v2.0',
             data: fabricVersion
         });

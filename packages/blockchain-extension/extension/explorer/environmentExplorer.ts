@@ -447,7 +447,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
                 const smartContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(peers, channel);
 
-                tree.push(new ChannelTreeItem(this, channel, peers, smartContracts, vscode.TreeItemCollapsibleState.Collapsed));
+                const capability: string[] = await connection.getChannelCapabilityFromPeer(channel, peers[0]);
+                tree.push(new ChannelTreeItem(this, channel, peers, smartContracts, capability[0], vscode.TreeItemCollapsibleState.Collapsed));
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channel view: ${error.toString()}`);

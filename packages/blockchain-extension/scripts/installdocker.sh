@@ -16,7 +16,7 @@ sudo /bin/launchctl load /Library/LaunchDaemons/com.docker.vmnetd.plist
 open -g /Applications/Docker.app || exit
 
 while ! docker info 2>/dev/null ; do
-    sleep 3
+    sleep 5
     retries=`expr $retries + 1`
     if pgrep -xq -- "Docker"; then
         echo 'docker still running'
@@ -25,7 +25,7 @@ while ! docker info 2>/dev/null ; do
         #open -g -a Docker.app || exit
         open -g /Applications/Docker.app || exit
     fi
-    if [ $retries -gt 30 ]; then
+    if [ $retries -gt 50 ]; then
         >&2 echo 'Failed to run docker'
         exit 1
     fi;

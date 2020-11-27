@@ -414,15 +414,17 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             for (const channel of channels) {
                 let chaincodes: Array<FabricSmartContractDefinition>;
                 const peers: Array<string> = channelMap.get(channel);
+                const capability: string[] = await connection.getChannelCapabilityFromPeer(channel, peers[0]);
                 try {
                     chaincodes = await connection.getInstantiatedChaincode(channel);
+
                     if (chaincodes.length > 0) {
-                        tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
+                        tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, capability[0], vscode.TreeItemCollapsibleState.Collapsed));
                     } else {
-                        tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.None));
+                        tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, capability[0], vscode.TreeItemCollapsibleState.None));
                     }
                 } catch (error) {
-                    tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.None));
+                    tree.push(new ChannelTreeItem(this, channel, peers, [], capability[0], vscode.TreeItemCollapsibleState.None));
                     outputAdapter.log(LogType.ERROR, `Error getting instantiated smart contracts for channel ${channel} ${error.message}`);
                 }
             }

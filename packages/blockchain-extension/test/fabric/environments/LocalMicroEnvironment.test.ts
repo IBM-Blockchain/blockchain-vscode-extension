@@ -27,6 +27,7 @@ import { OutputAdapter, LogType, FabricEnvironmentRegistry, FabricRuntimeUtil, F
 import * as stream from 'stream';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../../extension/logging/VSCodeBlockchainDockerOutputAdapter';
 import { TimerUtil } from '../../../extension/util/TimerUtil';
+import { UserInputUtil } from '../../../extension/commands/UserInputUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(chaiAsPromised);
@@ -81,7 +82,7 @@ describe('LocalMicroEnvironment', () => {
 
         await TestUtil.startLocalFabric();
 
-        environment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
+        environment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
         environment['path'] = environmentPath;
         const localSetting: any = {};
         localSetting[FabricRuntimeUtil.LOCAL_FABRIC] = 8080;
@@ -118,7 +119,8 @@ describe('LocalMicroEnvironment', () => {
                 environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
                 environmentDirectory: environment.getPath(),
                 numberOfOrgs: 1,
-                url: environment.getURL()
+                url: environment.getURL(),
+                fabricCapabilities: UserInputUtil.V2_0
             } as FabricEnvironmentRegistryEntry);
 
             runStub.should.have.been.calledOnceWithExactly('fabric:network', {
@@ -126,7 +128,8 @@ describe('LocalMicroEnvironment', () => {
                 dockerName: FabricRuntimeUtil.LOCAL_FABRIC.replace(/[^A-Za-z0-9]/g, ''),
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 numOrganizations: 1,
-                port: 8080
+                port: 8080,
+                fabricCapabilities: UserInputUtil.V2_0
             });
         });
         it('should create a new network using the ports in the settings', async () => {
@@ -144,7 +147,8 @@ describe('LocalMicroEnvironment', () => {
                 environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
                 environmentDirectory: environment.getPath(),
                 numberOfOrgs: 1,
-                url: environment.getURL()
+                url: environment.getURL(),
+                fabricCapabilities: UserInputUtil.V2_0
             } as FabricEnvironmentRegistryEntry);
 
             runStub.should.have.been.calledOnceWithExactly('fabric:network', {
@@ -152,7 +156,8 @@ describe('LocalMicroEnvironment', () => {
                 dockerName: FabricRuntimeUtil.LOCAL_FABRIC.replace(/[^A-Za-z0-9]/g, ''),
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 numOrganizations: 1,
-                port: 8080
+                port: 8080,
+                fabricCapabilities: UserInputUtil.V2_0
             });
         });
 
@@ -166,6 +171,8 @@ describe('LocalMicroEnvironment', () => {
             const deleteSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'delete');
 
             const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
+
+            environment = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, undefined);
             await environment.create();
             environment.port.should.equal(9080);
 
@@ -177,7 +184,8 @@ describe('LocalMicroEnvironment', () => {
                 environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
                 environmentDirectory: environment.getPath(),
                 numberOfOrgs: 1,
-                url: environment.getURL()
+                url: environment.getURL(),
+                fabricCapabilities: UserInputUtil.V2_0
             } as FabricEnvironmentRegistryEntry);
 
             runStub.should.have.been.calledOnceWithExactly('fabric:network', {
@@ -185,7 +193,43 @@ describe('LocalMicroEnvironment', () => {
                 dockerName: FabricRuntimeUtil.LOCAL_FABRIC.replace(/[^A-Za-z0-9]/g, ''),
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 numOrganizations: 1,
-                port: 9080
+                port: 9080,
+                fabricCapabilities: UserInputUtil.V2_0
+            });
+        });
+
+        it('should assume network has V2 capabilities if not set', async () => {
+            const localSetting: any = {};
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSetting,  vscode.ConfigurationTarget.Global);
+
+            const addSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'add');
+            const deleteSpy: sinon.SinonSpy = sandbox.spy(FabricEnvironmentRegistry.instance(), 'delete');
+
+            const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run').resolves();
+
+            await environment.create();
+
+            environment.port.should.equal(8080);
+
+            deleteSpy.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, true);
+            addSpy.should.have.been.calledOnceWithExactly({
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                managedRuntime: true,
+                environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
+                environmentDirectory: environment.getPath(),
+                numberOfOrgs: 1,
+                url: environment.getURL(),
+                fabricCapabilities: UserInputUtil.V2_0
+            } as FabricEnvironmentRegistryEntry);
+
+            runStub.should.have.been.calledOnceWithExactly('fabric:network', {
+                destination: environment.getPath(),
+                dockerName: FabricRuntimeUtil.LOCAL_FABRIC.replace(/[^A-Za-z0-9]/g, ''),
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                numOrganizations: 1,
+                port: 8080,
+                fabricCapabilities: UserInputUtil.V2_0
             });
         });
 

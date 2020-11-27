@@ -150,7 +150,7 @@ Feature: Fabric Environments
       | environment connected       | Connected to environment: myOpsToolsFabric  | Connected to environment: myOpsToolsFabric                                             |
       | installed smart contract    | + Install                                   | + Install                                                                              |
       | instantiated smart contract | + Instantiate                               | + Instantiate                                                                          |
-      | Channels                    | channel1                                    | Associated peers: Peer Org1, Peer Org2                                                 |
+      | Channels                    | channel1                                    | Associated peers: Peer Org1, Peer Org2\\nChannel capabilities: V2_0                    |
       | Node                        | Ordering Service CA                         | Name: Ordering Service CA\\nAssociated Identity:\\nOrderingServiceCAAdmin              |
       | Node                        | Ordering Service                            | Name: Ordering Service\\nMSPID: osmsp\\nAssociated Identity:\\nOrderingServiceMSPAdmin |
       | Node                        | Org1 CA                                     | Name: Org1 CA\\nAssociated Identity:\\nOrg1CAAdmin                                     |
@@ -178,7 +178,7 @@ Feature: Fabric Environments
       | environment connected       | Connected to environment: mySaaSOpsToolsFabric | Connected to environment: mySaaSOpsToolsFabric                                             |
       | installed smart contract    | + Install                                      | + Install                                                                                  |
       | instantiated smart contract | + Instantiate                                  | + Instantiate                                                                              |
-      | Channels                    | channel1                                       | Associated peers: Peer Org1                                                                |
+      | Channels                    | channel1                                       | Associated peers: Peer Org1\\nChannel capabilities: V2_0                                                                 |
       | Node                        | Ordering Service CA                            | Name: Ordering Service CA\\nAssociated Identity:\\nSaaSOrderingServiceCAAdmin              |
       | Node                        | Ordering Service                               | Name: Ordering Service\\nMSPID: osmsp\\nAssociated Identity:\\nSaaSOrderingServiceMSPAdmin |
       | Node                        | Org1 CA                                        | Name: Org1 CA\\nAssociated Identity:\\nSaaSOrg1CAAdmin                                     |
@@ -256,7 +256,7 @@ Feature: Fabric Environments
     Examples:
       | treeItem              | label                              | tooltip                                                                      |
       | environment connected | Connected to environment: myFabric | Connected to environment: myFabric                                           |
-      | channel               | mychannel                          | Associated peers: peer0.org1.example.com                                     |
+      | channel               | mychannel                          | Associated peers: peer0.org1.example.com\\nChannel capabilities: V2_0                                      |
       | Node                  | peer0.org1.example.com             | Name: peer0.org1.example.com\\nMSPID: Org1MSP\\nAssociated Identity:\\nconga |
       | Node                  | ca.example.com                     | Name: ca.example.com\\nAssociated Identity:\\nconga2                         |
       | Node                  | orderer.example.com                | Name: orderer.example.com\\nMSPID: OrdererMSP\\nAssociated Identity:\\nconga |
@@ -295,7 +295,7 @@ Feature: Fabric Environments
     Examples:
       | treeItem                    | label                                     | tooltip                                                                  |
       | environment connected       | Connected to environment: myAnsibleFabric | Connected to environment: myAnsibleFabric                                |
-      | channel                     | channel1                                  | Associated peers: Org1Peer1, Org1Peer2, Org2Peer1, Org2Peer2             |
+      | channel                     | channel1                                  | Associated peers: Org1Peer1, Org1Peer2, Org2Peer1, Org2Peer2\\nChannel capabilities: V2_0              |
       | Node                        | Org1Peer1                                 | Name: Org1Peer1\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin      |
       | Node                        | Org1Peer2                                 | Name: Org1Peer2\\nMSPID: Org1MSP\\nAssociated Identity:\\norg1Admin      |
       | Node                        | Org2Peer1                                 | Name: Org2Peer1\\nMSPID: Org2MSP\\nAssociated Identity:\\norg2Admin      |

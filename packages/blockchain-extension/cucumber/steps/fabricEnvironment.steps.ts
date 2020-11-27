@@ -36,7 +36,7 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given(`the {string} environment is running`, this.timeout, async (environmentName: string) => {
+    this.Given(/the ?('[a-zA-Z]*?')? ?(?:capability)? ?(.*?) environment is running/, this.timeout, async (capability: string, environmentName: string) => {
 
         const runtimeManager: LocalMicroEnvironmentManager = LocalMicroEnvironmentManager.instance();
         let runtime: LocalMicroEnvironment = runtimeManager.getRuntime(environmentName);
@@ -49,7 +49,7 @@ module.exports = function(): any {
 
         if (!isRunning) {
             if (!runtime) {
-                await this.fabricEnvironmentHelper.createEnvironment(environmentName, undefined, true);
+                await this.fabricEnvironmentHelper.createEnvironment(environmentName, undefined, true, capability);
                 runtime = runtimeManager.getRuntime(environmentName);
             } else {
                 const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
@@ -62,11 +62,11 @@ module.exports = function(): any {
         isRunning.should.equal(true);
     });
 
-    this.Given(`a 2 org local environment called '{string}' has been created`, this.timeout, async (environmentName: string) => {
+    this.Given(`a 2 org local environment called '{string}' has been created with {string} capabilities`, this.timeout, async (environmentName: string, capability: string) => {
         const runtimeManager: LocalMicroEnvironmentManager = LocalMicroEnvironmentManager.instance();
         const runtime: LocalMicroEnvironment = runtimeManager.getRuntime(environmentName);
         if (!runtime) {
-            await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+            await this.fabricEnvironmentHelper.createEnvironment(environmentName, undefined, undefined, capability);
         }
     });
 

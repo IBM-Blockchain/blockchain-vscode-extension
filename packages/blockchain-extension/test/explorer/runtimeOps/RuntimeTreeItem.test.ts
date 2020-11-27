@@ -24,6 +24,7 @@ import { BlockchainEnvironmentExplorerProvider } from '../../../extension/explor
 import { FabricRuntimeState } from '../../../extension/fabric/FabricRuntimeState';
 import { LocalMicroEnvironment } from '../../../extension/fabric/environments/LocalMicroEnvironment';
 import { LocalMicroEnvironmentManager } from '../../../extension/fabric/environments/LocalMicroEnvironmentManager';
+import { UserInputUtil } from '../../../extension/commands/UserInputUtil';
 describe('RuntimeTreeItem', () => {
 
     const environmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
@@ -54,7 +55,7 @@ describe('RuntimeTreeItem', () => {
 
         provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: LocalMicroEnvironmentManager = LocalMicroEnvironmentManager.instance();
-        localRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1);
+        localRuntime = new LocalMicroEnvironment(FabricRuntimeUtil.LOCAL_FABRIC, 8080, 1, UserInputUtil.V2_0);
         // mockRuntime = sandbox.createStubInstance(LocalEnvironment);
         isBusyStub = sandbox.stub(localRuntime, 'isBusy');
         isRunningStub = sandbox.stub(localRuntime, 'isRunning');

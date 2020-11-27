@@ -45,6 +45,7 @@ import { DeployTreeItem } from '../../extension/explorer/runtimeOps/connectedTre
 import { EnvironmentGroupTreeItem } from '../../extension/explorer/runtimeOps/EnvironmentGroupTreeItem';
 import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
 import { SettingConfigurations } from '../../extension/configurations';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -835,7 +836,7 @@ describe('environmentExplorer', () => {
                 getStateStub.returns(ConnectedState.CONNECTED);
 
                 fabricConnection.getAllPeerNames.throws({ message: 'some error' });
-
+                fabricConnection.getChannelCapabilityFromPeer.resolves([UserInputUtil.V2_0]);
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 await blockchainRuntimeExplorerProvider.getChildren(allChildren[allChildren.length - 2]);
@@ -900,6 +901,8 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getAllOrdererNames.returns(['orderer1', 'orderer2']);
 
+                fabricConnection.getChannelCapabilityFromPeer.resolves([UserInputUtil.V2_0]);
+
                 const map: Map<string, Array<string>> = new Map<string, Array<string>>();
                 map.set('channelOne', ['peerOne']);
                 map.set('channelTwo', ['peerOne', 'peerTwo']);
@@ -937,19 +940,19 @@ describe('environmentExplorer', () => {
                 connectedTo.label.should.equal(`Connected to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
 
                 const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
-                channelOne.tooltip.should.equal('Associated peers: peerOne');
+                channelOne.tooltip.should.equal(`Associated peers: peerOne\nChannel capabilities: ${UserInputUtil.V2_0}`);
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelOne.contextValue.should.equal('blockchain-channel-item');
                 channelOne.label.should.equal('channelOne');
 
                 const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
-                channelTwo.tooltip.should.equal('Associated peers: peerOne, peerTwo');
+                channelTwo.tooltip.should.equal(`Associated peers: peerOne, peerTwo\nChannel capabilities: ${UserInputUtil.V2_0}`);
                 channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
 
                 const channelThree: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
-                channelThree.tooltip.should.equal('Associated peers: peerOne');
+                channelThree.tooltip.should.equal(`Associated peers: peerOne\nChannel capabilities: ${UserInputUtil.V2_0}`);
                 channelThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelThree.contextValue.should.equal('blockchain-channel-item');
                 channelThree.label.should.equal('channelThree');
@@ -1406,6 +1409,7 @@ describe('environmentExplorer', () => {
             map.set('channelTwo', ['peerOne', 'peerTwo']);
             const fabricConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection> = mySandBox.createStubInstance(FabricEnvironmentConnection);
             fabricConnection.createChannelMap.resolves(map);
+            fabricConnection.getChannelCapabilityFromPeer.resolves([UserInputUtil.V2_0]);
 
             fabricConnection.getCommittedSmartContractDefinitions.withArgs(['peerOne'], 'channelOne').resolves([{
                 name: 'biscuit-network',

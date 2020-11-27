@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { ExtensionUtil } from '../../../extension/util/ExtensionUtil';
 import { InstantiatedTreeItem } from '../../../extension/explorer/model/InstantiatedTreeItem';
 import { ChannelTreeItem } from '../../../extension/explorer/model/ChannelTreeItem';
+import { UserInputUtil } from '../../../extension/commands/UserInputUtil';
 
 const should: Chai.Should = chai.should();
 
@@ -43,7 +44,7 @@ describe('InstantiatedTreeItem', () => {
     describe('constructor', () => {
 
         it('should create tree item', () => {
-            treeItem = new TestInstantiatedTreeItem('mySmartContract', [new ChannelTreeItem(ExtensionUtil.getBlockchainWalletExplorerProvider(), 'myChannel', [], [], vscode.TreeItemCollapsibleState.Collapsed), new ChannelTreeItem(ExtensionUtil.getBlockchainWalletExplorerProvider(), 'myOtherChannel', [], [], vscode.TreeItemCollapsibleState.Collapsed)], '0.0.1', vscode.TreeItemCollapsibleState.None, [], false);
+            treeItem = new TestInstantiatedTreeItem('mySmartContract', [new ChannelTreeItem(ExtensionUtil.getBlockchainWalletExplorerProvider(), 'myChannel', [], [], UserInputUtil.V2_0, vscode.TreeItemCollapsibleState.Collapsed), new ChannelTreeItem(ExtensionUtil.getBlockchainWalletExplorerProvider(), 'myOtherChannel', [], [], UserInputUtil.V2_0, vscode.TreeItemCollapsibleState.Collapsed)], '0.0.1', vscode.TreeItemCollapsibleState.None, [], false);
             treeItem.tooltip.should.equal(`Instantiated on: myChannel, myOtherChannel`);
             should.not.exist(treeItem.iconPath);
         });

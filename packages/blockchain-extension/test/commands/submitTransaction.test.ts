@@ -173,6 +173,7 @@ describe('SubmitTransactionCommand', () => {
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['peerOne']);
             fabricClientConnectionMock.createChannelMap.resolves(map);
+            fabricClientConnectionMock.getChannelCapabilityFromPeer.resolves([UserInputUtil.V2_0]);
 
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
@@ -368,7 +369,7 @@ describe('SubmitTransactionCommand', () => {
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel);
-            channelChildren[0].tooltip.should.equal('Associated peers: peerOne');
+            channelChildren[0].tooltip.should.equal(`Associated peers: peerOne\nChannel capabilities: ${UserInputUtil.V2_0}`);
 
             const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
             instantiatedUnknownChainCodes.length.should.equal(1);
@@ -397,7 +398,7 @@ describe('SubmitTransactionCommand', () => {
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel);
-            channelChildren[0].tooltip.should.equal('Associated peers: peerOne');
+            channelChildren[0].tooltip.should.equal(`Associated peers: peerOne\nChannel capabilities: ${UserInputUtil.V2_0}`);
 
             const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
             instantiatedUnknownChainCodes.length.should.equal(1);
@@ -432,7 +433,7 @@ describe('SubmitTransactionCommand', () => {
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel);
-            channelChildren[0].tooltip.should.equal('Associated peers: peerOne');
+            channelChildren[0].tooltip.should.equal(`Associated peers: peerOne\nChannel capabilities: ${UserInputUtil.V2_0}`);
 
             const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
