@@ -18,6 +18,7 @@ import { PackageRegistry } from '../registries/PackageRegistry';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { TextTreeItem } from './model/TextTreeItem';
+import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
     public tree: Array<BlockchainTreeItem> = [];
@@ -48,13 +49,9 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
             tree.push(new TextTreeItem(this, 'No packages found'));
         } else {
             for (const packageRegistryEntry of packageRegistryEntries) {
-
-                let nameAndVersion: string = packageRegistryEntry.name;
-
-                if (packageRegistryEntry.version) {
-                    nameAndVersion = nameAndVersion + '@' + packageRegistryEntry.version;
-                }
-
+                const { name, version, path: filePath } = packageRegistryEntry;
+                const ext: string = UserInputUtil.getPackageFileExtension(filePath);
+                const nameAndVersion: string = version ? `${name}@${version}${ext}` : `${name}${ext}`;
                 tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
             }
         }

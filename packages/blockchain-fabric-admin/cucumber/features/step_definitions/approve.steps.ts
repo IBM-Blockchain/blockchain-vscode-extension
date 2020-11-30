@@ -25,21 +25,21 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 async function approveContract(policy?: string, sequence?: number, collectionConfig?: Collection[]): Promise<void> {
-    const result: boolean = await ApproveHelper.checkCommitReadiness(this.lifecycle, Helper.org1Peer, this.label, '0.0.1', this.wallet, this.org1Identity, policy, sequence, collectionConfig);
+    const result: boolean = await ApproveHelper.checkCommitReadiness(this.lifecycle, Helper.org1Peer, this.name, '0.0.1', this.wallet, this.org1Identity, policy, sequence, collectionConfig);
 
     if (!result) {
-        await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org1Peer, this.label, '0.0.1', this.packageId, this.wallet, this.org1Identity, policy, sequence, collectionConfig);
-        await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org2Peer, this.label, '0.0.1', this.packageId, this.wallet, this.org2Identity, policy, sequence, collectionConfig);
+        await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org1Peer, this.name, '0.0.1', this.packageId, this.wallet, this.org1Identity, policy, sequence, collectionConfig);
+        await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org2Peer, this.name, '0.0.1', this.packageId, this.wallet, this.org2Identity, policy, sequence, collectionConfig);
     }
 }
 
 When(/^I approve the smart contract$/, async function(): Promise<void> {
-    await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org1Peer, this.label, '0.0.1', this.packageId, this.wallet, this.org1Identity);
-    await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org2Peer, this.label, '0.0.1', this.packageId, this.wallet, this.org2Identity);
+    await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org1Peer, this.name, '0.0.1', this.packageId, this.wallet, this.org1Identity);
+    await ApproveHelper.approveSmartContract(this.lifecycle, Helper.org2Peer, this.name, '0.0.1', this.packageId, this.wallet, this.org2Identity);
 });
 
 Then(/^the smart contract should be approved$/, async function(): Promise<void> {
-    await ApproveHelper.checkCommitReadiness(this.lifecycle, Helper.org1Peer, this.label, '0.0.1', this.wallet, this.org1Identity).should.eventually.be.true;
+    await ApproveHelper.checkCommitReadiness(this.lifecycle, Helper.org1Peer, this.name, '0.0.1', this.wallet, this.org1Identity).should.eventually.be.true;
 });
 
 // tslint:disable-next-line:only-arrow-functions
