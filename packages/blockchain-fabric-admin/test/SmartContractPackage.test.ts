@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import {PackageMetadata, SmartContractPackage, SmartContractType} from '../src';
+import {SmartContractType, V1SmartContractPackage, SmartContractPackageBase, V2SmartContractPackage} from '../src';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as chai from 'chai';
@@ -27,189 +27,231 @@ chai.use(chaiAsPromised);
 
 const contractTypes: string[] = ['node', 'java', 'golang'];
 
+const packagesDir: string = path.join(__dirname, 'data', 'packages');
+
+const tests: { title: string, SmartContractPackage: any, packagePath: string, fileNames: string[] }[] = [
+    {
+        title: 'V1SmartContractPackage',
+        SmartContractPackage: V1SmartContractPackage,
+        packagePath: path.join(packagesDir, 'typescript-v1-contract.cds'),
+        fileNames: [
+            'src/.DS_Store', 'src/dist/index.d.ts', 'src/dist/index.js', 'src/dist/index.js.map', 'src/dist/my-asset-contract.d.ts',
+            'src/dist/my-asset-contract.js', 'src/dist/my-asset-contract.js.map', 'src/dist/my-asset.d.ts', 'src/dist/my-asset.js',
+            'src/dist/my-asset.js.map', 'src/package-lock.json', 'src/package.json', 'src/src/index.ts', 'src/src/my-asset-contract.spec.ts',
+            'src/src/my-asset-contract.ts', 'src/src/my-asset.ts', 'src/transaction_data/my-asset-transactions.txdata',
+        ],
+    },
+    {
+        title: 'V2SmartContractPackage',
+        SmartContractPackage: V2SmartContractPackage,
+        packagePath: path.join(packagesDir, 'fabcar-javascript.tar.gz'),
+        fileNames: [
+            'metadata.json', 'src/.editorconfig', 'src/.eslintignore', 'src/.eslintrc.js', 'src/.gitignore', 'src/index.js',
+            'src/lib/fabcar.js', 'src/package.json',
+        ],
+    }
+];
+
 describe('SmartContractPackage', () => {
+    tests.forEach(({ SmartContractPackage, title, packagePath, fileNames }) => {
+        describe(title, () => {
+            describe(`createPackage`, () => {
 
-    describe(`createPackage`, () => {
+                let mysandbox: sinon.SinonSandbox;
 
-        let mysandbox: sinon.SinonSandbox;
-
-        beforeEach(() => {
-            delete process.env.GOPATH;
-            mysandbox = sinon.createSandbox();
-        });
-
-        afterEach(() => {
-            delete process.env.GOPATH;
-            mysandbox.restore();
-        });
-
-        for (const contractType of contractTypes) {
-            it(`should package the contract ${contractType}`, async () => {
-                const contractPath: string = path.join(__dirname, 'data', contractType);
-                const result: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({
-                    smartContractPath: contractPath,
-                    label: `test-${contractType}`,
-                    smartContractType: contractType as SmartContractType
+                beforeEach(() => {
+                    delete process.env.GOPATH;
+                    mysandbox = sinon.createSandbox();
                 });
-                should.exist(result.smartContractPackage);
-            });
 
-            it(`should package the ${contractType} contract with metadata`, async () => {
-                const contractPath: string = path.join(__dirname, 'data', contractType);
-                const result: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({
-                    smartContractPath: contractPath,
-                    label: `test-${contractType}`,
-                    smartContractType: contractType as SmartContractType,
-                    metaDataPath: path.join(contractPath, 'META-INF')
+                afterEach(() => {
+                    delete process.env.GOPATH;
+                    mysandbox.restore();
                 });
-                should.exist(result.smartContractPackage);
+
+                for (const contractType of contractTypes) {
+                    it(`should package the contract ${contractType}`, async () => {
+                        const contractPath: string = path.join(__dirname, 'data', contractType);
+                        const result: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
+                            smartContractPath: contractPath,
+                            name: `test-${contractType}`,
+                            version: '0.0.1',
+                            smartContractType: contractType as SmartContractType
+                        });
+                        should.exist(result.smartContractPackage);
+                    });
+
+                    it(`should package the ${contractType} contract with metadata`, async () => {
+                        const contractPath: string = path.join(__dirname, 'data', contractType);
+                        const result: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
+                            smartContractPath: contractPath,
+                            name: `test-${contractType}`,
+                            version: '0.0.1',
+                            smartContractType: contractType as SmartContractType,
+                            metaDataPath: path.join(contractPath, 'META-INF')
+                        });
+                        should.exist(result.smartContractPackage);
+                    });
+                }
+
+                it('should give an error if no options', async () => {
+                    // @ts-ignore
+                    await SmartContractPackage.createSmartContractPackage().should.eventually.be.rejectedWith('Missing options');
+                });
+
+                it('should give an error if contractPath is empty', async () => {
+                    await SmartContractPackage.createSmartContractPackage({
+                        smartContractPath: '',
+                        name: `test-node`,
+                        version: '0.0.1',
+                        smartContractType: SmartContractType.NODE
+                    }).should.eventually.be.rejectedWith('Missing option smartContractPath');
+                });
+
+                it('should give an error if no name', async () => {
+                    const contractPath: string = path.join(__dirname, 'data', 'node');
+                    await SmartContractPackage.createSmartContractPackage({
+                        name: '',
+                        version: '0.0.1',
+                        smartContractPath: contractPath,
+                        smartContractType: SmartContractType.NODE
+                    }).should.eventually.be.rejectedWith('Missing option name');
+                });
+
+                it('should give an error if no version', async () => {
+                    const contractPath: string = path.join(__dirname, 'data', 'node');
+                    await SmartContractPackage.createSmartContractPackage({
+                        name: 'test-node',
+                        version: '',
+                        smartContractPath: contractPath,
+                        smartContractType: SmartContractType.NODE
+                    }).should.eventually.be.rejectedWith('Missing option version');
+                });
+
+                // V1SmartContractPackage has extra validation for name and version
+                if (SmartContractPackage === V1SmartContractPackage) {
+                    it('should give an error if name is invalid', async () => {
+                        const contractPath: string = path.join(__dirname, 'data', 'node');
+                        await SmartContractPackage.createSmartContractPackage({
+                            name: 'some@me',
+                            version: '0.0.1',
+                            smartContractPath: contractPath,
+                            smartContractType: SmartContractType.NODE
+                        }).should.eventually.be.rejectedWith(`Invalid smart contract name 'some@me'. Smart contract names must only consist of alphanumerics, '_', and '-'`);
+                    });
+
+                    it('should give an error if version is invalid', async () => {
+                        const contractPath: string = path.join(__dirname, 'data', 'node');
+                        await SmartContractPackage.createSmartContractPackage({
+                            name: 'test-node',
+                            version: 'some@me',
+                            smartContractPath: contractPath,
+                            smartContractType: SmartContractType.NODE
+                        }).should.eventually.be.rejectedWith(`Invalid smart contract version 'some@me'. Smart contract versions must only consist of alphanumerics, '_', '-', '+', and '.'`);
+                    });
+                }
+
+                it('should give an error if no type', async () => {
+                    const contractPath: string = path.join(__dirname, 'data', 'node');
+                    await SmartContractPackage.createSmartContractPackage({
+                        name: 'test-node',
+                        version: '0.0.1',
+                        smartContractPath: contractPath,
+                        smartContractType: '' as SmartContractType
+                    }).should.eventually.be.rejectedWith('Missing option smartContractType');
+                });
+
+                it('should give an error if type is not valid', async () => {
+                    const contractPath: string = path.join(__dirname, 'data', 'node');
+                    await SmartContractPackage.createSmartContractPackage({
+                        name: 'test-node',
+                        version: '0.0.1',
+                        smartContractPath: contractPath,
+                        smartContractType: 'banana' as SmartContractType
+                    }).should.eventually.be.rejectedWith('option smartContractType must be set to one of: golang, node, or java');
+                });
+
+                if (SmartContractPackage !== V1SmartContractPackage) {
+                    it('should give an error not a module and no go path set', async () => {
+                        const contractPath: string = path.join(__dirname, 'data', 'golang');
+                        mysandbox.stub(fs, 'pathExists').resolves(false);
+                        await SmartContractPackage.createSmartContractPackage({
+                            name: 'test-go',
+                            version: '0.0.1',
+                            smartContractPath: contractPath,
+                            smartContractType: SmartContractType.GO
+                        }).should.eventually.be.rejectedWith('option goLangPath was not set so tried to use environment variable GOPATH but this was not set either, one of these must be set');
+                    });
+                }
+
+                it('should package go without a mod file', async () => {
+                    const goPath: string = path.join(__dirname, 'data', 'golang-no-mod');
+                    const contractPath: string = path.join('fab-car');
+                    const packagedContract: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
+                        name: 'test-go',
+                        version: '0.0.1',
+                        smartContractPath: contractPath,
+                        smartContractType: SmartContractType.GO,
+                        golangPath: goPath
+                    });
+
+                    should.exist(packagedContract.smartContractPackage);
+                });
+
+                it('should package go with a mod file', async () => {
+                    const contractPath: string = path.join(__dirname, 'data', 'golang');
+                    mysandbox.stub(fs, 'pathExists').resolves(true);
+                    const packagedContract: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
+                        name: 'test-go',
+                        version: '0.0.1',
+                        smartContractPath: contractPath,
+                        smartContractType: SmartContractType.GO,
+                        golangPath: undefined
+                    });
+
+                    should.exist(packagedContract.smartContractPackage);
+                });
+
+                it('should handle error from packaging', async () => {
+                    mysandbox.stub(NodePackager.prototype, 'package').rejects(new Error('some error'));
+
+                    const contractPath: string = path.join(__dirname, 'data', 'node');
+                    await SmartContractPackage.createSmartContractPackage({
+                        name: 'test-node',
+                        version: '0.0.1',
+                        smartContractPath: contractPath,
+                        smartContractType: SmartContractType.NODE
+                    }).should.eventually.be.rejectedWith('Could not package smart contract, received error: some error');
+
+                })
             });
-        }
 
-        it('should give an error if no options', async () => {
-            // @ts-ignore
-            await SmartContractPackage.createSmartContractPackage().should.eventually.be.rejectedWith('Missing options');
-        });
+            describe('getFileNames', () => {
+                let mysandbox: sinon.SinonSandbox;
 
-        it('should give an error if contractPath is empty', async () => {
-            await SmartContractPackage.createSmartContractPackage({
-                smartContractPath: '',
-                label: `test-node`,
-                smartContractType: SmartContractType.NODE
-            }).should.eventually.be.rejectedWith('Missing option smartContractPath');
-        });
+                beforeEach(() => {
+                    mysandbox = sinon.createSandbox();
+                });
 
-        it('should give an error if no label', async () => {
-            const contractPath: string = path.join(__dirname, 'data', 'node');
-            await SmartContractPackage.createSmartContractPackage({
-                label: '',
-                smartContractPath: contractPath,
-                smartContractType: SmartContractType.NODE
-            }).should.eventually.be.rejectedWith('Missing option label');
-        });
+                afterEach(() => {
+                    mysandbox.restore();
+                });
 
-        it('should give an error if no type', async () => {
-            const contractPath: string = path.join(__dirname, 'data', 'node');
-            await SmartContractPackage.createSmartContractPackage({
-                label: 'test-node',
-                smartContractPath: contractPath,
-                smartContractType: '' as SmartContractType
-            }).should.eventually.be.rejectedWith('Missing option smartContractType');
-        });
+                it(`should get the file names`, async () => {
+                    const packageBuffer: Buffer = await fs.readFile(packagePath);
+                    const smartContract: SmartContractPackageBase = new SmartContractPackage(packageBuffer);
+                    const result: string[] = await smartContract.getFileNames();
+                    result.should.deep.equal(fileNames);
+                });
 
-        it('should give an error if type is not valid', async () => {
-            const contractPath: string = path.join(__dirname, 'data', 'node');
-            await SmartContractPackage.createSmartContractPackage({
-                label: 'test-node',
-                smartContractPath: contractPath,
-                smartContractType: 'banana' as SmartContractType
-            }).should.eventually.be.rejectedWith('option smartContractType must be set to one of: golang, node, or java');
-        });
-
-        it('should give an error not a module and no go path set', async () => {
-            const contractPath: string = path.join(__dirname, 'data', 'golang');
-            mysandbox.stub(fs, 'pathExists').resolves(false);
-            await SmartContractPackage.createSmartContractPackage({
-                label: 'test-go',
-                smartContractPath: contractPath,
-                smartContractType: SmartContractType.GO
-            }).should.eventually.be.rejectedWith('option goLangPath was not set so tried to use environment variable GOPATH but this was not set either, one of these must be set');
-        });
-
-        it('should package go without a mod file', async () => {
-            const goPath: string = path.join(__dirname, 'data', 'golang-no-mod');
-            const contractPath: string = path.join('fab-car');
-            const packagedContract: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({
-                label: 'test-go',
-                smartContractPath: contractPath,
-                smartContractType: SmartContractType.GO,
-                golangPath: goPath
+                it('should handle error', async () => {
+                    const packageBuffer: Buffer = await fs.readFile(packagePath);
+                    const smartContract: SmartContractPackageBase = new SmartContractPackage(packageBuffer);
+                    // @ts-ignore
+                    mysandbox.stub(smartContract, 'findFileNames').rejects({message: 'some error'});
+                    await smartContract.getFileNames().should.eventually.be.rejectedWith(`Could not get file names for package, received error: some error`);
+                });
             });
-
-            should.exist(packagedContract.smartContractPackage);
-        });
-
-        it('should package go with a mod file', async () => {
-            const contractPath: string = path.join(__dirname, 'data', 'golang');
-            mysandbox.stub(fs, 'pathExists').resolves(true);
-            const packagedContract: SmartContractPackage = await SmartContractPackage.createSmartContractPackage({
-                label: 'test-go',
-                smartContractPath: contractPath,
-                smartContractType: SmartContractType.GO,
-                golangPath: undefined
-            });
-
-            should.exist(packagedContract.smartContractPackage);
-        });
-
-        it('should handle error from packaging', async () => {
-            mysandbox.stub(NodePackager.prototype, 'package').rejects(new Error('some error'));
-
-            const contractPath: string = path.join(__dirname, 'data', 'node');
-            await SmartContractPackage.createSmartContractPackage({
-                label: 'test-node',
-                smartContractPath: contractPath,
-                smartContractType: SmartContractType.NODE
-            }).should.eventually.be.rejectedWith('Could not package smart contract, received error: some error');
-
-        })
-    });
-
-    describe('getFileNames', () => {
-        let mysandbox: sinon.SinonSandbox;
-
-        beforeEach(() => {
-            mysandbox = sinon.createSandbox();
-        });
-
-        afterEach(() => {
-            mysandbox.restore();
-        });
-
-        it(`should get the file names`, async () => {
-            const packagePath: string = path.join(__dirname, 'data', 'packages', 'fabcar-javascript.tar.gz');
-            const packageBuffer: Buffer = await fs.readFile(packagePath);
-            const smartContract: SmartContractPackage = new SmartContractPackage(packageBuffer);
-            const result: string[] = await smartContract.getFileNames();
-            result.should.deep.equal(['metadata.json', 'src/.editorconfig', 'src/.eslintignore', 'src/.eslintrc.js', 'src/.gitignore', 'src/index.js', 'src/lib/fabcar.js', 'src/package.json']);
-        });
-
-        it('should handle error', async () => {
-            const packagePath: string = path.join(__dirname, 'data', 'packages', 'fabcar-javascript.tar.gz');
-            const packageBuffer: Buffer = await fs.readFile(packagePath);
-            const smartContract: SmartContractPackage = new SmartContractPackage(packageBuffer);
-            // @ts-ignore
-            mysandbox.stub(smartContract, 'findFileNames').rejects({message: 'some error'});
-            await smartContract.getFileNames().should.eventually.be.rejectedWith(`Could not get file names for package, received error: some error`);
-        });
-    });
-
-    describe('getMetadata', () => {
-        let mysandbox: sinon.SinonSandbox;
-
-        beforeEach(() => {
-            mysandbox = sinon.createSandbox();
-        });
-
-        afterEach(() => {
-            mysandbox.restore();
-        });
-
-        it(`should get the metadata`, async () => {
-            const packagePath: string = path.join(__dirname, 'data', 'packages', 'fabcar-javascript.tar.gz');
-            const packageBuffer: Buffer = await fs.readFile(packagePath);
-            const smartContract: SmartContractPackage = new SmartContractPackage(packageBuffer);
-            const result: PackageMetadata = await smartContract.getMetadata();
-            result.should.deep.equal({label: 'fabcar-javascript', path: '', type: SmartContractType.NODE});
-        });
-
-        it('should handle error', async () => {
-            const packagePath: string = path.join(__dirname, 'data', 'packages', 'fabcar-javascript.tar.gz');
-            const packageBuffer: Buffer = await fs.readFile(packagePath);
-            const smartContract: SmartContractPackage = new SmartContractPackage(packageBuffer);
-            // @ts-ignore
-            mysandbox.stub(smartContract, 'findMetadata').rejects({message: 'some error'});
-            await smartContract.getMetadata().should.eventually.be.rejectedWith(`Could not get metadata for package, received error: some error`);
         });
     });
 });

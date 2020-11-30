@@ -7,7 +7,7 @@ Feature: Discover Peers
     Then the list of discovered peers should be 'peer0.org1.example.com peer0.org2.example.com:9051'
 
   Scenario: Deploy when using discovered peers
-    Given a 'javascript' smart contract of type 'node' using 'fabcar' with name discoverFabCar
+    Given a 'javascript' smart contract using Fabric v2 of type 'node' using 'fabcar' with name discoverFabCar
     And the package exists
     And the lifecycle is setup
     And the package is installed

@@ -1,8 +1,8 @@
 Feature: Package Smart Contract
   Package smart contracts for each of the languages
 
-  Scenario Outline: Package Smart Contract
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+  Scenario Outline: Package Smart Contract using Fabric v2
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
     When I package the smart contract
     Then a package should exist
     Examples:
@@ -12,8 +12,8 @@ Feature: Package Smart Contract
       | java       | java   |
       | go         | golang |
 
-  Scenario Outline: Get list of files
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+  Scenario Outline: Get list of files for a Fabric v2 contract
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
     And the package exists
     When I get the list of files from a file
     Then the file list is correct '<fileList>'
@@ -24,14 +24,25 @@ Feature: Package Smart Contract
       | java       | java   | metadata.json src/fabcar-1.0-SNAPSHOT.jar src/lib/genson-1.5.jar                                                                                                                             |
       | go         | golang | metadata.json src/fabcar.go src/go.mod src/go.sum src/vendor/google.golang.org/grpc/backoff.go                                                                                               |
 
-  Scenario Outline: Get the package metadata
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
-    And the package exists
-    When I get the package metadata
-    Then the metadata is correct '<metadata>'
-    Examples:
-      | language   | type   | metadata                                              |
-      | javascript | node   | {"label":"fabcar-javascript","path":"","type":"node"} |
-      | typescript | node   | {"label":"fabcar-typescript","path":"","type":"node"} |
-      | java       | java   | {"label":"fabcar-java","path":"","type":"java"}       |
-      | go         | golang | {"label":"fabcar-go","path":"","type":"golang"}       |
+Scenario Outline: Package Smart Contract using Fabric v1
+  Given a '<language>' smart contract using Fabric v1 of type '<type>' using 'fabcar'
+  When I package the smart contract
+  Then a package should exist
+  Examples:
+    | language   | type   |
+    | javascript | node   |
+    | typescript | node   |
+    | java       | java   |
+    | go         | golang |
+
+Scenario Outline: Get list of files for a Fabric v1 contract
+  Given a '<language>' smart contract using Fabric v1 of type '<type>' using 'fabcar'
+  And the package exists
+  When I get the list of files from a file
+  Then the file list is correct '<fileList>'
+  Examples:
+    | language   | type   | fileList                                                                                                                                                                       |
+    | javascript | node   | src/.editorconfig src/.eslintignore src/.eslintrc.js src/.gitignore src/index.js src/lib/fabcar.js src/package.json                                                            |
+    | typescript | node   | src/.editorconfig src/.gitignore src/dist/car.d.ts src/dist/car.js src/dist/car.js.map src/package-lock.json src/package.json src/src/car.ts src/tsconfig.json src/tslint.json |
+    | java       | java   | src/fabcar-1.0-SNAPSHOT.jar src/lib/genson-1.5.jar                                                                                                                             |
+    | go         | golang | src/fabcar.go src/go.mod src/go.sum src/vendor/google.golang.org/grpc/backoff.go                                                                                               |

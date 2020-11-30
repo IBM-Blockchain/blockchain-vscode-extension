@@ -32,29 +32,29 @@ When(/^I commit the contract( orgOneOnly)?$/, async function(orgOneOnly: string)
         peerNames.push(Helper.org2Peer);
     }
 
-    await CommitHelper.commitSmartContract(this.lifecycle, peerNames, this.label, '0.0.1', this.wallet, this.org1Identity);
+    await CommitHelper.commitSmartContract(this.lifecycle, peerNames, this.name, '0.0.1', this.wallet, this.org1Identity);
 });
 
 When(/^I commit the contract with sequence '(.*)' and policy '(.*)'$/, async function(sequence: number, policy: string): Promise<void> {
     this.sequence = sequence;
-    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity, policy, sequence);
+    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.name, '0.0.1', this.wallet, this.org1Identity, policy, sequence);
 });
 
 When(/^I commit the contract with collection config and policy '(.*)'$/, async function(policy: string): Promise<void> {
     const collectionConfig: Collection[] = await Helper.getCollectionConfig();
     this.sequence = 1;
 
-    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.label, '0.0.1', this.wallet, this.org1Identity, policy, this.sequence, collectionConfig);
+    await CommitHelper.commitSmartContract(this.lifecycle, [Helper.org1Peer, Helper.org2Peer], this.name, '0.0.1', this.wallet, this.org1Identity, policy, this.sequence, collectionConfig);
 });
 
 Then(/^the smart contract should committed$/, async function(): Promise<void> {
     const result: string[] = await CommitHelper.getCommittedSmartContracts(this.lifecycle, Helper.org1Peer, this.wallet, this.org1Identity);
 
-    result.should.include(this.label);
+    result.should.include(this.name);
 
-    const definedContract: DefinedSmartContract = await CommitHelper.getCommittedSmartContract(this.lifecycle, Helper.org1Peer, this.label, this.wallet, this.org1Identity);
+    const definedContract: DefinedSmartContract = await CommitHelper.getCommittedSmartContract(this.lifecycle, Helper.org1Peer, this.name, this.wallet, this.org1Identity);
 
-    definedContract.smartContractName.should.equal(this.label);
+    definedContract.smartContractName.should.equal(this.name);
     definedContract.smartContractVersion.should.equal('0.0.1');
     definedContract.sequence.should.equal(parseInt(this.sequence, 10));
 

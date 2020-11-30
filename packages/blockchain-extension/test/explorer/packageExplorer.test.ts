@@ -26,6 +26,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { LogType } from 'ibm-blockchain-platform-common';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
+import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 
 chai.use(sinonChai);
 chai.should();
@@ -56,10 +57,10 @@ describe('packageExplorer', () => {
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
         testPackages.length.should.equal(4);
-        testPackages[0].label.should.equal('fabcar-go');
-        testPackages[1].label.should.equal('fabcar-java');
-        testPackages[2].label.should.equal('fabcar-javascript@0.0.1');
-        testPackages[3].label.should.equal('fabcar-typescript@0.0.2');
+        testPackages[0].label.should.equal('fabcar-go.tgz');
+        testPackages[1].label.should.equal('fabcar-java.tar.gz');
+        testPackages[2].label.should.equal('fabcar-javascript@0.0.1.tar.gz');
+        testPackages[3].label.should.equal('fabcar-typescript@0.0.2.tgz');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 
@@ -83,8 +84,22 @@ describe('packageExplorer', () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
-        firstTestPackage.label.should.equal('fabcar-go');
-        firstTestPackage.tooltip.should.equal('fabcar-go\nFile size: 2359 KB');
+        firstTestPackage.label.should.equal('fabcar-go.tgz');
+        firstTestPackage.tooltip.should.equal('fabcar-go.tgz\nFile size: 2359 KB');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
+    });
+
+    it('should show Fabric V1 contracts (endsWith .cds)', async () => {
+        const newPackage: PackageRegistryEntry = new PackageRegistryEntry({
+            name: 'smartContractPackageBlue',
+            version: '0.0.1',
+            path: 'smartContractPackageBlue@0.0.1.cds',
+            sizeKB: 12
+        });
+
+        mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
+        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
+        testPackages.length.should.equal(1);
+        testPackages[0].label.should.equal('smartContractPackageBlue@0.0.1.cds');
     });
 });

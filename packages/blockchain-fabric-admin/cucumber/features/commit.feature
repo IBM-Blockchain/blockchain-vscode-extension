@@ -2,7 +2,7 @@ Feature: Commit Smart Contract
   Commit a smart contract definition
 
   Scenario Outline: Commit Smart Contract
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
     And the package exists
     And the lifecycle is setup
     And the package is installed
@@ -20,7 +20,7 @@ Feature: Commit Smart Contract
       | go         | golang |
 
   Scenario Outline: Commit Smart Contract with endorsement policy
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
     And the package exists
     And the lifecycle is setup
     And the package is installed
@@ -38,7 +38,7 @@ Feature: Commit Smart Contract
       | go         | golang |
 
   Scenario Outline: Commit Smart Contract with collections config
-    Given a '<language>' smart contract of type '<type>' using 'marbles'
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'marbles'
     And the package exists
     And the lifecycle is setup
     And the package is installed

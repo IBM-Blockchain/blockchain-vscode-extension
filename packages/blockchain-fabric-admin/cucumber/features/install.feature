@@ -2,7 +2,7 @@ Feature: Install Smart Contract
   Install packaged smart contracts on a peer
 
   Scenario Outline: Install Packaged Smart Contract
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
     And the package exists
     And the lifecycle is setup
     When I install the smart contract
@@ -15,7 +15,7 @@ Feature: Install Smart Contract
       | go         | golang |
 
   Scenario Outline: Get Installed Smart Contract Package
-    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
     And the package exists
     And the lifecycle is setup
     And the package is installed

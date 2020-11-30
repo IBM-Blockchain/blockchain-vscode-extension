@@ -39,7 +39,7 @@ async function submitTransaction(submit: boolean, transaction: string, orgs: str
     }
 
     try {
-        return await TransactionHelper.submitTransaction(submit, this.wallet, identity, connectionProfile, this.label, transaction, args, 'mychannel', orgsArray, transientData);
+        return await TransactionHelper.submitTransaction(submit, this.wallet, identity, connectionProfile, this.name, transaction, args, 'mychannel', orgsArray, transientData);
     } catch (error) {
         this.error = error.message;
     }
