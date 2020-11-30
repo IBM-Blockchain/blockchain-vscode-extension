@@ -56,7 +56,8 @@
         "url": "0.11.0"
     },
     "optionalDependencies": {
-        "fabric-network": "2.2.2"
+        "fabric-network": "2.2.2",
+        "fabric-wallet-migration": "0.2.0"
     },
     "license-check-and-add-config": {
         "folder": ".",

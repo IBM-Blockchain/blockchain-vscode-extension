@@ -12,8 +12,9 @@
  * limitations under the License.
 */
 'use strict';
-import { Wallet, X509Identity, Wallets, Identity } from 'fabric-network';
+import { Wallet, X509Identity, Wallets, WalletStore, Identity } from 'fabric-network'; // WalletStore
 import { FabricIdentity, IFabricWallet } from 'ibm-blockchain-platform-common';
+import * as WalletMigration from 'fabric-wallet-migration';
 
 export class FabricWallet implements IFabricWallet {
 
@@ -94,5 +95,18 @@ export class FabricWallet implements IFabricWallet {
 
     public removeIdentity(identityName: string): Promise<void> {
         return this.wallet.remove(identityName);
+    }
+
+    public async migrateToV2Wallet(): Promise<void> {
+        const walletStore: WalletStore = await WalletMigration.newFileSystemWalletStore(this.walletPath);
+        const oldWallet: Wallet = new Wallet(walletStore);
+
+        const identityLabels: string[] = await oldWallet.list();
+        for (const label of identityLabels) {
+            const identity: Identity = await oldWallet.get(label);
+            if (identity) {
+                await this.wallet.put(label, identity);
+            }
+        }
     }
 }

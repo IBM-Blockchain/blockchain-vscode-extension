@@ -38,6 +38,7 @@ describe('AddWalletCommand', () => {
     let uri: vscode.Uri;
     let getIdentitiesStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
+    let migrateToV2WalletStub: sinon.SinonStub;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -55,6 +56,7 @@ describe('AddWalletCommand', () => {
         choseWalletAddMethod = mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick');
         uri = vscode.Uri.file(tmp.dirSync().name);
         getIdentitiesStub = mySandBox.stub(FabricWallet.prototype, 'getIdentityNames');
+        migrateToV2WalletStub = mySandBox.stub(FabricWallet.prototype, 'migrateToV2Wallet').resolves();
     });
 
     afterEach(async () => {
@@ -153,6 +155,29 @@ describe('AddWalletCommand', () => {
                 walletPath: uri.fsPath,
                 environmentGroups: [myEnvironment.name]
             });
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
+        });
+
+        it('should add a new wallet if able to convert v1 into v2 idendities', async () => {
+            choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
+            browseStub.resolves(uri);
+            getIdentitiesStub.onFirstCall().resolves([]);
+            getIdentitiesStub.onSecondCall().resolves(['someName', 'anotherName']);
+
+            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+
+            result.name.should.equal(path.basename(uri.fsPath));
+
+            showInputBoxStub.should.not.have.been.called;
+
+            const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
+
+            wallets.length.should.equal(1);
+            wallets[0].should.deep.equal({
+                name: path.basename(uri.fsPath),
+                walletPath: uri.fsPath
+            });
+            migrateToV2WalletStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
 
