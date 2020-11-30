@@ -109,10 +109,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (environmentRegistryEntry.managedRuntime) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
-                await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
-            } else if (environmentRegistryEntry.environmentType === EnvironmentType.ANSIBLE_ENVIRONMENT) {
-                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
-                await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', true);
             } else {
                 if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                     if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
@@ -129,7 +125,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 }
 
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
-                await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', false);
             }
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
@@ -143,7 +138,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
-            await vscode.commands.executeCommand('setContext', 'blockchain-ansible-connected', false);
 
             this.tree = await this.createConnectionTree();
         }

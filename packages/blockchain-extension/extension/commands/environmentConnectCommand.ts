@@ -20,7 +20,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager, ConnectedState } from '../fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, AnsibleEnvironment, EnvironmentType, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNode, LogType, FabricEnvironment, EnvironmentType, MicrofabEnvironment } from 'ibm-blockchain-platform-common';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 
@@ -31,7 +31,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         outputAdapter.log(LogType.INFO, undefined, `connecting to fabric environment`);
     }
 
-    let fabricEnvironment: FabricEnvironment | AnsibleEnvironment | LocalMicroEnvironment;
+    let fabricEnvironment: FabricEnvironment | LocalMicroEnvironment;
 
     try {
         if (!fabricEnvironmentRegistryEntry) {

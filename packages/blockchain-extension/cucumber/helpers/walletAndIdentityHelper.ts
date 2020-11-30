@@ -57,7 +57,6 @@ export class WalletAndIdentityHelper {
             // Using old Fabric
             ca = 'ca.example.com';
         } else {
-            // Using new Ansible Fabric
             ca = 'Org1 CA';
         }
 

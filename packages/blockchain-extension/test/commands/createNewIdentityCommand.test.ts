@@ -209,8 +209,8 @@ describe('createNewIdentityCommand', () => {
         mockFabricRuntimeConnection.enroll.should.have.been.calledTwice;
         importIdentityStub.should.have.been.calledTwice;
 
-        executeCommandStub.getCall(5).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-        executeCommandStub.getCall(7).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        executeCommandStub.getCall(6).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.callCount.should.equal(4);
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');

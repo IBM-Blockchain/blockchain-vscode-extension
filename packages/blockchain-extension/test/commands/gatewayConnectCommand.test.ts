@@ -31,7 +31,7 @@ import { GatewayAssociatedTreeItem } from '../../extension/explorer/model/Gatewa
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { LocalGatewayTreeItem } from '../../extension/explorer/model/LocalGatewayTreeItem';
-import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, EnvironmentType, FabricEnvironmentRegistryEntry, FabricIdentity } from 'ibm-blockchain-platform-common';
+import { FabricRuntimeUtil, FabricWalletRegistry, FabricWalletRegistryEntry, LogType, FabricGatewayRegistry, FabricGatewayRegistryEntry, FabricEnvironmentRegistry, FabricEnvironmentRegistryEntry, FabricIdentity } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { FabricGatewayHelper } from '../../extension/fabric/FabricGatewayHelper';
@@ -178,7 +178,6 @@ describe('GatewayConnectCommand', () => {
 
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-            await FabricEnvironmentRegistry.instance().add({name: 'managedEnvironment', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true, environmentDirectory: '/some/path'});
         });
 
         afterEach(async () => {

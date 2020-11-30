@@ -118,10 +118,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         context = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(context);
 
         let createLocalEnvironment: boolean = false;
-        const oldLocalEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.LOCAL], [EnvironmentFlags.MICROFAB]);
-        if (oldLocalEnvironmentEntries.length > 0) {
+        // Get all old local and ansible environments
+        const oldAnsibleEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.ANSIBLE]);
+        if (oldAnsibleEnvironmentEntries.length > 0) {
             // Delete any old local environments.
-            for (const entry of oldLocalEnvironmentEntries) {
+            for (const entry of oldAnsibleEnvironmentEntries) {
 
                 await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT, entry, true, true);
                 if (entry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
@@ -129,7 +130,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 }
 
             }
-
         }
 
         const _settings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME, vscode.ConfigurationTarget.Global);

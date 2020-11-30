@@ -6,11 +6,11 @@
 #
 # Exit on first error, print all commands.
 set +ev
-NUM_CONTAINERS=$(docker ps -f label=fabric-environment-name="Local Fabric" -q -a | wc -l | tr -d ' ')
+NUM_CONTAINERS=$(docker ps -f label=fabric-environment-name="1 Org Local Fabric" -q -a | wc -l | tr -d ' ')
 if [ "${NUM_CONTAINERS}" -eq 0 ]; then
   exit 1
 fi
-NUM_VOLUMES=$(docker volume ls -f label=fabric-environment-name="Local Fabric" -q | wc -l | tr -d ' ')
+NUM_VOLUMES=$(docker volume ls -f label=fabric-environment-name="1 Org Local Fabric" -q | wc -l | tr -d ' ')
 if [ "${NUM_VOLUMES}" -eq 0 ]; then
   exit 1
 fi

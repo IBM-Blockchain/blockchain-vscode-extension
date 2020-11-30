@@ -17,7 +17,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import { SettingConfigurations } from '../../extension/configurations';
-import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
+import { FeatureFlagManager, FeatureFlag } from '../../extension/util/FeatureFlags';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -27,7 +27,7 @@ describe('FeatureFlag', () => {
     describe('#getName', () => {
 
         it('should return the name', () => {
-            FeatureFlagManager.MICROFAB.getName().should.equal('microfab');
+            FeatureFlagManager.EXPORTAPPDATA.getName().should.equal('exportAppData');
         });
 
     });
@@ -35,7 +35,7 @@ describe('FeatureFlag', () => {
     describe('#getDescription', () => {
 
         it('should return the description', () => {
-            FeatureFlagManager.MICROFAB.getDescription().should.equal('Enable connectivity to a Microfab instance');
+            FeatureFlagManager.EXPORTAPPDATA.getDescription().should.equal('Export application data for the IBM Cloud Pak for Apps Blockchain Accelerator');
         });
 
     });
@@ -79,9 +79,10 @@ describe('FeatureFlags', () => {
     describe('#enable', () => {
 
         it('should enable a feature flag', async () => {
-            await FeatureFlagManager.enable(FeatureFlagManager.MICROFAB);
+            const noContextFlag: FeatureFlag = new FeatureFlag('noContextFlag', 'My fake flag description', false);
+            await FeatureFlagManager.enable(noContextFlag);
             get().should.eventually.deep.equal({
-                microfab: true
+                noContextFlag: true
             });
         });
 
@@ -98,9 +99,10 @@ describe('FeatureFlags', () => {
     describe('#disable', () => {
 
         it('should disable a feature flag', async () => {
-            await FeatureFlagManager.disable(FeatureFlagManager.MICROFAB);
+            const noContextFlag: FeatureFlag = new FeatureFlag('noContextFlag', 'My fake flag description', false);
+            await FeatureFlagManager.disable(noContextFlag);
             get().should.eventually.deep.equal({
-                microfab: false
+                noContextFlag: false
             });
         });
 
@@ -118,20 +120,20 @@ describe('FeatureFlags', () => {
 
         it('should return true for an enabled feature flag', async () => {
             await set({
-                microfab: true
+                exportAppData: true
             });
-            await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB).should.eventually.be.true;
+            await FeatureFlagManager.enabled(FeatureFlagManager.EXPORTAPPDATA).should.eventually.be.true;
         });
 
         it('should return false for an disabled feature flag', async () => {
             await set({
-                microfab: false
+                exportAppData: false
             });
-            await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB).should.eventually.be.false;
+            await FeatureFlagManager.enabled(FeatureFlagManager.EXPORTAPPDATA).should.eventually.be.false;
         });
 
         it('should return false for a missing feature flag', async () => {
-            await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB).should.eventually.be.false;
+            await FeatureFlagManager.enabled(FeatureFlagManager.EXPORTAPPDATA).should.eventually.be.false;
         });
 
     });
@@ -140,20 +142,20 @@ describe('FeatureFlags', () => {
 
         it('should return true for an disabled feature flag', async () => {
             await set({
-                microfab: false
+                exportAppData: false
             });
-            await FeatureFlagManager.disabled(FeatureFlagManager.MICROFAB).should.eventually.be.true;
+            await FeatureFlagManager.disabled(FeatureFlagManager.EXPORTAPPDATA).should.eventually.be.true;
         });
 
         it('should return true for a missing feature flag', async () => {
-            await FeatureFlagManager.disabled(FeatureFlagManager.MICROFAB).should.eventually.be.true;
+            await FeatureFlagManager.disabled(FeatureFlagManager.EXPORTAPPDATA).should.eventually.be.true;
         });
 
         it('should return false for an enabled feature flag', async () => {
             await set({
-                microfab: true
+                exportAppData: true
             });
-            await FeatureFlagManager.disabled(FeatureFlagManager.MICROFAB).should.eventually.be.false;
+            await FeatureFlagManager.disabled(FeatureFlagManager.EXPORTAPPDATA).should.eventually.be.false;
         });
 
     });
@@ -163,7 +165,6 @@ describe('FeatureFlags', () => {
         beforeEach(async () => {
             getSettingsStub = mySandBox.stub();
             getSettingsStub.withArgs(SettingConfigurations.FEATURE_FLAGS).returns({
-                microfab: false,
                 exportAppData: false
             });
 
@@ -176,7 +177,6 @@ describe('FeatureFlags', () => {
 
         it('should get all feature flags from the settings configuration', async () => {
             await FeatureFlagManager.get().should.eventually.deep.equal({
-                microfab: false,
                 exportAppData: false
             });
         });

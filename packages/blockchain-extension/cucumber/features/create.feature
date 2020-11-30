@@ -26,7 +26,6 @@ Feature: Created Smart Contracts
         | Go         | Conga     | v1GoContract         | 0.0.1   |
 
 
-    @ansibleFabric
     Scenario Outline: Create a v2 private data smart contract
         Given a private <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version> and mspid <mspid>
         And the contract hasn't been created already
@@ -38,7 +37,6 @@ Feature: Created Smart Contracts
         | TypeScript | PrivateConga     | PrivateTypeScriptContract | Org1MSP    | 0.0.1   |
         | Java       | PrivateConga     | PrivateJavaContract       | Org1MSP    | 0.0.1   |
 
-    @ansibleFabric
     Scenario Outline: Create a v1 private data smart contract
         Given a private <language> smart contract using Fabric v1 for <assetType> assets with the name <name> and version <version> and mspid <mspid>
         And the contract hasn't been created already

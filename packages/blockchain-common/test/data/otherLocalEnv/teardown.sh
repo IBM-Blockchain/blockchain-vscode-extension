@@ -6,15 +6,10 @@
 #
 # Exit on first error, print all commands.
 set -ev
-for CONTAINER in $(docker ps -f label=fabric-environment-name="Local Fabric" -q -a); do
+for CONTAINER in $(docker ps -f label=fabric-environment-name="1 Org Local Fabric" -q -a); do
     docker rm -f ${CONTAINER}
 done
-for VOLUME in $(docker volume ls -f label=fabric-environment-name="Local Fabric" -q); do
+for VOLUME in $(docker volume ls -f label=fabric-environment-name="1 Org Local Fabric" -q); do
     docker volume rm -f ${VOLUME}
 done
-if [ -d wallets ]; then
-    for WALLET in $(ls wallets); do
-        rm -rf wallets/${WALLET}/*
-    done
-fi
 exit 0

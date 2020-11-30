@@ -193,7 +193,7 @@ describe('restartFabricRuntime', () => {
     });
 
     it('should ask what environment to restart if connected to non-managed environment', async () => {
-        getEnvironmentRegistryEntryStub.returns({name: 'otherEnvironment', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT} as FabricEnvironmentRegistryEntry);
+        getEnvironmentRegistryEntryStub.returns({name: 'otherEnvironment', environmentType: EnvironmentType.ENVIRONMENT} as FabricEnvironmentRegistryEntry);
 
         const environment: LocalMicroEnvironment = EnvironmentFactory.getEnvironment(localRegistryEntry) as LocalMicroEnvironment;
         restartStub = sandbox.stub(environment, 'restart').resolves();

@@ -12,10 +12,10 @@
  * limitations under the License.
 */
 
-import { AnsibleEnvironment } from 'ibm-blockchain-platform-common';
+import { FabricEnvironment } from 'ibm-blockchain-platform-common';
 import { CommandUtil } from '../../util/CommandUtil';
 
-export class LocalEnvironment extends AnsibleEnvironment {
+export class LocalEnvironment extends FabricEnvironment {
 
     public async teardown(): Promise<void> {
         try {

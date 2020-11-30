@@ -195,12 +195,12 @@
               {
                 "title": "Create and use a custom Fabric network",
                 "series": "Other tutorials",
-                "length": "30-45 mins",
+                "length": "5-10 mins",
                 "objectives": 
                 [
-                  "Learn how Ansible can be used to create Fabric networks",
-                  "Discover example Ansible playbooks to get you started",
-                  "Use Ansible to run your own playbook"
+                  "Learn how Microfab can be used to create Fabric networks",
+                  "Discover example Microfab configurations to get you started",
+                  "Import your Microfab generated network"
                 ],
                 "difficulty": "moderate",
                 "file": "developer-tutorials/create-custom-networks.md"

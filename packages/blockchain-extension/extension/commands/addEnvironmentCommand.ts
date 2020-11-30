@@ -26,7 +26,6 @@ import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
 import { ExtensionsInteractionUtil } from '../util/ExtensionsInteractionUtil';
-import { FeatureFlagManager } from '../util/FeatureFlags';
 import { SecureStore } from '../util/SecureStore';
 import { SecureStoreFactory } from '../util/SecureStoreFactory';
 import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
@@ -40,10 +39,6 @@ export async function addEnvironment(): Promise<void> {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
 
         const items: IBlockchainQuickPickItem<string>[] = [{
-            label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR,
-            data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR,
-            description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION
-        }, {
             label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS,
             data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS,
             description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION
@@ -51,6 +46,11 @@ export async function addEnvironment(): Promise<void> {
             label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES,
             data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES,
             description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION
+        },
+        {
+            label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB,
+            data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB,
+            description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION
         }];
 
         // Can only create from template if Docker is enabled.
@@ -60,16 +60,6 @@ export async function addEnvironment(): Promise<void> {
                 label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE,
                 data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE,
                 description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION
-            });
-        }
-
-        // Can only create Microfab environments if feature flag is enabled.
-        const microfabEnabled: boolean = await FeatureFlagManager.enabled(FeatureFlagManager.MICROFAB);
-        if (microfabEnabled) {
-            items.push({
-                label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB,
-                data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB,
-                description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION
             });
         }
 
@@ -107,22 +97,6 @@ export async function addEnvironment(): Promise<void> {
 
                 return;
             }
-
-        } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
-            const options: vscode.OpenDialogOptions = {
-                canSelectFiles: false,
-                canSelectFolders: true,
-                canSelectMany: false,
-                openLabel: 'Select'
-            };
-
-            const chosenUri: vscode.Uri = await UserInputUtil.openFileBrowser(options, true) as vscode.Uri;
-
-            if (!chosenUri) {
-                return;
-            }
-
-            envDir = chosenUri.fsPath;
 
         } else if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
 
@@ -201,11 +175,6 @@ export async function addEnvironment(): Promise<void> {
 
         }
 
-        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_DIR) {
-            fabricEnvironmentEntry.environmentDirectory = envDir;
-            fabricEnvironmentEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
-        }
-
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
@@ -218,7 +187,7 @@ export async function addEnvironment(): Promise<void> {
             await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
         }
 
-        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_DIR && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
+        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
 
             let addedAllNodes: boolean;
 
