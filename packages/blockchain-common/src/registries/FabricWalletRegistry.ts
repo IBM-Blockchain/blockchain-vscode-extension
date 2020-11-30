@@ -19,7 +19,6 @@ import { FileConfigurations } from './FileConfigurations';
 import { FileRegistry } from './FileRegistry';
 import { FabricEnvironmentRegistryEntry, EnvironmentType, EnvironmentFlags } from './FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from './FabricEnvironmentRegistry';
-import { AnsibleEnvironment } from '../environments/AnsibleEnvironment';
 import { MicrofabEnvironment } from '../environments/MicrofabEnvironment';
 
 export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry> {
@@ -94,21 +93,6 @@ export class FabricWalletRegistry extends FileRegistry<FabricWalletRegistryEntry
     public async getEntries(): Promise<FabricWalletRegistryEntry[]> {
         const normalEntries: FabricWalletRegistryEntry[] = await super.getEntries();
         const otherEntries: FabricWalletRegistryEntry[] = [];
-
-        // Get wallets from all Ansible environments.
-        const ansibleEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.ANSIBLE]);
-        for (const ansibleEnvironmentEntry of ansibleEnvironmentEntries) {
-            const environment: AnsibleEnvironment = new AnsibleEnvironment(ansibleEnvironmentEntry.name, ansibleEnvironmentEntry.environmentDirectory);
-            let walletEntries: FabricWalletRegistryEntry[] = await environment.getWalletsAndIdentities();
-            walletEntries = walletEntries.map((entry: FabricWalletRegistryEntry) => {
-                if (ansibleEnvironmentEntry.managedRuntime) {
-                    entry.managedWallet = true;
-                }
-
-                return entry;
-            });
-            otherEntries.push(...walletEntries);
-        }
 
         // Get wallets from all Microfab environments.
         const microfabEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.MICROFAB]);

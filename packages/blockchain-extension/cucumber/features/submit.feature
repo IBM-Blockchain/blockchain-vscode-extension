@@ -40,20 +40,20 @@ Feature: Submit transaction
       | language   | assetType | name               | version |
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
 
-  @ansibleFabric
   Scenario Outline: Submit a verify transaction for a private data smart contract
     Given a private <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version> and mspid <mspid>
-    Given an environment 'myAnsibleFabric' exists
-    And the 'myAnsibleFabric' environment is connected
-    And the 'admin' identity
-    And I'm connected to the 'myAnsibleFabric - Org1 gateway' gateway
+    And the 1 Org Local Fabric environment is running
+    And the '1 Org Local Fabric' environment is connected
+    And the 'Org1' wallet
+    And the 'Local Fabric Admin' identity
+    And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
     And the private contract has been created
     And the contract has been packaged
     And the contract has been packaged
-    When I deploy the contract on channel 'channel1' with sequence '1' with private data
-    When I submit the transaction 'createPrivateConga' on the channel 'channel1' with args '["001"]' and with the transient data '{"privateValue":"125"}'
+    When I deploy the contract on channel 'mychannel' with sequence '2' with private data
+    When I submit the transaction 'createPrivateConga' on the channel 'mychannel' with args '["001"]' and with the transient data '{"privateValue":"125"}'
     Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
-    When I submit the transaction 'verifyPrivateConga' on the channel 'channel1' with args '["001", "{\"privateValue\":\"125\"}"]'
+    When I submit the transaction 'verifyPrivateConga' on the channel 'mychannel' with args '["001", "{\"privateValue\":\"125\"}"]'
     Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
     Examples:
       | language   | assetType    | name                      | mspid   | version |

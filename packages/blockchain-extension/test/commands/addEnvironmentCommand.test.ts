@@ -28,7 +28,6 @@ import { SettingConfigurations } from '../../extension/configurations';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { ExtensionData, GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionsInteractionUtil } from '../../extension/util/ExtensionsInteractionUtil';
-import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
 import { SecureStoreFactory } from '../../extension/util/SecureStoreFactory';
 import { SecureStore, SecureStoreCredentials } from '../../extension/util/SecureStore';
 import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
@@ -71,7 +70,6 @@ describe('AddEnvironmentCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
     let showQuickPickItemStub: sinon.SinonStub;
     let deleteEnvironmentSpy: sinon.SinonSpy;
-    let openFileBrowserStub: sinon.SinonStub;
     let environmentDirectoryPath: string;
     let axiosGetStub: sinon.SinonStub;
     let chooseCertVerificationStub: sinon.SinonStub;
@@ -118,8 +116,6 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub = showQuickPickItemStub.withArgs('Select a method to add an environment');
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES});
             environmentDirectoryPath = path.join(__dirname, '..', '..', '..', 'test', 'data', '1 Org Local Fabric');
-            const uri: vscode.Uri = vscode.Uri.file(environmentDirectoryPath);
-            openFileBrowserStub = mySandBox.stub(UserInputUtil, 'openFileBrowser').resolves(uri);
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             chooseNameStub = showInputBoxStub.withArgs('Enter a name for the environment', sinon.match.any);
             chooseNameStub.resolves('myEnvironment');
@@ -472,52 +468,6 @@ describe('AddEnvironmentCommand', () => {
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
-        it('should add a non managed environment from an ansible dir', async () => {
-            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
-
-            environmentDirectoryPath = path.join(environmentDirectoryPath, '..', 'nonManagedAnsible');
-            const uri: vscode.Uri = vscode.Uri.file(environmentDirectoryPath);
-
-            openFileBrowserStub.resolves(uri);
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
-
-            const environments: Array<FabricEnvironmentRegistryEntry> = await FabricEnvironmentRegistry.instance().getAll();
-
-            environments.length.should.equal(1);
-            environments[0].should.deep.equal({
-                name: 'myEnvironment',
-                environmentDirectory: environmentDirectoryPath,
-                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT
-            });
-
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-
-            deleteEnvironmentSpy.should.have.not.been.called;
-            removeRuntimeSpy.should.not.have.been.called;
-
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
-        });
-
-        it('should handle cancel from choosing dir when adding from an ansible dir', async () => {
-            chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR});
-
-            openFileBrowserStub.resolves();
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
-
-            await FabricEnvironmentRegistry.instance().exists('myEnvironment').should.eventually.equal(false);
-
-            logSpy.callCount.should.equal(1);
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
-            sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addEnvironmentCommand');
-        });
-
         it('should handle user cancelling when asked for url when creating an OpsTool instance (Software support)', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
@@ -716,7 +666,7 @@ describe('AddEnvironmentCommand', () => {
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
 
-            showQuickPickItemStub.should.have.been.calledWith('Select a method to add an environment', [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            showQuickPickItemStub.should.have.been.calledWith('Select a method to add an environment', [{ label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
@@ -746,7 +696,7 @@ describe('AddEnvironmentCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
             showQuickPickItemStub.should.have.been.calledTwice;
-            chooseMethodStub.should.have.been.calledOnceWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            chooseMethodStub.should.have.been.calledOnceWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             showQuickPickItemStub.should.have.been.calledWith('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
@@ -793,7 +743,7 @@ describe('AddEnvironmentCommand', () => {
             updateCall.deletedOneOrgLocalFabric.should.equal(false);
 
             showQuickPickItemStub.should.have.been.calledTwice;
-            chooseMethodStub.should.have.been.calledOnceWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            chooseMethodStub.should.have.been.calledOnceWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             showQuickPickItemStub.should.have.been.calledWith('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
@@ -830,7 +780,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
 
             showInputBoxStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
@@ -856,7 +806,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION},  { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
 
             showInputBoxStub.should.not.have.been.calledOnceWithExactly('Enter a name for the environment', '');
@@ -906,7 +856,7 @@ describe('AddEnvironmentCommand', () => {
                 'Other Network': 2021
             });
 
-            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION},  { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
@@ -954,7 +904,7 @@ describe('AddEnvironmentCommand', () => {
                 'Other Network': 2021
             });
 
-            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION},  { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
@@ -976,7 +926,7 @@ describe('AddEnvironmentCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
-            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION}, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, data: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR, description: UserInputUtil.ADD_ENVIRONMENT_FROM_DIR_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }]);
+            chooseMethodStub.should.have.been.calledWithExactly('Select a method to add an environment', [{label: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, data: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE, description: UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE_DESCRIPTION},  { label: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, description: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS_DESCRIPTION }, { label: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, data: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES, description: UserInputUtil.ADD_ENVIRONMENT_FROM_NODES_DESCRIPTION }, {label: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB, description: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB_DESCRIPTION}]);
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             showInputBoxStub.should.not.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeSpy.should.not.have.been.called;
@@ -1280,7 +1230,6 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should add a remote Microfab environment', async () => {
-            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
             chooseNameStub.onFirstCall().resolves('microfabEnvironment');
             showInputBoxStub.withArgs('Enter the URL of the Microfab network you want to connect to').resolves('http://console.microfab.example.org');
@@ -1302,7 +1251,6 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should not add a remote Microfab environment if the user cancels the URL input box', async () => {
-            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
             chooseNameStub.onFirstCall().resolves('microfabEnvironment');
             showInputBoxStub.withArgs('Enter the URL of the Microfab network you want to connect to').resolves();
@@ -1314,7 +1262,6 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should not add a remote Microfab environment if the user cancels the name input box', async () => {
-            mySandBox.stub(FeatureFlagManager, 'enabled').withArgs(FeatureFlagManager.MICROFAB).resolves(true);
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB});
             chooseNameStub.onFirstCall().resolves();
             showInputBoxStub.withArgs('Enter the URL of the Microfab network you want to connect to').resolves('http://console.microfab.example.org');

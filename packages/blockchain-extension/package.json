@@ -921,11 +921,11 @@
                 },
                 {
                     "command": "environmentExplorer.deleteNodeEntry",
-                    "when": "view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-peer-item || view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-certificate-authority-item || view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-orderer-item"
+                    "when": "view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && viewItem == blockchain-peer-item || view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && viewItem == blockchain-runtime-certificate-authority-item || view == environmentExplorer && !blockchain-runtime-connected && !blockchain-opstool-connected && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "environmentExplorer.hideNodeEntry",
-                    "when": "view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-peer-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-certificate-authority-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && !blockchain-ansible-connected && viewItem == blockchain-runtime-orderer-item"
+                    "when": "view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && viewItem == blockchain-peer-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && viewItem == blockchain-runtime-certificate-authority-item || view == environmentExplorer && !blockchain-runtime-connected && blockchain-opstool-connected && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
@@ -1475,7 +1475,6 @@
         "productionFlag": "node ../../.azure/rewritePackageJson.js publish",
         "checkReleaseNotes": "node ../../.azure/checkReleaseNotes.js",
         "cucumberTests": "./cucumber/hlfv1/start.sh",
-        "cucumberAnsibleTests": "./cucumber/ansibleScripts/start.sh",
         "localize": "vscl build/src/**/*.js",
         "build": "tsc && cp -r ../blockchain-ui/build/static ./build",
         "rebuildUi": "cd ../blockchain-ui && npm run compile"
@@ -1536,7 +1535,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.2.14",
+        "generator-fabric": "0.2.15",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
         "ibm-blockchain-platform-common": "^2.0.0-beta.8",
@@ -1588,8 +1587,6 @@
             "cucumber/data",
             "cucumber/tmp",
             "cucumber/hlfv1",
-            "cucumber/ansible",
-            "cucumber/ansibleScripts",
             "cucumber/cucumber-report.html",
             ".scannerwork",
             "basic-network",

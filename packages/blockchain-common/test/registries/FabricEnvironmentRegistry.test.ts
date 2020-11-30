@@ -116,44 +116,12 @@ describe('FabricEnvironmentRegistry', () => {
         await registry.getAll([], [EnvironmentFlags.MICROFAB]).should.eventually.deep.equal([environmentOne]);
     });
 
-    it('should only get non ansible environments', async () => {
+    it('should get all the ops tools environments', async () => {
         const environmentOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
             name: 'environmentOne',
             environmentType: EnvironmentType.ENVIRONMENT
         });
 
-        const environmentTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-            name: 'environmentTwo',
-            managedRuntime: true,
-            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT
-        });
-        await registry.getAll().should.eventually.deep.equal([]);
-
-        const environmentThree: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-            name: FabricRuntimeUtil.LOCAL_FABRIC,
-            managedRuntime: true,
-            environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT
-        });
-
-        await registry.add(environmentThree);
-
-        await registry.add(environmentOne);
-        await registry.add(environmentTwo);
-
-        await registry.getAll([], [EnvironmentFlags.ANSIBLE]).should.eventually.deep.equal([environmentThree, environmentOne]);
-    });
-
-    it('should get all the ansible and all the ops tools environments', async () => {
-        const environmentOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-            name: 'environmentOne',
-            environmentType: EnvironmentType.ENVIRONMENT
-        });
-
-        const environmentTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
-            name: 'environmentTwo',
-            managedRuntime: true,
-            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT
-        });
         await registry.getAll().should.eventually.deep.equal([]);
 
         const environmentThree: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({
@@ -173,8 +141,7 @@ describe('FabricEnvironmentRegistry', () => {
         await FabricEnvironmentRegistry.instance().add(environmentFour);
 
         await registry.add(environmentOne);
-        await registry.add(environmentTwo);
 
-        await registry.getAll([EnvironmentFlags.ANSIBLE, EnvironmentFlags.OPS_TOOLS]).should.eventually.deep.equal([environmentTwo, environmentFour]);
+        await registry.getAll([EnvironmentFlags.OPS_TOOLS]).should.eventually.deep.equal([environmentFour]);
     });
 });

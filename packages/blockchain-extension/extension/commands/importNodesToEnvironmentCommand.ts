@@ -48,7 +48,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
                 chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an OpsTool environment to filter nodes', false, true, [EnvironmentFlags.OPS_TOOLS]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             } else {
-                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true, [], [EnvironmentFlags.OPS_TOOLS, EnvironmentFlags.ANSIBLE]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+                chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to import nodes to', false, true, [], [EnvironmentFlags.OPS_TOOLS, EnvironmentFlags.LOCAL]) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
             }
 
             if (!chosenEnvironment) {

@@ -84,13 +84,6 @@ steps:
 
   - bash: |
       set -ev
-      cd ./packages/blockchain-extension
-      ./cucumber/ansibleScripts/start.sh
-    displayName: Setup Ansible Fabric
-    condition: and(succeeded(), eq(variables['ANSIBLE_FABRIC'], 'true'))
-
-  - bash: |
-      set -ev
       cd ./packages/blockchain-fabric-admin
       ./cucumber/setup-tests.sh
     displayName: Setup Fabric Admin Fabric
@@ -99,6 +92,7 @@ steps:
   - bash: |
       set -ev
       cd ./packages/blockchain-extension
+      echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
       npm run cucumber -- $(opsTools_url) $(opsTools_key) $(opsTools_secret) $(opsTools_SaaS_api_key)
     env:
       DISPLAY: ':99.0'

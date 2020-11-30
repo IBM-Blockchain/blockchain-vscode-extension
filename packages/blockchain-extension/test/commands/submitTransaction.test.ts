@@ -271,11 +271,11 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should not show logs if gateway came from non-local runtime', async () => {
-            await FabricEnvironmentRegistry.instance().add({name: 'nonLocalEnvironment', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: false, environmentDirectory: ''} as FabricEnvironmentRegistryEntry);
+            await FabricEnvironmentRegistry.instance().add({name: 'userEnvironment', environmentType: EnvironmentType.ENVIRONMENT} as FabricEnvironmentRegistryEntry);
             const instanceSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter, 'instance');
             const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = `nonLocalGateway`;
-            registryEntry.fromEnvironment = 'nonLocalEnvironment';
+            registryEntry.fromEnvironment = 'userEnvironment';
             registryStub.resolves(registryEntry);
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');

@@ -36,18 +36,17 @@ Feature: Deploy Smart Contracts
       | language   | assetType | name               | committedName            | version |
       | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
 
-  @ansibleFabric
   Scenario Outline: Deploy a private smart contract
-    Given a private <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version> and mspid <mspid>
-    Given an environment 'myAnsibleFabric' exists
-    And the 'myAnsibleFabric' environment is connected
+    Given a private <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And the 1 Org Local Fabric environment is running
+    And the '1 Org Local Fabric' environment is connected
     And the private contract has been created
     And the contract has been packaged
-    When I deploy the contract on channel 'channel1' with sequence '1' with private data
-    Then there should be a committed smart contract tree item with a label '<committedName>' in the 'Fabric Environments' panel for item channel1
+    When I deploy the contract on channel 'mychannel' with sequence '1'
+    Then there should be a committed smart contract tree item with a label '<committedName>' in the 'Fabric Environments' panel for item mychannel
     And the tree item should have a tooltip equal to '<committedName>'
     Examples:
-      | language   | assetType    | name                      | committedName                   | mspid   | version |
-      | JavaScript | PrivateConga | PrivateJavaScriptContract | PrivateJavaScriptContract@0.0.1 | Org1MSP | 0.0.1   |
-      | TypeScript | PrivateConga | PrivateTypeScriptContract | PrivateTypeScriptContract@0.0.1 | Org1MSP | 0.0.1   |
-      | Java       | PrivateConga | PrivateJavaContract       | PrivateJavaContract@0.0.1       | Org1MSP | 0.0.1   |
+      | language   | assetType    | name                      | committedName                   | version |
+      | JavaScript | PrivateConga | PrivateJavaScriptContract | PrivateJavaScriptContract@0.0.1 | 0.0.1   |
+      | TypeScript | PrivateConga | PrivateTypeScriptContract | PrivateTypeScriptContract@0.0.1 | 0.0.1   |
+      | Java       | PrivateConga | PrivateJavaContract       | PrivateJavaContract@0.0.1       | 0.0.1   |

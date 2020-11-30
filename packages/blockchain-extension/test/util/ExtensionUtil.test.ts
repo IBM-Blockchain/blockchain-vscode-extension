@@ -54,7 +54,7 @@ import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { FeatureFlagManager } from '../../extension/util/FeatureFlags';
+import { FeatureFlagManager, IFeatureFlag, FeatureFlag } from '../../extension/util/FeatureFlags';
 import { defaultDependencies } from '../../extension/dependencies/Dependencies';
 import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
 import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
@@ -1531,6 +1531,43 @@ describe('ExtensionUtil Tests', () => {
 
             executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
             executeCommandStub.should.have.been.calledWith('setContext', 'exportAppData', false);
+        });
+
+        it(`should not set context if flag doens't require it`, async () => {
+            await FeatureFlagManager.enable(FeatureFlagManager.EXPORTAPPDATA);
+            mySandBox.stub(ExtensionUtil, 'getExtensionLocalFabricSetting').returns(true);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
+            dependencies['generator-fabric'] = '0.0.2';
+            globalStateGetStub.returns({
+                generatorVersion: '0.0.1'
+            });
+
+            executeCommandStub.resolves();
+            mockRuntime.isCreated.resolves(true);
+            showConfirmationWarningMessageStub.resolves(true);
+            mockRuntime.isRunning.resolves(false);
+
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            const noContextFlag: IFeatureFlag = new FeatureFlag('noContextFlag', 'Description for fake flag', false);
+            mySandBox.stub(FeatureFlagManager, 'ALL').value([
+                FeatureFlagManager.EXPORTAPPDATA,
+                noContextFlag
+            ]);
+
+            await ExtensionUtil.completeActivation(false);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+            showConfirmationWarningMessageStub.should.have.been.calledOnceWithExactly(`The local runtime configurations are out of date and must be torn down before updating. Do you want to teardown your local runtimes now?`);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, FabricRuntimeUtil.LOCAL_FABRIC);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
+            globalStateUpdateStub.should.have.been.calledWith({
+                generatorVersion: dependencies['generator-fabric']
+            });
+
+            executeCommandStub.should.have.been.calledWith('setContext', 'local-fabric-enabled', true);
+            executeCommandStub.should.have.been.calledWith('setContext', 'exportAppData', true);
         });
 
         it('should discover environments', async () => {

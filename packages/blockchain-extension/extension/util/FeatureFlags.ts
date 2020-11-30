@@ -23,7 +23,7 @@ export interface IFeatureFlag {
     getContext(): boolean;
 }
 
-class FeatureFlag implements IFeatureFlag {
+export class FeatureFlag implements IFeatureFlag {
 
     constructor(private name: string, private description: string, private contextFlag?: boolean) {
 
@@ -43,15 +43,13 @@ class FeatureFlag implements IFeatureFlag {
 
 }
 
-type FeatureFlags = Map<string, boolean>;
+export type FeatureFlags = Map<string, boolean>;
 
 export class FeatureFlagManager {
 
-    static readonly MICROFAB: IFeatureFlag = new FeatureFlag('microfab', 'Enable connectivity to a Microfab instance');
     static readonly EXPORTAPPDATA: IFeatureFlag = new FeatureFlag('exportAppData', 'Export application data for the IBM Cloud Pak for Apps Blockchain Accelerator', true);
 
     static readonly ALL: IFeatureFlag[] = [
-        FeatureFlagManager.MICROFAB,
         FeatureFlagManager.EXPORTAPPDATA
     ];
 

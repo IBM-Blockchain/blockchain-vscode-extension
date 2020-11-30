@@ -74,7 +74,7 @@ describe('FabricGatewayRegistry', () => {
 
         const gateways: FabricGatewayRegistryEntry[] = await registry.getAll();
         gateways.should.deep.equal([localFabricEntry, otherLocalEntry, gatewayOne]);
-    });
+    }).timeout(35000);
 
     it('should get all gateways but not show local fabric', async () => {
         const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
@@ -109,12 +109,6 @@ describe('FabricGatewayRegistry', () => {
         await registry.add(gatewayOne);
 
         await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
-            name: 'ansibleEnvironment',
-            environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
-            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-            managedRuntime: false
-        }));
-        await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
             name: 'microfabEnvironment',
             environmentDirectory: path.join('test', 'data', 'microfab'),
             environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT,
@@ -138,13 +132,9 @@ describe('FabricGatewayRegistry', () => {
 
         const entries: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll();
 
-        entries.length.should.equal(5);
-
-        entries[0].name.should.equal('ansibleEnvironment - myGateway');
-        entries[1].name.should.equal('ansibleEnvironment - yofn-org1');
-        entries[2].name.should.equal('ansibleEnvironment - yofn-org2');
-        entries[3].should.deep.equal(gatewayOne);
-        entries[4].name.should.equal('microfabEnvironment - myGateway');
+        entries.length.should.equal(2);
+        entries[0].should.deep.equal(gatewayOne);
+        entries[1].name.should.equal('microfabEnvironment - myGateway');
     });
 
     it('should get all including environments ones but excluding Microfab ones that are not alive', async () => {
@@ -158,12 +148,6 @@ describe('FabricGatewayRegistry', () => {
 
         await registry.add(gatewayOne);
 
-        await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
-            name: 'ansibleEnvironment',
-            environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
-            environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-            managedRuntime: false
-        }));
         await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
             name: 'microfabEnvironment',
             environmentDirectory: path.join('test', 'data', 'microfab'),
@@ -183,12 +167,8 @@ describe('FabricGatewayRegistry', () => {
 
         const entries: FabricGatewayRegistryEntry[] = await FabricGatewayRegistry.instance().getAll();
 
-        entries.length.should.equal(4);
-
-        entries[0].name.should.equal('ansibleEnvironment - myGateway');
-        entries[1].name.should.equal('ansibleEnvironment - yofn-org1');
-        entries[2].name.should.equal('ansibleEnvironment - yofn-org2');
-        entries[3].should.deep.equal(gatewayOne);
+        entries.length.should.equal(1);
+        entries[0].should.deep.equal(gatewayOne);
     });
 
     it('should update an unmanaged gateway', async () => {

@@ -5,10 +5,19 @@ rem
 rem SPDX-License-Identifier: Apache-2.0
 rem
 setlocal enabledelayedexpansion
-for /f "usebackq tokens=*" %%c in (`docker ps -f label^=fabric-environment-name^="Local Fabric" -q -a`) do (
-    docker start %%c
-    if !errorlevel! neq 0 (
+
+
+FOR /F "usebackq tokens=*" %%g IN ('docker ps -f label^=fabric-environment-name^="1 Org Local Fabric" -q -a') do (SET CONTAINER=%%g)
+
+IF DEFINED CONTAINER (
+     docker start %CONTAINER%
+     if !errorlevel! neq 0 (
         exit /b !errorlevel!
     )
+) ELSE (
+    export MICROFAB_CONFIG='{"port":8080, "endorsing_organizations": [{"name": "Org1"}],"channels": [{"name": "mychannel","endorsing_organizations": ["Org1"]}]}'
+    docker run -e MICROFAB_CONFIG --label fabric-environment-name="1 Org Local Fabric" -d -p 8080:8080 ibmcom/ibp-microfab:0.0.7
 )
+
+
 exit /b 0

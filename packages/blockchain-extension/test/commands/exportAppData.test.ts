@@ -197,7 +197,7 @@ describe('exportAppData', () => {
 
         environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         environmentRegistryEntry.name = 'myEnv';
-        environmentRegistryEntry.environmentType = EnvironmentType.ANSIBLE_ENVIRONMENT;
+        environmentRegistryEntry.environmentType = EnvironmentType.ENVIRONMENT;
         await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
 
         peerNode = FabricNode.newPeer('peerNode', 'Org1Peer1', 'http://localhost:17051', undefined, undefined, 'Org1MSP');

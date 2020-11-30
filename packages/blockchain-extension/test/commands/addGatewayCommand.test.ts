@@ -252,10 +252,10 @@ describe('AddGatewayCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
         });
 
-        it('should error if there are no non-ansible environments to create the gateway from', async () => {
+        it('should error if there are no non-local environments to create the gateway from', async () => {
             mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').resolves([]);
 
-            const error: Error = new Error(`No environments to choose from. Gateways cannot be created from Ansible or local environments.`);
+            const error: Error = new Error(`No environments to choose from. Gateways cannot be created from local environments.`);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 

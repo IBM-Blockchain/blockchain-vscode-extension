@@ -374,7 +374,7 @@ describe('Extension Tests', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
         });
 
-        it(`should delete any local environments`, async () => {
+        it(`should delete any local environments or ansible environments`, async () => {
 
             const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
             const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
@@ -404,16 +404,19 @@ describe('Extension Tests', () => {
             await GlobalState.update(extensionData);
 
             const oldOtherEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'oldlocal', environmentType: EnvironmentType.LOCAL_ENVIRONMENT, numberOfOrgs: 1});
+            const ansibleEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'oldAnsible', environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, environmentDirectory: '/some/path'});
 
             const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
-            getAllEnvironmentsStub.resolves([oldOtherEntry]);
+            getAllEnvironmentsStub.resolves([oldOtherEntry, ansibleEntry]);
 
             const initializeStub: sinon.SinonStub = mySandBox.stub(LocalMicroEnvironmentManager.instance(), 'initialize').resolves();
 
             await myExtension.activate(context);
 
-            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.LOCAL], [EnvironmentFlags.MICROFAB]);
+            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.ANSIBLE]);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOtherEntry, true);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, ansibleEntry, true);
+
             sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
             initializeStub.should.not.have.been.called;
             logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
@@ -473,7 +476,7 @@ describe('Extension Tests', () => {
 
             await myExtension.activate(context);
 
-            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.LOCAL], [EnvironmentFlags.MICROFAB]);
+            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.ANSIBLE]);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOneOrgEntry, true);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOtherEntry, true);
             sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
@@ -541,7 +544,7 @@ describe('Extension Tests', () => {
             finalSettings.should.deep.equal({
                 microfabLocal: 9001
             });
-            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.LOCAL], [EnvironmentFlags.MICROFAB]);
+            getAllEnvironmentsStub.should.have.been.calledOnceWithExactly([EnvironmentFlags.ANSIBLE]);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOneOrgEntry, true);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT, oldOtherEntry, true);
             sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });

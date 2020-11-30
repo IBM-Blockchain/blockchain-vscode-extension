@@ -148,7 +148,7 @@ describe('FabricWalletRegistry', () => {
 
             await registry.add(walletOne);
             await registry.getAll(false).should.eventually.deep.equal([walletOne]);
-        });
+        }).timeout(35000);
 
         it('should get all including environments ones', async () => {
             const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
@@ -161,11 +161,13 @@ describe('FabricWalletRegistry', () => {
             await registry.add(walletOne);
 
             await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
-                name: 'ansibleEnvironment',
-                environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
-                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-                managedRuntime: false
+                name: 'anotherMicrofabEnvironment',
+                environmentDirectory: path.join('test', 'data', 'microfab'),
+                environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
+                managedRuntime: false,
+                url: 'http://someurl:9002'
             }));
+
             await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
                 name: 'microfabEnvironment',
                 environmentDirectory: path.join('test', 'data', 'microfab'),
@@ -182,10 +184,16 @@ describe('FabricWalletRegistry', () => {
             mockMicrofabEnvironment['client'] = mockClient as any;
             mockMicrofabEnvironment.setClient.returns(undefined);
 
-            mockMicrofabEnvironment.getWalletsAndIdentities.resolves([
+            mockMicrofabEnvironment.getWalletsAndIdentities.onCall(0).resolves([
                 {
                     name: 'myWallet',
                     displayName: 'microfabEnvironment - myWallet'
+                }
+            ]);
+            mockMicrofabEnvironment.getWalletsAndIdentities.onCall(1).resolves([
+                {
+                    name: 'myWallet',
+                    displayName: 'anotherMicrofabEnvironment - myWallet'
                 }
             ]);
             newMicrofabEnvironmentStub.callsFake((name: string, directory: string, url: string): sinon.SinonStubbedInstance<MicrofabEnvironment> => {
@@ -196,8 +204,7 @@ describe('FabricWalletRegistry', () => {
             const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
             entries.length.should.equal(3);
-
-            entries[0].displayName.should.equal('ansibleEnvironment - myWallet');
+            entries[0].displayName.should.equal('anotherMicrofabEnvironment - myWallet');
             entries[1].displayName.should.equal('microfabEnvironment - myWallet');
             entries[2].should.deep.equal(walletOne);
 
@@ -213,12 +220,6 @@ describe('FabricWalletRegistry', () => {
 
             await registry.add(walletOne);
 
-            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
-                name: 'ansibleEnvironment',
-                environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'),
-                environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT,
-                managedRuntime: false
-            }));
             await environmentRegistry.add(new FabricEnvironmentRegistryEntry({
                 name: 'microfabEnvironment',
                 environmentDirectory: path.join('test', 'data', 'microfab'),
@@ -240,41 +241,25 @@ describe('FabricWalletRegistry', () => {
 
             const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
 
-            entries.length.should.equal(2);
+            entries.length.should.equal(1);
 
-            entries[0].displayName.should.equal('ansibleEnvironment - myWallet');
-            entries[1].should.deep.equal(walletOne);
+            entries[0].should.deep.equal(walletOne);
 
         });
 
-        it('should get all including environments ones and set managed if from a managed environment', async () => {
-            const walletOne: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
-                name: 'walletOne',
-                walletPath: 'myPath'
-            });
-
-            await registry.getAll().should.eventually.deep.equal([]);
-
-            await registry.add(walletOne);
-
-            await environmentRegistry.add(new FabricEnvironmentRegistryEntry({ name: 'myEnvironment', environmentDirectory: path.join('test', 'data', 'nonManagedAnsible'), environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT, managedRuntime: true }));
-
-            const entries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
-
-            entries.length.should.equal(2);
-
-            entries[0].name.should.equal('myWallet');
-            entries[0].managedWallet.should.equal(true);
-
-            entries[1].should.deep.equal(walletOne);
-        });
     });
 
     describe('get', () => {
 
         let walletOne: FabricWalletRegistryEntry;
 
+        let sandbox: sinon.SinonSandbox;
+
         beforeEach(async () => {
+            await registry.clear();
+            await environmentRegistry.clear();
+            sandbox = sinon.createSandbox();
+
             await FabricEnvironmentRegistry.instance().clear();
             await FabricWalletRegistry.instance().clear();
             walletOne = new FabricWalletRegistryEntry({
@@ -283,12 +268,41 @@ describe('FabricWalletRegistry', () => {
             });
 
             await FabricWalletRegistry.instance().add(walletOne);
+            await FabricEnvironmentRegistry.instance().add({name: 'otherLocalEnv', environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT, managedRuntime: true, environmentDirectory : path.join(__dirname, '..', 'data', 'otherLocalEnv'), numberOfOrgs: 1,  url: 'http://anotherurl:9000', fabricCapabilities: 'V2_0'});
+            await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({ name: 'myEnvironment', environmentType: EnvironmentType.ENVIRONMENT }));
 
-            const environmentPath: string = path.resolve('test', 'data', 'nonManagedAnsible');
+            sandbox.stub(MicrofabClient.prototype, 'isAlive').resolves(true);
+            // // This will get the code working.
+            sandbox.stub(MicrofabClient.prototype, 'getComponents').resolves([
+                {
+                    id: 'org1admin',
+                    display_name: 'Org1 Admin',
+                    type: 'identity',
+                    cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
+                    private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
+                    msp_id: 'Org1MSP',
+                    wallet: 'Org1'
+                }
+            ]);
 
-            await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({ name: 'myEnvironment', environmentDirectory: environmentPath, environmentType: EnvironmentType.ANSIBLE_ENVIRONMENT }));
+            sandbox.stub(MicrofabEnvironment.prototype, 'getIdentities').resolves([
+                {
+                    id: 'org1admin',
+                    display_name: 'Org1 Admin',
+                    type: 'identity',
+                    cert: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6RENDQVhTZ0F3SUJBZ0lRZHBtaE9FOVkxQ3V3WHl2b3pmMjFRakFLQmdncWhrak9QUVFEQWpBU01SQXcKRGdZRFZRUURFd2RQY21jeElFTkJNQjRYRFRJd01EVXhOREV3TkRjd01Gb1hEVE13TURVeE1qRXdORGN3TUZvdwpKVEVPTUF3R0ExVUVDeE1GWVdSdGFXNHhFekFSQmdOVkJBTVRDazl5WnpFZ1FXUnRhVzR3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFSN0l4UmRGb0theE1ZWHFyK01zU1F6UDhIS1lITVphRmYrVmt3SnpsbisKNGJsa1M0aWVxZFRiRWhqUThvc1F2QmxpZk1Ca29YeUVKd3JkNHdmUzNtc1dvNEdZTUlHVk1BNEdBMVVkRHdFQgovd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUhBd0V3REFZRFZSMFRBUUgvCkJBSXdBREFwQmdOVkhRNEVJZ1FnNEpNUmx6cVhxaEFTaE1EaHIrOE5Hd0FFVE85bDFld3lJcDh0RHBMMTZMa3cKS3dZRFZSMGpCQ1F3SW9BZ21qczI3VG56V0ZvZWZ4Y3RYMGRZWUl4UnJKRmpVeXdyTHJ3YzMzdkp3Tmd3Q2dZSQpLb1pJemowRUF3SURSZ0F3UXdJZkVkS2xoSCsySk4yNDhVQnE3UjBtWnU5NGxiK1BXRFA4QnAxN0hMSHpMQUlnClRSMVF4ZUUrUitkNDhpWjB0ZEZ2S1FRVGQvWTJlZXJZMnJiUDZsQzVYWUU9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K',
+                    private_key: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1RMdWdydldMaXVvNWM5dnUKenh4MjBmZzBJS1B2c0haV2NLenUrTUVUcmNhaFJBTkNBQVI3SXhSZEZvS2F4TVlYcXIrTXNTUXpQOEhLWUhNWgphRmYrVmt3Snpsbis0YmxrUzRpZXFkVGJFaGpROG9zUXZCbGlmTUJrb1h5RUp3cmQ0d2ZTM21zVwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
+                    msp_id: 'Org1MSP',
+                    wallet: 'Org1'
+                }
+            ]);
         });
 
+        afterEach(async () => {
+            await registry.clear();
+            await environmentRegistry.clear();
+            sandbox.restore();
+        });
         it('should get the wallet just based on the name', async () => {
             const result: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('walletOne');
 
@@ -296,9 +310,9 @@ describe('FabricWalletRegistry', () => {
         });
 
         it('should get the wallet based on the env name and name', async () => {
-            const result: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('myWallet', 'myEnvironment');
+            const result: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('Org1', 'otherLocalEnv');
 
-            result.name.should.equal('myWallet');
+            result.name.should.equal('Org1');
         });
 
         it('should get the wallet if it has environmentGroups', async () => {
