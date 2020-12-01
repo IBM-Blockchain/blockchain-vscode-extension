@@ -7,13 +7,13 @@ Feature: Smart Contracts packages
         When I package the contract
         Then a new package should be created with the name <name> and version <version>
         And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel
-        And the tree item should have a tooltip equal to '<packagedName>\nFile size: <size> KB'
+        And the tree item should have a tooltip equal to '<packagedName> (<extension>)\nFile size: <size> KB'
         Examples:
-        | language   | assetType | name               | packagedName                    | size     | version |
-        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1.tar.gz | 39       | 0.0.1   |
-        | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1.tar.gz | 37       | 0.0.1   |
-        | Java       | Conga     | JavaContract       | JavaContract@0.0.1.tar.gz       | 55       | 0.0.1   |
-        | Go         | Conga     | GoContract         | GoContract@0.0.1.tar.gz         | 2418     | 0.0.1   |
+        | language   | assetType | name               | packagedName             | size     | version | extension |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 39       | 0.0.1   | .tar.gz   |
+        | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 37       | 0.0.1   | .tar.gz   |
+        | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 55       | 0.0.1   | .tar.gz   |
+        | Go         | Conga     | GoContract         | GoContract@0.0.1         | 2418     | 0.0.1   | .tar.gz   |
 
     Scenario Outline: Inspect smart contract contents for a v2 contract
         Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
@@ -30,8 +30,8 @@ Feature: Smart Contracts packages
         And the logger should have been called with 'INFO', 'undefined' and '- src/transaction_data/conga-transactions.txdata'
         And the log should have been called with 'SUCCESS' and 'Displayed information for smart contract package JavaScriptContract@0.0.1.'
         Examples:
-        | language   | assetType | name               | packagedName                    | version |
-        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1.tar.gz | 0.0.1   |
+        | language   | assetType | name               | packagedName             | version |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
 
     Scenario Outline: Package a smart contract using Fabric v1
         Given a <language> smart contract using Fabric v1 for <assetType> assets with the name <name> and version <version>
@@ -39,13 +39,13 @@ Feature: Smart Contracts packages
         When I package the contract
         Then a new package should be created with the name <name> and version <version>
         And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel
-        And the tree item should have a tooltip equal to '<packagedName>\nFile size: <size> KB'
+        And the tree item should have a tooltip equal to '<packagedName> (<extension>)\nFile size: <size> KB'
         Examples:
-        | language   | assetType | name                 | packagedName                   | size     | version |
-        | JavaScript | Conga     | JavaScriptContractV1 | JavaScriptContractV1@0.0.1.cds | 52       | 0.0.1   |
-        | TypeScript | Conga     | TypeScriptContractV1 | TypeScriptContractV1@0.0.1.cds | 49       | 0.0.1   |
-        | Java       | Conga     | JavaContractV1       | JavaContractV1@0.0.1.cds       | 56       | 0.0.1   |
-        | Go         | Conga     | GoContractV1         | GoContractV1@0.0.1.cds         | 2284     | 0.0.1   |
+        | language   | assetType | name                 | packagedName               | size     | version | extension |
+        | JavaScript | Conga     | JavaScriptContractV1 | JavaScriptContractV1@0.0.1 | 52       | 0.0.1   | .cds      |
+        | TypeScript | Conga     | TypeScriptContractV1 | TypeScriptContractV1@0.0.1 | 49       | 0.0.1   | .cds      |
+        | Java       | Conga     | JavaContractV1       | JavaContractV1@0.0.1       | 56       | 0.0.1   | .cds      |
+        | Go         | Conga     | GoContractV1         | GoContractV1@0.0.1         | 2284     | 0.0.1   | .cds      |
 
     Scenario Outline: Inspect smart contract contents for a v1 contract
         Given a <language> smart contract using Fabric v1 for <assetType> assets with the name <name> and version <version>
@@ -61,5 +61,5 @@ Feature: Smart Contracts packages
         And the logger should have been called with 'INFO', 'undefined' and '- src/transaction_data/conga-transactions.txdata'
         And the log should have been called with 'SUCCESS' and 'Displayed information for smart contract package JavaScriptContractV1@0.0.1.'
         Examples:
-        | language   | assetType | name                 | packagedName                   | version |
-        | JavaScript | Conga     | JavaScriptContractV1 | JavaScriptContractV1@0.0.1.cds | 0.0.1   |
+        | language   | assetType | name                 | packagedName               | version |
+        | JavaScript | Conga     | JavaScriptContractV1 | JavaScriptContractV1@0.0.1 | 0.0.1   |

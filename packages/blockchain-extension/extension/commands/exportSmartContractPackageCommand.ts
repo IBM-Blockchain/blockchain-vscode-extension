@@ -32,7 +32,7 @@ export async function exportSmartContractPackage(packageTreeItem?: PackageTreeIt
         let packageToExport: PackageRegistryEntry;
         let packageName: string;
         if (packageTreeItem) {
-            packageName = packageTreeItem.name;
+            packageName = `${packageTreeItem.name}${packageTreeItem.extension}`;
             packageToExport = packageTreeItem.packageEntry;
         } else {
             const chosenPackage: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to export', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;

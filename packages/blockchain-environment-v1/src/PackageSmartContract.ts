@@ -40,4 +40,9 @@ export class PackageSmartContract {
 
         return smartContractPackage.getFileNames();
     }
+
+    // Currently only used for v1 contracts
+    public static getPackageInfo(pkgBuffer: Buffer): {name: string, version: string} {
+        return V1SmartContractPackage.nameAndVersionFromBuffer(pkgBuffer);
+    }
 }
