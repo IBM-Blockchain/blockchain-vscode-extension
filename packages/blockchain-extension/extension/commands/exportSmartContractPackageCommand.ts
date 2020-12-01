@@ -30,23 +30,22 @@ export async function exportSmartContractPackage(packageTreeItem?: PackageTreeIt
     try {
 
         let packageToExport: PackageRegistryEntry;
+        let packageName: string;
         if (packageTreeItem) {
+            packageName = packageTreeItem.name;
             packageToExport = packageTreeItem.packageEntry;
         } else {
             const chosenPackage: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to export', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
             if (!chosenPackage) {
                 return;
             }
+
             packageToExport = chosenPackage.data;
+            packageName = chosenPackage.label;
+
         }
 
-        let packageName: string = packageToExport.name;
-
-        if (packageToExport.version) {
-            packageName = packageName + '@' + packageToExport.version;
-        }
-
-        const defaultPath: string = path.join(os.homedir(), `${packageName}.tar.gz`);
+        const defaultPath: string = path.join(os.homedir(), packageName);
         const packageUri: vscode.Uri = await vscode.window.showSaveDialog({
             defaultUri: vscode.Uri.file(defaultPath),
             saveLabel: 'Export'

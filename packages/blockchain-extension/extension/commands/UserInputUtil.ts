@@ -558,7 +558,8 @@ export class UserInputUtil {
         }
 
         const quickPickItems: IBlockchainQuickPickItem<PackageRegistryEntry>[] = packages.map((_package: PackageRegistryEntry) => {
-            return { label: _package.name, description: _package.version, data: _package };
+            const fileName: string = path.basename(_package.path);
+            return { label: fileName, data: _package };
         });
 
         const quickPickOptions: vscode.QuickPickOptions = {
