@@ -79,7 +79,14 @@ describe('PackageRegistry', () => {
                     version: '0.0.2',
                     path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'fabcar-typescript@0.0.2.tgz'),
                     sizeKB: 33
+                },
+                {
+                    name: 'mypackage',
+                    path: path.join(TestUtil.EXTENSION_TEST_DIR, 'v2', 'packages', 'mypackage@0.0.1.cds'),
+                    sizeKB: 52,
+                    version: '0.0.1'
                 }
+
             ]);
         });
 

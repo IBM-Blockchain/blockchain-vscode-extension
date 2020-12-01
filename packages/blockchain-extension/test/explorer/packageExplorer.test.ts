@@ -56,11 +56,12 @@ describe('packageExplorer', () => {
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
-        testPackages.length.should.equal(4);
+        testPackages.length.should.equal(5);
         testPackages[0].label.should.equal('fabcar-go.tgz');
         testPackages[1].label.should.equal('fabcar-java.tar.gz');
         testPackages[2].label.should.equal('fabcar-javascript@0.0.1.tar.gz');
         testPackages[3].label.should.equal('fabcar-typescript@0.0.2.tgz');
+        testPackages[4].label.should.equal('mypackage@0.0.1.cds');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 

@@ -74,14 +74,14 @@ describe('exportSmartContractPackageCommand', () => {
         const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
         const _package: PackageRegistryEntry = _packages[1];
         sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'fabcar-java',
+            label: 'fabcar-java.tar.gz',
             data: _package
         });
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
         showSaveDialogStub.should.have.been.calledOnce;
         copyStub.should.have.been.calledOnceWithExactly(_package.path, targetPath, { overwrite: true });
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-java to ${targetPath}.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-java.tar.gz to ${targetPath}.`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
     });
 
@@ -91,14 +91,31 @@ describe('exportSmartContractPackageCommand', () => {
         const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
         const _package: PackageRegistryEntry = _packages[2];
         sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'fabcar-javascript',
+            label: 'fabcar-javascript@0.0.1.tar.gz',
             data: _package
         });
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
         showSaveDialogStub.should.have.been.calledOnce;
         copyStub.should.have.been.calledOnceWithExactly(_package.path, targetPath, { overwrite: true });
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-javascript@0.0.1 to ${targetPath}.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-javascript@0.0.1.tar.gz to ${targetPath}.`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
+    });
+
+    it('should be able to export a cds package', async () => {
+        targetPath = path.join('/', 'path', 'to', 'the', 'mypackage@0.0.1.cds');
+        showSaveDialogStub.resolves(vscode.Uri.file(targetPath));
+        const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        const _package: PackageRegistryEntry = _packages[4];
+        sandbox.stub(vscode.window, 'showQuickPick').resolves({
+            label: 'mypackage@0.0.1.cds',
+            data: _package
+        });
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
+        showSaveDialogStub.should.have.been.calledOnce;
+        copyStub.should.have.been.calledOnceWithExactly(_package.path, targetPath, { overwrite: true });
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package mypackage@0.0.1.cds to ${targetPath}.`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
     });
 
@@ -110,7 +127,7 @@ describe('exportSmartContractPackageCommand', () => {
         showSaveDialogStub.should.have.been.calledOnce;
         copyStub.should.have.been.calledOnceWithExactly(_package.packageEntry.path, targetPath, { overwrite: true });
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-java to ${targetPath}.`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package fabcar-java.tar.gz to ${targetPath}.`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
     });
 
@@ -127,7 +144,7 @@ describe('exportSmartContractPackageCommand', () => {
         const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
         const _package: PackageRegistryEntry = _packages[1];
         sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'fabcar-java',
+            label: 'fabcar-java.tar.gz',
             data: _package
         });
         showSaveDialogStub.resolves();
@@ -141,7 +158,7 @@ describe('exportSmartContractPackageCommand', () => {
         const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
         const _package: PackageRegistryEntry = _packages[1];
         sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'fabcar-java',
+            label: 'fabcar-java.tar.gz',
             data: _package
         });
         const error: Error = new Error('such error');

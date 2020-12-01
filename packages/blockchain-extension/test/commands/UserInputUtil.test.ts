@@ -698,9 +698,9 @@ describe('UserInputUtil', () => {
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
 
-            quickPickStub.resolves({ label: 'smartContractPackageBlue', data: newPackage });
+            quickPickStub.resolves({ label: 'smartContractPackageBlue@0.0.1.cds', data: newPackage });
             const result: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
-            result.should.deep.equal({ label: 'smartContractPackageBlue', data: newPackage });
+            result.should.deep.equal({ label: 'smartContractPackageBlue@0.0.1.cds', data: newPackage });
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
                 canPickMany: false,
@@ -718,9 +718,9 @@ describe('UserInputUtil', () => {
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
 
-            quickPickStub.resolves([{ label: 'smartContractPackageBlue', data: newPackage }]);
+            quickPickStub.resolves([{ label: 'smartContractPackageBlue@0.0.1.cds', data: newPackage }]);
             const result: Array<IBlockchainQuickPickItem<PackageRegistryEntry>> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', true) as Array<IBlockchainQuickPickItem<PackageRegistryEntry>>;
-            result.should.deep.equal([{ label: 'smartContractPackageBlue', data: newPackage }]);
+            result.should.deep.equal([{ label: 'smartContractPackageBlue@0.0.1.cds', data: newPackage }]);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
                 canPickMany: true,
