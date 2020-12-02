@@ -89,7 +89,7 @@ describe('deployCommand', () => {
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
-            fabricClientConnectionMock.createChannelMap.resolves({channelMap: map, v1channels: []});
+            fabricClientConnectionMock.createChannelMap.resolves(map);
             fabricConnectionManager = FabricGatewayConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
             fabricConnectionManager = FabricGatewayConnectionManager.instance();
