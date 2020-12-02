@@ -1,0 +1,252 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SampleTabs component should render the expected snapshot 1`] = `
+Array [
+  <div
+    className="sample-tabs-background"
+  />,
+  <div
+    className="bx--tabs bx--tabs--container"
+    role="navigation"
+    selected={0}
+  >
+    <div
+      aria-label="listbox"
+      className="bx--tabs-trigger"
+      onClick={[Function]}
+      onKeyPress={[Function]}
+      role="listbox"
+      tabIndex={0}
+    >
+      <a
+        className="bx--tabs-trigger-text"
+        href="#"
+        onClick={[Function]}
+        tabIndex={-1}
+      >
+        fabric-samples (2)
+      </a>
+      <svg
+        aria-hidden={true}
+        focusable="false"
+        height={16}
+        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 16 16"
+        width={16}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <polygon
+          points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+        />
+        <title>
+          show menu options
+        </title>
+      </svg>
+    </div>
+    <ul
+      className="bx--tabs__nav bx--tabs__nav--hidden"
+      role="tablist"
+    >
+      <li
+        aria-controls="undefined__panel"
+        aria-selected={true}
+        className="bx--tabs__nav-item bx--tabs__nav-item--selected"
+        onClick={[Function]}
+        onKeyDown={[Function]}
+        role="tab"
+        tabIndex={-1}
+      >
+        <a
+          className="bx--tabs__nav-link"
+          href="#"
+          tabIndex={0}
+        >
+          fabric-samples (2)
+        </a>
+      </li>
+    </ul>
+  </div>,
+  <div
+    aria-hidden={false}
+    className="bx--tab-content"
+    hidden={false}
+    role="tabpanel"
+    selected={true}
+  >
+    <div
+      className="tab-container"
+    >
+      <div
+        className="title"
+      >
+        FabCar
+      </div>
+      <div
+        className="badges"
+      >
+        <div
+          className="badge-container"
+        >
+          <svg
+            aria-hidden={true}
+            className="icon"
+            focusable="false"
+            height={16}
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 32 32"
+            width={16}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+            />
+            <polygon
+              points="14 21.5 9 16.54 10.59 14.97 14 18.35 21.41 11 23 12.58 14 21.5"
+            />
+          </svg>
+          <span
+            className="text"
+          >
+            Sample contracts
+          </span>
+        </div>
+        <div
+          className="badge-container"
+        >
+          <svg
+            aria-hidden={true}
+            className="icon"
+            focusable="false"
+            height={16}
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 32 32"
+            width={16}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+            />
+            <polygon
+              points="14 21.5 9 16.54 10.59 14.97 14 18.35 21.41 11 23 12.58 14 21.5"
+            />
+          </svg>
+          <span
+            className="text"
+          >
+            Sample applications
+          </span>
+        </div>
+      </div>
+      <div
+        className="objectives"
+      >
+        Basic sample based on cars: the "hello world" of Hyperledger Fabric samples.
+      </div>
+      <div
+        className="button-container"
+      >
+        <button
+          className="button bx--btn bx--btn--primary"
+          disabled={false}
+          onClick={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          Open sample
+        </button>
+      </div>
+    </div>
+    <br />
+    <div
+      className="tab-container"
+    >
+      <div
+        className="title"
+      >
+        Commercial Paper
+      </div>
+      <div
+        className="badges"
+      >
+        <div
+          className="badge-container"
+        >
+          <svg
+            aria-hidden={true}
+            className="icon"
+            focusable="false"
+            height={16}
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 32 32"
+            width={16}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+            />
+            <polygon
+              points="14 21.5 9 16.54 10.59 14.97 14 18.35 21.41 11 23 12.58 14 21.5"
+            />
+          </svg>
+          <span
+            className="text"
+          >
+            Sample contracts
+          </span>
+        </div>
+        <div
+          className="badge-container"
+        >
+          <svg
+            aria-hidden={true}
+            className="icon"
+            focusable="false"
+            height={16}
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 32 32"
+            width={16}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+            />
+            <polygon
+              points="14 21.5 9 16.54 10.59 14.97 14 18.35 21.41 11 23 12.58 14 21.5"
+            />
+          </svg>
+          <span
+            className="text"
+          >
+            Sample applications
+          </span>
+        </div>
+      </div>
+      <div
+        className="objectives"
+      >
+        Based on a real-world financial use-case, with multiple parties sharing a ledger.
+      </div>
+      <div
+        className="button-container"
+      >
+        <button
+          className="button bx--btn bx--btn--primary"
+          disabled={false}
+          onClick={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          Open sample
+        </button>
+      </div>
+    </div>
+    <br />
+  </div>,
+]
+`;
+
+exports[`SampleTabs component should render the expected snapshot when no sample data is received 1`] = `
+<div
+  className="sample-tabs-background"
+/>
+`;

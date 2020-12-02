@@ -58,6 +58,7 @@ import { FeatureFlagManager, IFeatureFlag, FeatureFlag } from '../../extension/u
 import { defaultDependencies } from '../../extension/dependencies/Dependencies';
 import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
 import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
+import { SampleGalleryView } from '../../extension/webview/SampleGalleryView';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -379,6 +380,7 @@ describe('ExtensionUtil Tests', () => {
                 `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_PRE_REQ_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_RELEASE_NOTES}`,
+                `onCommand:${ExtensionCommands.OPEN_SAMPLE_GALLERY}`,
                 `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
                 `onCommand:${ExtensionCommands.OPEN_DEPLOY_PAGE}`,
                 `onCommand:${ExtensionCommands.OPEN_TRANSACTION_PAGE}`,
@@ -444,6 +446,21 @@ describe('ExtensionUtil Tests', () => {
 
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
             TutorialGalleryViewStub.should.have.been.calledOnce;
+        });
+
+        it('should register and show sample gallery', async () => {
+            const sampleGalleryViewStub: sinon.SinonStub = mySandBox.stub(SampleGalleryView.prototype, 'openView');
+            sampleGalleryViewStub.resolves();
+
+            const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+
+            await ExtensionUtil.registerCommands(ctx);
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_GALLERY);
+
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            sampleGalleryViewStub.should.have.been.calledOnce;
         });
 
         it('should register and show transaction page', async () => {

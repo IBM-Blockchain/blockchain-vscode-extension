@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Tabs, Tab, Link } from 'carbon-components-react';
 import TutorialTile from '../TutorialTile/TutorialTile';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
-import './TutorialTabs.scss';
+import '../../../styles/gallery.scss';
 import Utils from '../../../Utils';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 

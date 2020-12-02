@@ -1,0 +1,180 @@
+@import '@carbon/colors/scss/colors';
+@import '@carbon/layout/scss/_spacing';
+
+#root {
+
+    .tab-container {
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        margin-bottom: $spacing-03;
+    }
+    
+    .badges {
+        display: inline-flex;
+        font-family: 'IBMPlexSans', sans-serif;
+        color: $gray-80;
+        letter-spacing: 0.32px;
+        line-height: $spacing-05;
+        margin-left: $spacing-05;
+    }
+    
+    .icon {
+        margin-right: $spacing-03;
+        fill: black;
+    }
+    
+    .text {
+        font-size: 12px;
+        margin-right: $spacing-05;
+    }
+    
+    .badge-container {
+        display: inline-flex;
+    }
+
+    .title {
+        font-family: 'IBMPlexSans-SemiBold', sans-serif;
+        font-size: 14px;
+        letter-spacing: 0.16px;
+        line-height: 18px;
+        color: $gray-100;
+        margin: $spacing-05;
+    }
+
+    .objectives {
+        min-width: 60%;
+        padding-left: 40px;
+        padding-right: 40px;
+        padding-top: $spacing-05;
+        padding-bottom: $spacing-05;
+    }
+    
+    .objective {
+        color: $gray-70;
+        font-family: 'IBMPlexSans', sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.32px;
+        text-align: left;
+    }
+    
+    .button {
+        max-width: 170px;
+    }
+    
+    .pdf-button {
+        padding-right: 16px;
+        border: none;
+        color: $blue-60;
+    }
+    
+    .button-container {
+        margin-left: auto;
+    }
+
+
+    .gallery-tabs-background {
+        width: 100% !important;
+        height: 48px !important;
+        position: absolute !important;
+        left: 0px !important;
+        z-index: -1 !important;
+    }
+    
+    
+    
+    .bx--tab-content {
+        width: 100% !important;
+        padding-left: 0px !important;
+    }
+
+    .series-description-container {
+        margin-top: $spacing-03;
+        margin-bottom: $spacing-06;
+
+        .series-description {
+            max-width: 650px;
+            font-family: 'IBMPlexSans', sans-serif;
+            font-size: 14px;
+            line-height: 1.25rem;
+            margin-bottom: $spacing-06;
+            color: $gray-100;
+        }
+        
+        .download-all {
+            cursor: pointer;
+            font-family: 'IBMPlexSans', sans-serif;
+            font-size: 14px;
+            margin-top: $spacing-03;
+            letter-spacing: 0.16px;
+            line-height: 18px;
+        }
+    }
+
+
+    .series-description-container {
+        .bx--link {
+            color: $blue-60;
+
+            &:hover {
+                color: $blue-60;
+            }
+
+            &:focus {
+                outline: none;
+            }
+        }
+    }
+
+    .gallery-page-container {
+
+        margin-left: $spacing-07;
+        margin-top: $spacing-05;
+    }
+
+    .gallery-page-description-container {
+        h3 {
+            margin-bottom: $spacing-05;
+            line-height: inherit;
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: inherit;
+        }
+    
+        p {
+            font-family: 'IBMPlexSans', sans-serif;
+            font-size: 14px;
+            line-height: 1.25rem;
+            margin-bottom: $spacing-06;
+            color: inherit;
+        }
+    }
+
+    
+    .gallery-page-description-container {
+        .bx--link {
+            color: $blue-60;
+
+            &:hover {
+                color: $blue-60;
+            }
+        
+            &:focus {
+                outline: none;
+            }
+        }
+    }
+}
+
+
+.vscode-dark{
+    .bx--tab-content{
+        background-color: #262626 !important;
+    }
+}
+
+.vscode-light{
+    .bx--tab-content{
+        background-color: #f4f4f4 !important;
+    }
+}

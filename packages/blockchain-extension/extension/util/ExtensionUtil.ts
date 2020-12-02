@@ -116,6 +116,7 @@ import { deleteExtensionDirectory } from '../commands/deleteExtensionDirectoryCo
 import { defaultDependencies, Dependencies } from '../dependencies/Dependencies';
 import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
 import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
+import { SampleGalleryView } from '../webview/SampleGalleryView';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -279,6 +280,11 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY, async () => {
             const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);
             await tutorialGalleryView.openView(true);
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_SAMPLE_GALLERY, async () => {
+            const sampleGalleryView: SampleGalleryView = new SampleGalleryView(context);
+            await sampleGalleryView.openView(true);
         }));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (seriesName: string, tutorialName: string) => {

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import TutorialTabs from '../../elements/TutorialTabs/TutorialTabs';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
-import './TutorialGalleryPage.scss';
+import '../../../styles/gallery.scss';
 import { Link } from 'carbon-components-react';
 
 interface IProps {
@@ -11,9 +11,9 @@ interface IProps {
 class TutorialPage extends Component<IProps> {
     render(): JSX.Element {
         return (
-            <div className='bx--grid tutorial-page-container'>
+            <div className='bx--grid gallery-page-container'>
                 <div className='bx--row'>
-                    <div className='tutorial-page-description-container'>
+                    <div className='gallery-page-description-container'>
                         <h3>Blockchain Tutorials</h3>
                         <p>
                             In these tutorials you will learn about Hyperledger Fabric development using IBM Blockchain Platform.
@@ -22,7 +22,7 @@ class TutorialPage extends Component<IProps> {
                         </p>
                     </div>
                 </div>
-                <div className='bx--row' id='tutorial-tabs-container'>
+                <div className='bx--row gallery-tabs-container'>
                     <div className='bx--col-lg-13 bx--col-md-8 bx--col-sm-4'>
                         <TutorialTabs tutorialData={this.props.tutorialData}/>
                     </div>

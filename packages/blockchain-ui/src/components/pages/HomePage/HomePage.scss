@@ -1,6 +1,6 @@
 @import '@carbon/colors/scss/colors';
 @import '@carbon/layout/scss/_spacing';
-@import '../../../mixins/layout-mixins.scss';
+@import '../../../styles/mixins/layout-mixins.scss';
 
 .vscode-dark {
 
@@ -62,6 +62,7 @@
         .link-list-container {
             &:first-of-type {
                 padding: 0;
+                margin-right: $spacing-05;
             }
     
             .bx--link {

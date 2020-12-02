@@ -3,7 +3,7 @@
 @import '@carbon/type/scss/type';
 @import '@carbon/type/scss/font-face/_mono';
 @import '@carbon/type/scss/font-face/_sans';
-@import './mixins/theme-mixins.scss';
+@import './styles/mixins/theme-mixins.scss';
 
 @include carbon--type-reset();
 @include carbon--font-face-mono();
@@ -59,7 +59,7 @@ html {
                 @include custom-spacing;
                 
                 #app-container {
-                    @include app__tutorial-page-dark;
+                    @include app__gallery-page-dark;
                 }
 
                 // CustomTile component
@@ -88,13 +88,13 @@ html {
                     filter: invert(100%);
                 }
 
-                #tutorial-page-background {
-                    @include tutorial-page-dark;
+                #gallery-page-background {
+                    @include gallery-page-dark;
                 }
 
-                #tutorial-tabs-container {
-                    @include tutorial-tabs-dark;
-                    @include tutorial-tile-dark;
+                .gallery-tabs-container {
+                    @include gallery-tabs-dark;
+                    @include gallery-tile-dark;
                 }
 
                 // text inputs on the create transaction screen
@@ -183,7 +183,7 @@ html {
                 @include themed-image-light;
             }
 
-            #tutorial-tabs-container{
+            .gallery-tabs-container{
                 .bx--tabs__nav-item--selected {
                     background-color: $gray-10;
                 }

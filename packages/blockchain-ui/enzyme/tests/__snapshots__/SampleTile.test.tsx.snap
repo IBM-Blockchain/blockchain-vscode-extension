@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SampleTile component should render the expected snapshot 1`] = `
+<div
+  className="tab-container"
+>
+  <div
+    className="title"
+  >
+    FabCar
+  </div>
+  <div
+    className="badges"
+  >
+    <div
+      className="badge-container"
+    >
+      <svg
+        aria-hidden={true}
+        className="icon"
+        focusable="false"
+        height={16}
+        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 32 32"
+        width={16}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+        />
+        <polygon
+          points="14 21.5 9 16.54 10.59 14.97 14 18.35 21.41 11 23 12.58 14 21.5"
+        />
+      </svg>
+      <span
+        className="text"
+      >
+        Sample contracts
+      </span>
+    </div>
+    <div
+      className="badge-container"
+    >
+      <svg
+        aria-hidden={true}
+        className="icon"
+        focusable="false"
+        height={16}
+        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 32 32"
+        width={16}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm0,26A12,12,0,1,1,28,16,12,12,0,0,1,16,28Z"
+        />
+        <polygon
+          points="14 21.5 9 16.54 10.59 14.97 14 18.35 21.41 11 23 12.58 14 21.5"
+        />
+      </svg>
+      <span
+        className="text"
+      >
+        Sample applications
+      </span>
+    </div>
+  </div>
+  <div
+    className="objectives"
+  >
+    Basic sample based on cars: the "hello world" of Hyperledger Fabric samples.
+  </div>
+  <div
+    className="button-container"
+  >
+    <button
+      className="button bx--btn bx--btn--primary"
+      disabled={false}
+      onClick={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      Open sample
+    </button>
+  </div>
+</div>
+`;

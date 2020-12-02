@@ -111,12 +111,12 @@ Array [
       className="tab-container"
     >
       <div
-        className="tutorial-title"
+        className="title"
       >
         a1
       </div>
       <div
-        className="time-container"
+        className="badges"
       >
         <svg
           aria-hidden={true}
@@ -151,7 +151,7 @@ Array [
         </span>
       </div>
       <div
-        className="tutorial-objectives"
+        className="objectives"
       >
         <p
           className="objective"
@@ -205,12 +205,12 @@ Array [
       className="tab-container"
     >
       <div
-        className="tutorial-title"
+        className="title"
       >
         something really interesting
       </div>
       <div
-        className="time-container"
+        className="badges"
       >
         <svg
           aria-hidden={true}
@@ -245,7 +245,7 @@ Array [
         </span>
       </div>
       <div
-        className="tutorial-objectives"
+        className="objectives"
       >
         <p
           className="objective"

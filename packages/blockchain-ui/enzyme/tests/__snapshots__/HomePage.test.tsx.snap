@@ -152,7 +152,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
             id="home-link-02"
             onClick={[Function]}
           >
-            Release notes
+            View Release notes
           </a>
           <a
             className="bx--link"
@@ -160,15 +160,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
             id="home-link-05"
             onClick={[Function]}
           >
-            Sample code: FabCar
-          </a>
-          <a
-            className="bx--link"
-            href=""
-            id="home-link-06"
-            onClick={[Function]}
-          >
-            Sample code: Commercial Paper
+            View Sample Gallery
           </a>
           <a
             className="bx--link"

@@ -117,8 +117,8 @@
     }
 }
 
-@mixin app__tutorial-page-dark {
-    .app-container__tutorial-page {
+@mixin app__gallery-page-dark {
+    .app-container__gallery-page {
         background-color: $gray-90;
         box-shadow: inset 0px 164px #000000;
     }
@@ -245,13 +245,13 @@
     }
 }
 
-@mixin tutorial-page-dark {
+@mixin gallery-page-dark {
     background-color: $gray-90;
     box-shadow: inset 0 148px #000000;
 }
 
-@mixin tutorial-tabs-dark {    
-    .tutorial-tabs-background {
+@mixin gallery-tabs-dark {    
+    .gallery-tabs-background {
         background-color: #000000;
     }
     
@@ -294,11 +294,11 @@
     }
 }
 
-@mixin tutorial-tile-dark {
+@mixin gallery-tile-dark {
     .tab-container {
         background-color: $gray-80;
 
-        .tutorial-title {
+        .title {
             color: white;
         }
 
