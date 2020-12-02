@@ -34,7 +34,14 @@ class TransactionPage extends Component<IProps, IState> {
     }
 
     componentDidUpdate(prevProps: IProps): void {
-        const { transactionViewData: { associatedTxdata, txdataTransactions }, transactionOutput } = this.props;
+        const { transactionViewData: { associatedTxdata, txdataTransactions, smartContract }, transactionOutput } = this.props;
+
+        if (prevProps.transactionViewData.smartContract !== smartContract) {
+            this.setState({
+                smartContract,
+            });
+        }
+
         if (prevProps.transactionViewData.associatedTxdata !== associatedTxdata) {
             this.setState({
                 associatedTxdata,
