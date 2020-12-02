@@ -1,4 +1,4 @@
-import React, { Dispatch, FunctionComponent, SetStateAction, useState } from 'react';
+import React, { Dispatch, FunctionComponent, SetStateAction, useEffect, useState } from 'react';
 import './TransactionManualInput.scss';
 import { Dropdown, TextArea } from 'carbon-components-react';
 import ITransaction from '../../../interfaces/ITransaction';
@@ -33,10 +33,24 @@ function convertJSONToArgs(transactionArguments: string): Array<string> {
     return array;
 }
 
+const getInitialUnparsedArgsFromTransaction: any = (transaction: ITransaction, transactionArguments: Array<string>): string => {
+    if (transaction && transaction.name !== '' && transaction.parameters && transaction.parameters.length > 0) {
+        return convertArgsToJSON(transaction.parameters, transactionArguments);
+    }
+    return '';
+};
+
 const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manualInputState, setManualInput }) => {
     const { activeTransaction, transactionArguments, transientData } = manualInputState;
 
-    const [unparsedArgs, setUnparsedArgs] = useState(activeTransaction && activeTransaction.parameters ? convertArgsToJSON(activeTransaction.parameters, transactionArguments) : '');
+    const [unparsedArgs, setUnparsedArgs] = useState(getInitialUnparsedArgsFromTransaction(activeTransaction, transactionArguments));
+
+    useEffect(() => {
+        const newUnparsedArgs: string = getInitialUnparsedArgsFromTransaction(activeTransaction, transactionArguments);
+        if (newUnparsedArgs !== unparsedArgs) {
+            setUnparsedArgs(newUnparsedArgs);
+        }
+    }, [activeTransaction, transactionArguments, unparsedArgs]);
 
     function setActiveTransaction(data: any): void {
         const { transactions } = smartContract;

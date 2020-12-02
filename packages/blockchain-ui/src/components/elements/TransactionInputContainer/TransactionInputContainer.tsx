@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useState, useEffect } from 'react';
 import { ContentSwitcher, Form, Switch, MultiSelect } from 'carbon-components-react';
 import TransactionManualInput from '../TransactionManualInput/TransactionManualInput';
 import TransactionDataInput from '../TransactionDataInput/TransactionDataInput';
@@ -19,6 +19,15 @@ interface IProps {
     preselectedTransaction: ITransaction;
 }
 
+const emptyTransaction: ITransaction = { name: '', parameters: [], returns: { type: '' }, tag: [] };
+
+const activeTransactionExists: any = (smartContract: ISmartContract, currentlyActiveTransaction: ITransaction) => {
+    const index: number = smartContract.transactions.findIndex((transaction) => (
+        JSON.stringify(transaction) === JSON.stringify(currentlyActiveTransaction)
+    ));
+    return index > -1;
+};
+
 const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, txdataTransactions, preselectedTransaction }) => {
     const { peerNames } = smartContract;
 
@@ -26,7 +35,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     const [peerTargetNames, setPeerTargetNames] = useState(peerNames);
 
     const [manualInputState, updateManualInputState] = useState<ITransactionManualInput>({
-        activeTransaction: preselectedTransaction || { name: '', parameters: [], returns: { type: '' }, tag: [] },
+        activeTransaction: preselectedTransaction || emptyTransaction,
         transactionArguments: [],
         transientData: '',
     });
@@ -34,6 +43,13 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     // The data input transaction only needs the transaction.
     // When more is needed, convert it to an object like above
     const [dataInputTransaction, updateDataInputTransaction] = useState<IDataFileTransaction>({ transactionName: '', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} });
+
+    useEffect(() => {
+        if (manualInputState.activeTransaction && manualInputState.activeTransaction.name !== '' && !activeTransactionExists(smartContract, manualInputState.activeTransaction)) {
+                // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
+                updateManualInputState({ ...manualInputState, activeTransaction: emptyTransaction, transactionArguments: [] });
+        }
+    }, [smartContract, manualInputState]);
 
     const submitTransaction: any = (evaluate: boolean): void => {
 

@@ -23,8 +23,13 @@ import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlo
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment-v1';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
-import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricSmartContractDefinition, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
+import { FabricGatewayConnectionManager } from '../../extension/fabric/FabricGatewayConnectionManager';
+import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
+import { TransactionView } from '../../extension/webview/TransactionView';
+import { GlobalState } from '../../extension/util/GlobalState';
+import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
 
 chai.use(sinonChai);
 
@@ -44,6 +49,11 @@ describe('deployCommand', () => {
         let environmentConnectionStub: sinon.SinonStub;
         let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         let packageRegistryEntry: PackageRegistryEntry;
+        let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricGatewayConnection>;
+        let getConnectionStub: sinon.SinonStub;
+        let fabricConnectionManager: FabricGatewayConnectionManager;
+        let gatewayRegistryEntry: FabricGatewayRegistryEntry;
+        let getGatewayRegistryStub: sinon.SinonStub;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -51,6 +61,7 @@ describe('deployCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.APPROVE_SMART_CONTRACT).resolves();
             executeCommandStub.withArgs(ExtensionCommands.COMMIT_SMART_CONTRACT).resolves();
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
             executeCommandStub.callThrough();
 
             fabricRuntimeMock = mySandBox.createStubInstance(FabricEnvironmentConnection);
@@ -72,6 +83,54 @@ describe('deployCommand', () => {
             });
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
+            fabricClientConnectionMock = mySandBox.createStubInstance(FabricGatewayConnection);
+            fabricClientConnectionMock.connect.resolves();
+
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('myChannel', ['peerOne']);
+            fabricClientConnectionMock.createChannelMap.resolves({channelMap: map, v1channels: []});
+            fabricConnectionManager = FabricGatewayConnectionManager.instance();
+            getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
+            fabricConnectionManager = FabricGatewayConnectionManager.instance();
+            gatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = 'myGateway';
+            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
+            getGatewayRegistryStub.resolves(gatewayRegistryEntry);
+
+            fabricClientConnectionMock.getInstantiatedChaincode.resolves([{ name: 'mySmartContract', version: '0.0.1' }]);
+            fabricClientConnectionMock.getChannelPeersInfo.resolves([{
+                name: 'peerOne',
+                mspID: 'org1msp'
+            }, {
+                name: 'peerTwo',
+                mspID: 'org1msp'
+            }]);
+            fabricClientConnectionMock.getMetadata.resolves(
+                {
+                    contracts: {
+                        'my-contract': {
+                            name: 'my-contract',
+                            transactions: [
+                                {
+                                    name: 'transaction1'
+                                },
+                                {
+                                    name: 'transaction2'
+                                }
+                            ],
+                        },
+                        'org.hyperledger.fabric': {
+                            name: 'org.hyperledger.fabric',
+                            transactions: [
+                                {
+                                    name: 'GetMetadata'
+                                }
+                            ]
+                        }
+                    }
+                }
+            );
         });
 
         afterEach(async () => {
@@ -158,6 +217,107 @@ describe('deployCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', commitMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
             logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
+        });
+
+        it('should update the TransactionView\'s smart contract when it changes the smart contract', async () => {
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const postMessageStub: sinon.SinonStub = mySandBox.stub().resolves();
+            const createWebviewPanelStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
+            createWebviewPanelStub.returns({
+                title: 'Transaction Page',
+                webview: {
+                    postMessage: postMessageStub,
+                    onDidReceiveMessage: mySandBox.stub()
+                },
+                reveal: mySandBox.stub(),
+                dispose: mySandBox.stub(),
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+            const transactionView: TransactionView = new TransactionView(context, { smartContract: undefined });
+            await transactionView.openView(false);
+            postMessageStub.should.have.been.calledWith({
+                path: '/transaction',
+                transactionViewData: { smartContract: undefined },
+            });
+
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
+            orgMap.set('Org2MSP', ['peerTwo', 'peerThree']);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
+            getConnectionStub.should.have.been.called;
+
+            postMessageStub.should.have.been.calledWith({
+                path: '/transaction',
+                transactionViewData: { smartContract: {
+                    name: 'mySmartContract',
+                    version: '0.0.1',
+                    channel: 'myChannel',
+                    label: 'mySmartContract@0.0.1',
+                    transactions: [
+                        { name: 'transaction1' },
+                        { name: 'transaction2' },
+                    ],
+                    namespace: 'my-contract',
+                    peerNames: ['peerOne', 'peerTwo'],
+                } },
+            });
+        });
+
+        it('should handle cancellation when attempting to connect to a gateway when the Transaction View is open', async () => {
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const createWebviewPanelStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
+            createWebviewPanelStub.returns({
+                title: 'Transaction Page',
+                webview: {
+                    postMessage: mySandBox.stub().resolves(),
+                    onDidReceiveMessage: mySandBox.stub()
+                },
+                reveal: mySandBox.stub(),
+                dispose: mySandBox.stub(),
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+            const transactionView: TransactionView = new TransactionView(context, { smartContract: undefined });
+            await transactionView.openView(false);
+            getConnectionStub.returns(undefined);
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
+        });
+
+        it('should call the CONNECT_TO_GATEWAY command if not already connected and submit a smart contract using the connected gateway when the Transaction View is open', async () => {
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            const createWebviewPanelStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
+            createWebviewPanelStub.returns({
+                title: 'Transaction Page',
+                webview: {
+                    postMessage: mySandBox.stub().resolves(),
+                    onDidReceiveMessage: mySandBox.stub()
+                },
+                reveal: mySandBox.stub(),
+                dispose: mySandBox.stub(),
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+            const transactionView: TransactionView = new TransactionView(context, { smartContract: undefined });
+            await transactionView.openView(false);
+            getConnectionStub.returns(undefined);
+            getConnectionStub.onSecondCall().returns('anotherGateway');
+            const getSmartContractStub: sinon.SinonStub = mySandBox.stub(openTransactionViewCommand, 'getSmartContract').resolves();
+
+            const orgMap: Map<string, string[]> = new Map<string, string[]>();
+            orgMap.set('Org1MSP', ['peerOne']);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
+            getSmartContractStub.should.have.been.calledWith('anotherGateway');
         });
     });
 });

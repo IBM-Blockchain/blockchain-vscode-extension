@@ -75,6 +75,22 @@ describe('TransactionPage component', () => {
         expect(component).toMatchSnapshot();
     });
 
+    it('should update the smartContract when a new one is passed down through props', async () => {
+        const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
+        const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+        expect(component.state()).toHaveProperty('smartContract', greenContract);
+
+        const newContract: ISmartContract =  { ...greenContract, name: 'updatedContract' };
+        component.setProps({
+            transactionViewData: {
+                smartContract: newContract,
+            }
+        });
+
+        componentDidUpdateSpy.should.have.been.called;
+        component.state().smartContract.should.equal(newContract);
+    });
+
     it('should update the associatedTxdata when something new is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
         const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
@@ -82,6 +98,7 @@ describe('TransactionPage component', () => {
 
         component.setProps({
             transactionViewData: {
+                smartContract: greenContract,
                 associatedTxdata: 'new data',
             }
         });
