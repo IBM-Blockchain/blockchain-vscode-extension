@@ -29,12 +29,14 @@ type ITransaction = any;
 type ISmartContract = any;
 chai.use(sinonChai);
 
+const should: Chai.Should = chai.should();
+
 interface ICreateTransactionViewAndSendMessageParams {
     mySandBox: sinon.SinonSandbox;
     createWebviewPanelStub: sinon.SinonStub;
     postMessageStub: sinon.SinonStub;
     context: vscode.ExtensionContext;
-    mockAppState: { gatewayName: string, selectedSmartContract: ISmartContract, associatedTxdata?: {chaincodeName: string, channelName: string, transactionDataPath: string} };
+    mockAppState: { gatewayName: string, smartContract: ISmartContract, associatedTxdata?: {chaincodeName: string, channelName: string, transactionDataPath: string} };
     command: string | undefined;
     data: object | undefined;
 }
@@ -119,9 +121,9 @@ describe('TransactionView', () => {
         namespace: 'GreenContract'
     };
 
-    const mockAppState: {gatewayName: string, selectedSmartContract: ISmartContract} = {
+    const mockAppState: {gatewayName: string, smartContract: ISmartContract} = {
         gatewayName: 'my gateway',
-        selectedSmartContract: greenContract
+        smartContract: greenContract
     };
 
     const transactionObject: any = {
@@ -251,7 +253,7 @@ describe('TransactionView', () => {
         const expectedParameters: any = {
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: undefined,
+                smartContract: mockAppState.smartContract,
                 associatedTxdata: associateTransactionDataDirectoryResponse,
                 txdataTransactions: [
                     {
@@ -280,7 +282,7 @@ describe('TransactionView', () => {
         postMessageStub.should.have.been.calledWith({
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: undefined,
+                smartContract: mockAppState.smartContract,
                 associatedTxdata: associateTransactionDataDirectoryResponse,
                 txdataTransactions: [],
             },
@@ -299,7 +301,7 @@ describe('TransactionView', () => {
         postMessageStub.should.have.been.calledWith({
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: undefined,
+                smartContract: mockAppState.smartContract,
                 associatedTxdata: associateTransactionDataDirectoryResponse,
                 txdataTransactions: [],
             },
@@ -317,7 +319,7 @@ describe('TransactionView', () => {
         postMessageStub.should.have.been.calledWith({
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: undefined,
+                smartContract: mockAppState.smartContract,
                 associatedTxdata: undefined,
                 txdataTransactions: [],
             },
@@ -361,7 +363,7 @@ describe('TransactionView', () => {
             transactionViewData: {
                 associatedTxdata: associateTransactionDataDirectoryResponse,
                 gatewayName: mockAppState.gatewayName,
-                selectedSmartContract: greenContract,
+                smartContract: greenContract,
                 txdataTransactions: [
                     {
                         ...dummyTxdataFileContents[0],
@@ -376,5 +378,78 @@ describe('TransactionView', () => {
         };
 
         postMessageStub.should.have.been.calledWith(expectedParameters);
+    });
+
+    it('should update a smartContract', async () => {
+        createWebviewPanelStub.returns({
+            title: 'Transaction Page',
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: mySandBox.stub(),
+            dispose: mySandBox.stub(),
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub()
+        });
+
+        const transactionView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionView.openView(false);
+        createWebviewPanelStub.should.have.been.called;
+        postMessageStub.should.have.been.calledWith({
+            path: '/transaction',
+            transactionViewData: mockAppState,
+        });
+
+        const updatedContract: ISmartContract = { ...greenContract, name: 'updatedContract' };
+        await TransactionView.updateSmartContract(updatedContract);
+        postMessageStub.should.have.been.calledWith({
+            path: '/transaction',
+            transactionViewData: { ...mockAppState, smartContract: updatedContract },
+        });
+    });
+
+    it('should dispose of the TransactionView', async () => {
+        const disposeStub: sinon.SinonStub = mySandBox.stub();
+        createWebviewPanelStub.returns({
+            title: 'Transaction Page',
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: mySandBox.stub(),
+            dispose: disposeStub,
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub()
+        });
+
+        const transactionView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionView.openView(false);
+        TransactionView.closeView();
+        disposeStub.should.have.been.called;
+    });
+
+    it('should set panel to undefined if disposed', async () => {
+        const disposeStub: sinon.SinonStub = mySandBox.stub().yields();
+
+        createWebviewPanelStub.returns({
+            title: 'Deploy Smart Contract',
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: (): void => {
+                return;
+            },
+            onDidDispose: disposeStub,
+            onDidChangeViewState: mySandBox.stub(),
+            _isDisposed: false
+        });
+
+        const deployView: TransactionView = new TransactionView(context, mockAppState);
+
+        await deployView.openView(false);
+        should.not.exist(TransactionView.panel);
+
     });
 });

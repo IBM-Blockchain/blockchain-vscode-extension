@@ -22,17 +22,11 @@ import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { IFabricGatewayConnection, FabricSmartContractDefinition, LogType, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
 import { GlobalState } from '../util/GlobalState';
 import ITransaction from '../interfaces/ITransaction';
+import ISmartContract from '../interfaces/ISmartContract';
 
 interface IAppState {
     gatewayName: string;
-    smartContract: {
-        name: string,
-        version: string,
-        channel: string,
-        label: string,
-        transactions: ITransaction[],
-        namespace: string
-    };
+    smartContract: ISmartContract;
     associatedTxdata: {
         chaincodeName: string,
         channelName: string,
@@ -41,15 +35,54 @@ interface IAppState {
     preselectedTransaction: ITransaction;
 }
 
+export async function getSmartContract(connection: IFabricGatewayConnection, smartContractName: string, smartContractVersion?: string): Promise<ISmartContract> {
+    let contract: { name: string, contractInstance: {}, transactions: ITransaction[], info: {} };
+    let data: ISmartContract;
+    let selectedSmartContract: ISmartContract;
+
+    const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
+    const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
+
+    for (const [thisChannelName] of channelMap) {
+        const chaincodes: Array<FabricSmartContractDefinition> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
+        const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(thisChannelName);
+        const peerNames: string[] = channelPeerInfo.map((peer: {name: string, mspID: string}) => {
+            return peer.name;
+        });
+        for (const chaincode of chaincodes) {
+            const metadataObj: any = await connection.getMetadata(chaincode.name, thisChannelName);
+            const contractsObject: any = metadataObj.contracts;
+            Object.keys(contractsObject).forEach((key: string) => {
+                if (key !== 'org.hyperledger.fabric' && (contractsObject[key].transactions.length > 0)) {
+                    // Always match name, match version if smartContractVersion is supplied
+                    if ((chaincode.name === smartContractName) && (!smartContractVersion || chaincode.version === smartContractVersion)) {
+                        contract = metadataObj.contracts[key];
+                        data = {
+                            name: chaincode.name,
+                            version: chaincode.version,
+                            channel: thisChannelName,
+                            label: chaincode.name + '@' + chaincode.version,
+                            transactions: contract.transactions,
+                            namespace: contract.name,
+                            peerNames
+                        };
+                        selectedSmartContract = data;
+                        return;
+                    }
+                }
+            });
+        }
+    }
+    return selectedSmartContract;
+}
+
 export async function openTransactionView(treeItem?: InstantiatedTreeItem, selectedTransactionName?: string): Promise<IAppState> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `Open Transaction View`);
-    let smartContractLabel: string;
-    let contract: { name: string, contractInstance: {}, transactions: ITransaction[], info: {} };
-    let data: { name: string, version: string, channel: string, label: string, transactions: ITransaction[], namespace: string, peerNames: string[] };
+    let smartContractName: string;
+    let smartContractVersion: string;
 
     let connection: IFabricGatewayConnection = FabricGatewayConnectionManager.instance().getConnection();
-
     if (!connection) {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
         connection = FabricGatewayConnectionManager.instance().getConnection();
@@ -63,60 +96,20 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem, selec
     const gatewayName: string = gatewayRegistryEntry.name;
 
     if (treeItem) {
-        smartContractLabel = treeItem.name + '@' + treeItem.version;
+        smartContractName = treeItem.name;
+        smartContractVersion = treeItem.version;
     } else {
         const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract`, null);
         if (!chosenSmartContract) {
             return;
         }
-        smartContractLabel = chosenSmartContract.data.name + '@' + chosenSmartContract.data.version;
+        smartContractName = chosenSmartContract.data.name;
+        smartContractVersion = chosenSmartContract.data.version;
     }
 
-    const createChannelsResult: {channelMap: Map<string, Array<string>>, v1channels: Array<string>} = await connection.createChannelMap();
-    const channelMap: Map<string, Array<string>> = createChannelsResult.channelMap;
+    const selectedSmartContract: ISmartContract = await getSmartContract(connection, smartContractName, smartContractVersion);
 
-    let selectedSmartContract: { name: string, version: string, channel: string, label: string, transactions: ITransaction[], namespace: string };
-    let preselectedTransaction: ITransaction;
-
-    let metadataObj: any = {
-        contracts: {
-            '' : {
-                name: '',
-                transactions: [],
-            }
-        }
-    };
-
-    for (const [thisChannelName] of channelMap) {
-        const chaincodes: Array<FabricSmartContractDefinition> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
-        const channelPeerInfo: {name: string, mspID: string}[] = await connection.getChannelPeersInfo(thisChannelName);
-        const peerNames: string[] = channelPeerInfo.map((peer: {name: string, mspID: string}) => {
-            return peer.name;
-        });
-        for (const chaincode of chaincodes) {
-            metadataObj = await connection.getMetadata(chaincode.name, thisChannelName);
-            const contractsObject: any = metadataObj.contracts;
-            Object.keys(contractsObject).forEach((key: string) => {
-                if (key !== 'org.hyperledger.fabric' && (contractsObject[key].transactions.length > 0)) {
-                    if ((chaincode.name + '@' + chaincode.version) === smartContractLabel) {
-                        contract = metadataObj.contracts[key];
-                        data = {
-                            name: chaincode.name,
-                            version: chaincode.version,
-                            channel: thisChannelName,
-                            label: chaincode.name + '@' + chaincode.version,
-                            transactions: contract.transactions,
-                            namespace: contract.name,
-                            peerNames
-                        };
-                        selectedSmartContract = data;
-                        preselectedTransaction = data.transactions.find(({ name }: { name: string }) => name === selectedTransactionName);
-                        return;
-                    }
-                }
-            });
-        }
-    }
+    const preselectedTransaction: ITransaction = selectedSmartContract && selectedSmartContract.transactions.find(({ name }: { name: string }) => name === selectedTransactionName);
 
     let associatedTxdata: {chaincodeName: string, channelName: string, transactionDataPath: string};
     if (gatewayRegistryEntry.transactionDataDirectories) {

@@ -12,10 +12,12 @@
  * limitations under the License.
 */
 
+import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { EventEmitter } from 'events';
 import { FabricWalletRegistryEntry, IFabricGatewayConnection, FabricGatewayRegistryEntry } from 'ibm-blockchain-platform-common';
+import { TransactionView } from '../webview/TransactionView';
 
 export class FabricGatewayConnectionManager extends EventEmitter {
 
@@ -76,6 +78,11 @@ export class FabricGatewayConnectionManager extends EventEmitter {
             this.gatewayRegistryEntry = null;
         }
         this.emit('disconnected');
+
+        const panel: vscode.WebviewPanel = TransactionView.panel;
+        if (panel) {
+            TransactionView.closeView();
+        }
     }
 
     public getConnectionIdentity(): string {
