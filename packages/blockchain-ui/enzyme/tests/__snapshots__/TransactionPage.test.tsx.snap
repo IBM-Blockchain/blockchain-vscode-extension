@@ -180,7 +180,7 @@ exports[`TransactionPage component should render the expected snapshot 1`] = `
                   onClick={[Function]}
                   placeholder=""
                   rows={4}
-                  value=""
+                  value="[]"
                 />
               </div>
             </div>
