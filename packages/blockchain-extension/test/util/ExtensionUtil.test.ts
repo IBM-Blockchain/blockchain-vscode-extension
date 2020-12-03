@@ -1931,7 +1931,7 @@ describe('ExtensionUtil Tests', () => {
 
             });
 
-            it('should should handle any errors when initializing', async () => {
+            it('should handle any errors when initializing', async () => {
                 runtimeManager['runtimes'].clear();
                 getSettingsStub.withArgs(SettingConfigurations.EXTENSION_BYPASS_PREREQS).returns(false);
                 const error: Error = new Error('Unable to initialize');
