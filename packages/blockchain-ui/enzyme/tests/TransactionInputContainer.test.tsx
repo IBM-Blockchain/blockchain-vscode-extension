@@ -472,6 +472,30 @@ describe('TransactionInputContainer component', () => {
             expect(dropdown.prop('selectedItem')).toEqual('Select the transaction name');
             expect(manualInputState.activeTransaction).toEqual({ name: '', parameters: [], returns: { type: '' }, tag: [] });
         });
+
+        it('should update the activeTransaction if a new preselectedTransaction is sent', () => {
+            act(() => {
+                component.setProps({ smartContract: greenContract, preselectedTransaction: transactionOne });
+            });
+            component = component.update();
+
+            let manualInput: any = component.find(TransactionManualInput);
+            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            let dropdown: any = component.find(transactionNameSelector);
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+            expect(manualInputState.activeTransaction).toEqual(transactionOne);
+
+            act(() => {
+                component.setProps({ smartContract: greenContract, preselectedTransaction: transactionTwo });
+            });
+            component = component.update();
+
+            dropdown = component.find(transactionNameSelector);
+            manualInput = component.find(TransactionManualInput);
+            manualInputState = manualInput.prop('manualInputState');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionTwo');
+            expect(manualInputState.activeTransaction).toEqual(transactionTwo);
+        });
     });
 
     describe('Data file input', () => {

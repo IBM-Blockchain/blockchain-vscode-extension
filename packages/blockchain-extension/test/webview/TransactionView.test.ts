@@ -452,4 +452,35 @@ describe('TransactionView', () => {
         should.not.exist(TransactionView.panel);
 
     });
+
+    it('Should call postMessage when openView is called and TransactionView.panel exists', async () => {
+        createWebviewPanelStub.returns({
+            title: 'Transaction Page',
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: mySandBox.stub()
+            },
+            reveal: mySandBox.stub(),
+            dispose: mySandBox.stub(),
+            onDidDispose: mySandBox.stub(),
+            onDidChangeViewState: mySandBox.stub()
+        });
+
+        const transactionView: TransactionView = new TransactionView(context, mockAppState);
+        await transactionView.openView(false);
+        createWebviewPanelStub.should.have.been.called;
+        postMessageStub.should.have.been.calledWith({
+            path: '/transaction',
+            transactionViewData: mockAppState,
+        });
+
+        const updatedContract: ISmartContract = { ...greenContract, name: 'updatedContract' };
+        const newTransactionView: TransactionView = new TransactionView(context, { ...mockAppState, smartContract: updatedContract });
+        await newTransactionView.openView(false);
+        createWebviewPanelStub.should.have.been.called;
+        postMessageStub.should.have.been.calledWith({
+            path: '/transaction',
+            transactionViewData: { ...mockAppState, smartContract: updatedContract },
+        });
+    });
 });

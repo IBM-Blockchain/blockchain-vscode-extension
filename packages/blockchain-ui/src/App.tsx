@@ -44,6 +44,7 @@ class App extends Component<{}, AppState> {
 
     componentDidMount(): void {
         window.addEventListener('message', (event: MessageEvent) => {
+
             const newState: any = {
                 redirectPath: event.data.path
             };

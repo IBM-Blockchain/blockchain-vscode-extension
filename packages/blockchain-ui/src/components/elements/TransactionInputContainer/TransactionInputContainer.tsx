@@ -45,11 +45,15 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     const [dataInputTransaction, updateDataInputTransaction] = useState<IDataFileTransaction>({ transactionName: '', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} });
 
     useEffect(() => {
-        if (manualInputState.activeTransaction && manualInputState.activeTransaction.name !== '' && !activeTransactionExists(smartContract, manualInputState.activeTransaction)) {
-                // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
-                updateManualInputState({ ...manualInputState, activeTransaction: emptyTransaction, transactionArguments: [] });
+        const { activeTransaction } = manualInputState;
+        if (activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
+            // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
+            updateManualInputState({ ...manualInputState, activeTransaction: emptyTransaction, transactionArguments: [] });
+        } else if (preselectedTransaction && preselectedTransaction.name && activeTransaction !== preselectedTransaction) {
+            // If the preselectedTransaction is changed, update the activeTransaction. Ignore if the preselectedTransaction is empty
+            updateManualInputState({ ...manualInputState, activeTransaction: preselectedTransaction, transactionArguments: [] });
         }
-    }, [smartContract, manualInputState]);
+    }, [smartContract, manualInputState, preselectedTransaction]);
 
     const submitTransaction: any = (evaluate: boolean): void => {
 
