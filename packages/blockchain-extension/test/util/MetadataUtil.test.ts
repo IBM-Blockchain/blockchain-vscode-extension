@@ -165,8 +165,14 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should return null if no transaction names', async () => {
-        fabricClientConnectionMock.getMetadata.rejects(new Error('no metadata here jack'));
+        fabricClientConnectionMock.getMetadata.rejects(new Error('Transaction function "org.hyperledger.fabric:GetMetadata" and some message'));
         const names: Map<string, string[]> = await MetadataUtil.getTransactionNames(fabricClientConnectionMock, 'chaincode', 'channel');
+        should.equal(names, null);
+    });
+
+    it('should return null if no contract names', async () => {
+        fabricClientConnectionMock.getMetadata.rejects(new Error('Transaction function "org.hyperledger.fabric:GetMetadata" and some message'));
+        const names: string[] = await MetadataUtil.getContractNames(fabricClientConnectionMock, 'chaincode', 'channel');
         should.equal(names, null);
     });
 
@@ -177,9 +183,9 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should return null if no transaction objects', async () => {
-        fabricClientConnectionMock.getMetadata.rejects(new Error('no metadata here jack'));
+        fabricClientConnectionMock.getMetadata.rejects(new Error('Transaction function "org.hyperledger.fabric:GetMetadata" and some other message'));
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
-        should.equal(transactionsMap, null);
+        transactionsMap.should.deep.equal(new Map());
     });
 
     it('should error if no contracts', async () => {
@@ -193,10 +199,31 @@ describe('Metadata ConnectionProfileUtil tests', () => {
     });
 
     it('should handle error getting metadata', async () => {
-        fabricClientConnectionMock.getMetadata.rejects({ message: `some error` });
+        fabricClientConnectionMock.getMetadata.rejects({ message: 'Transaction function "org.hyperledger.fabric:GetMetadata" and yet other message'});
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel');
+        transactionsMap.should.deep.equal(new Map());
+        logSpy.should.have.been.calledOnceWithExactly(LogType.WARNING, null, `Could not get metadata for smart contract chaincode. The smart contract may not have been developed with the programming model delivered in Hyperledger Fabric v1.4+ for Java, JavaScript and TypeScript. Error: Transaction function "org.hyperledger.fabric:GetMetadata" and yet other message`);
+    });
+
+    it('should handle error other than when getting metadata', async () => {
+        getGatewayRegistryEntryStub.resolves(localGateway);
+
+        const activeDebugSessionStub: any = {
+            configuration: {
+                env: {
+                    CORE_CHAINCODE_ID_NAME: 'chaincode:0.0.1'
+                },
+                debugEvent: FabricDebugConfigurationProvider.debugEvent
+            }
+        };
+
+        FabricDebugConfigurationProvider.environmentName = FabricRuntimeUtil.LOCAL_FABRIC;
+
+        debugSessionStub.value(activeDebugSessionStub);
+        mockRuntime.killChaincode.rejects({ message: 'some error'});
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel');
         should.equal(transactionsMap, null);
-        logSpy.should.have.been.calledOnceWithExactly(LogType.WARNING, null, sinon.match(/Could not get metadata for smart contract chaincode.*some error/));
+        logSpy.should.have.been.calledOnceWithExactly(LogType.WARNING, null, `Could not get metadata for smart contract chaincode. The smart contract may not have been developed with the programming model delivered in Hyperledger Fabric v1.4+ for Java, JavaScript and TypeScript. Error: some error`);
     });
 
     it('should kill the chaincode if running in debug', async () => {

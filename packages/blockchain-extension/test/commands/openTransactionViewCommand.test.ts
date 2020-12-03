@@ -192,6 +192,34 @@ describe('OpenTransactionViewCommand', () => {
             openViewStub.should.have.been.calledOnce;
         });
 
+        it('should open the transaction web view for a contract without metadata', async () => {
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
+            const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            const contracts: Array<InstantiatedTreeItem> =  await blockchainGatewayExplorerProvider.getChildren(channels[0]) as Array<InstantiatedTreeItem>;
+            instantiatedSmartContract = contracts[0];
+            fabricClientConnectionMock.getMetadata.rejects('Transaction function "org.hyperledger.fabric:GetMetadata" did not return any metadata');
+
+            const appstate: IAppState = await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, instantiatedSmartContract);
+            appstate.should.deep.equal({
+                associatedTxdata: undefined,
+                gatewayName: 'myGateway',
+                smartContract: {
+                    channel: 'myChannel',
+                    label: 'mySmartContract@0.0.1',
+                    name: 'mySmartContract',
+                    namespace: undefined,
+                    peerNames: ['peerOne', 'peerTwo'],
+                    version: '0.0.1',
+                    transactions: []
+                },
+                preselectedTransaction: undefined,
+            });
+
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
+            openViewStub.should.have.been.calledOnce;
+        });
+
         it('should open the transaction web view through the command', async () => {
             const appstate: IAppState = await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
             appstate.should.deep.equal({

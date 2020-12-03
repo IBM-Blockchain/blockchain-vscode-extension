@@ -24,7 +24,7 @@ export class MetadataUtil {
 
     public static async getTransactionNames(connection: IFabricGatewayConnection, instantiatedChaincodeName: string, channelName: string): Promise<Map<string, string[]> | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
-        if (!metadataTransactions) {
+        if (!metadataTransactions || metadataTransactions.size === 0) {
             return null;
         }
 
@@ -41,7 +41,7 @@ export class MetadataUtil {
 
     public static async getContractNames(connection: IFabricGatewayConnection, instantiatedChaincodeName: string, channelName: string): Promise<string[] | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
-        if (!metadataTransactions) {
+        if (!metadataTransactions || metadataTransactions.size === 0) {
             return null;
         }
 
@@ -82,8 +82,11 @@ export class MetadataUtil {
                 return;
             }
         } catch (error) {
+            // If the problem was collecting metadata, then we can continue - the extension will deal with contracts without metadata.
             outputAdapter.log(LogType.WARNING, null, `Could not get metadata for smart contract ${instantiatedChaincodeName}. The smart contract may not have been developed with the programming model delivered in Hyperledger Fabric v1.4+ for Java, JavaScript and TypeScript. Error: ${error.message}`);
-            return null;
+            if (!error.message.includes('Transaction function "org.hyperledger.fabric:GetMetadata"')) {
+                return null;
+            }
         }
 
         return contractsMap;
