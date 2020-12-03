@@ -1,6 +1,6 @@
 import React, { Dispatch, FunctionComponent, SetStateAction, useEffect, useState } from 'react';
 import './TransactionManualInput.scss';
-import { Dropdown, TextArea } from 'carbon-components-react';
+import { Dropdown, TextArea, TextInput } from 'carbon-components-react';
 import ITransaction from '../../../interfaces/ITransaction';
 import ISmartContract from '../../../interfaces/ISmartContract';
 import ITransactionManualInput from '../../../interfaces/ITransactionManualInput';
@@ -42,6 +42,7 @@ const getInitialUnparsedArgsFromTransaction: any = (transaction: ITransaction, t
 
 const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manualInputState, setManualInput }) => {
     const { activeTransaction, transactionArguments, transientData } = manualInputState;
+    const hasMetadata: boolean = smartContract.namespace !== undefined;
 
     const [unparsedArgs, setUnparsedArgs] = useState(getInitialUnparsedArgsFromTransaction(activeTransaction, transactionArguments));
 
@@ -78,19 +79,31 @@ const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manu
     }
 
     const transactionHasBeenChosen: boolean = activeTransaction && activeTransaction.name !== '';
+
     return (
         <>
-            <Dropdown
-                ariaLabel='dropdown'
-                id='transaction-select'
-                invalidText='A valid value is required'
-                items={smartContract.transactions.map(({ name }) => name)}
-                label='Select the transaction name'
-                titleText='Transaction name'
-                type='default'
-                selectedItem={transactionHasBeenChosen ? activeTransaction.name : 'Select the transaction name'}
-                onChange={setActiveTransaction}
-            />
+            {hasMetadata
+                ? (
+                    <Dropdown
+                        ariaLabel='dropdown'
+                        id='transaction-select'
+                        invalidText='A valid value is required'
+                        items={smartContract.transactions.map(({ name }) => name)}
+                        label='Select the transaction name'
+                        titleText='Transaction name'
+                        type='default'
+                        selectedItem={transactionHasBeenChosen ? activeTransaction.name : 'Select the transaction name'}
+                        onChange={setActiveTransaction}
+                    />
+                ) : (
+                    <TextInput
+                        id='transaction-name'
+                        labelText='Transaction name'
+                        onChange={(e) => setManualInput({ ...manualInputState, activeTransaction: {...activeTransaction, name: e.currentTarget.value}})}
+                    >
+                    </TextInput>
+                )
+            }
             <TextArea
                 labelText='Transaction arguments'
                 id='arguments-text-area'

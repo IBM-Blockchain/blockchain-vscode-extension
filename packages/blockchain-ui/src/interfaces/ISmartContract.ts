@@ -6,7 +6,7 @@ interface ISmartContract {
     channel: string;
     label: string;
     transactions: Array<ITransaction>;
-    namespace: string;
+    namespace: string | undefined;
     peerNames: string[];
 }
 

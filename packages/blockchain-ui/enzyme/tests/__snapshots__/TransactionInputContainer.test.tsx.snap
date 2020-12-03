@@ -1,5 +1,253 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`TransactionInputContainer component should render the expected snapshot - contract with no Metadata 1`] = `
+Array [
+  <div
+    className="bx--content-switcher transaction-input-content-switch"
+    onChange={[Function]}
+    role="tablist"
+    selectionMode="manual"
+  >
+    <button
+      aria-selected={true}
+      className="bx--content-switcher-btn bx--content-switcher--selected"
+      data-testid="content-switch-manual"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      role="tab"
+      tabIndex="0"
+    >
+      <span
+        className="bx--content-switcher__label"
+      >
+        Manual input
+      </span>
+    </button>
+    <button
+      aria-selected={false}
+      className="bx--content-switcher-btn"
+      data-testid="content-switch-data"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      role="tab"
+      tabIndex="-1"
+    >
+      <span
+        className="bx--content-switcher__label"
+      >
+        Transaction data directory
+      </span>
+    </button>
+  </div>,
+  <form
+    className="bx--form"
+    id="create-txn-form"
+  >
+     
+    <div
+      className="bx--form-item bx--text-input-wrapper"
+    >
+      <label
+        className="bx--label"
+        htmlFor="transaction-name"
+      >
+        Transaction name
+      </label>
+      <div
+        className="bx--text-input__field-wrapper"
+        data-invalid={null}
+      >
+        <input
+          className="bx--text-input bx--text__input"
+          disabled={false}
+          id="transaction-name"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="text"
+        />
+      </div>
+    </div>
+    <div
+      className="bx--form-item"
+    >
+      <label
+        className="bx--label bx--label--disabled"
+        htmlFor="arguments-text-area"
+      >
+        Transaction arguments
+      </label>
+      <div
+        className="bx--text-area__wrapper"
+        data-invalid={null}
+      >
+        <textarea
+          aria-describedby={null}
+          aria-invalid={null}
+          className="bx--text-area"
+          cols={50}
+          disabled={true}
+          id="arguments-text-area"
+          onChange={[Function]}
+          onClick={[Function]}
+          placeholder=""
+          rows={4}
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      className="bx--form-item"
+    >
+      <label
+        className="bx--label"
+        htmlFor="transient-data-input"
+      >
+        Transient data (optional)
+      </label>
+      <div
+        className="bx--text-area__wrapper"
+        data-invalid={null}
+      >
+        <textarea
+          aria-describedby={null}
+          aria-invalid={null}
+          className="bx--text-area"
+          cols={50}
+          disabled={false}
+          id="transient-data-input"
+          onChange={[Function]}
+          onClick={[Function]}
+          placeholder=""
+          rows={4}
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      className="bx--multi-select__wrapper bx--list-box__wrapper"
+    >
+      <span
+        className="bx--label"
+        id="multiselect-label-2"
+      >
+        Target specific peer (optional)
+      </span>
+      <div
+        className="bx--multi-select bx--multi-select--selected bx--list-box"
+        id="peer-select"
+        onClick={[Function]}
+        onKeyDown={[Function]}
+      >
+        <div
+          aria-controls={null}
+          aria-disabled={false}
+          aria-expanded={false}
+          aria-haspopup={true}
+          aria-labelledby="multiselect-label-2 multiselect-field-label-2"
+          aria-owns={null}
+          className="bx--list-box__field"
+          data-toggle={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          role="button"
+          tabIndex="0"
+          type="button"
+        >
+          <div
+            aria-label="Clear Selection"
+            className="bx--list-box__selection bx--tag--filter bx--list-box__selection--multi"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            role="button"
+            tabIndex={0}
+            title="Clear all selected items"
+          >
+            2
+            <svg
+              aria-hidden={true}
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              viewBox="0 0 32 32"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="24 9.4 22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4"
+              />
+            </svg>
+          </div>
+          <span
+            className="bx--list-box__label"
+            id="multiselect-field-label-2"
+          >
+            Select peers
+          </span>
+          <div
+            className="bx--list-box__menu-icon"
+          >
+            <svg
+              aria-label="Open menu"
+              focusable="false"
+              height={16}
+              name="chevron--down"
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              viewBox="0 0 16 16"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="8,11 3,6 3.7,5.3 8,9.6 12.3,5.3 13,6"
+              />
+              <title>
+                Open menu
+              </title>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <fieldset
+      className="bx--fieldset"
+      id="submit-and-evaluate-buttons"
+    >
+      <legend
+        className="bx--label"
+      >
+        
+      </legend>
+      <div
+        className="submit-txn-button-container"
+      >
+        <button
+          className="submit-txn-button bx--btn bx--btn--secondary bx--btn--disabled"
+          disabled={true}
+          id="evaluate-button"
+          onClick={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          Evaluate transaction
+        </button>
+        <button
+          className="submit-txn-button bx--btn bx--btn--primary bx--btn--disabled"
+          disabled={true}
+          id="submit-button"
+          onClick={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          Submit transaction
+        </button>
+      </div>
+    </fieldset>
+     
+  </form>,
+]
+`;
+
 exports[`TransactionInputContainer component should render the expected snapshot 1`] = `
 Array [
   <div

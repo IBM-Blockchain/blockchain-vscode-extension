@@ -45,7 +45,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     const [dataInputTransaction, updateDataInputTransaction] = useState<IDataFileTransaction>({ transactionName: '', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} });
 
     useEffect(() => {
-        if (manualInputState.activeTransaction && manualInputState.activeTransaction.name !== '' && !activeTransactionExists(smartContract, manualInputState.activeTransaction)) {
+        if (smartContract.namespace !== undefined && manualInputState.activeTransaction && manualInputState.activeTransaction.name !== '' && !activeTransactionExists(smartContract, manualInputState.activeTransaction)) {
                 // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
                 updateManualInputState({ ...manualInputState, activeTransaction: emptyTransaction, transactionArguments: [] });
         }
