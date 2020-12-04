@@ -473,6 +473,34 @@ describe('TransactionInputContainer component', () => {
             expect(manualInputState.activeTransaction).toEqual({ name: '', parameters: [], returns: { type: '' }, tag: [] });
         });
 
+        it('should clear the activeTransaction if a different smartContract is supplied regardless of whether the activeTransaction exists or not', () => {
+            const newContract: ISmartContract = {
+                ...greenContract,
+                name: 'completelyNewSmartContract'
+            };
+            component = updateManualInputValues(component, 'transactionOne', undefined, undefined);
+            let manualInput: any = component.find(TransactionManualInput);
+            let manualInputSmartContract: ISmartContract = manualInput.prop('smartContract');
+            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            let dropdown: any = component.find(transactionNameSelector);
+            expect(manualInputSmartContract).toHaveProperty('name', greenContract.name);
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionOne');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+
+            act(() => {
+                component.setProps({ smartContract: newContract });
+            });
+            component = component.update();
+
+            dropdown = component.find(transactionNameSelector);
+            manualInput = component.find(TransactionManualInput);
+            manualInputSmartContract = manualInput.prop('smartContract');
+            manualInputState = manualInput.prop('manualInputState');
+            expect(manualInputSmartContract).toHaveProperty('name', newContract.name);
+            expect(dropdown.prop('selectedItem')).toEqual('Select the transaction name');
+            expect(manualInputState.activeTransaction).toEqual({ name: '', parameters: [], returns: { type: '' }, tag: [] });
+        });
+
         it('should update the activeTransaction if a new preselectedTransaction is sent', () => {
             act(() => {
                 component.setProps({ smartContract: greenContract, preselectedTransaction: transactionOne });

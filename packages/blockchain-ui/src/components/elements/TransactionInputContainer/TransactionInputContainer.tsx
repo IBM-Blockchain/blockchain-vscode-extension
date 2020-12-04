@@ -30,6 +30,7 @@ const activeTransactionExists: any = (smartContract: ISmartContract, currentlyAc
 
 const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, txdataTransactions, preselectedTransaction }) => {
     const { peerNames } = smartContract;
+    const [smartContractName, setNewSmartContractName] = useState(smartContract.name);
 
     const [isManual, setIsManual] = useState(true);
     const [peerTargetNames, setPeerTargetNames] = useState(peerNames);
@@ -46,19 +47,25 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
 
     useEffect(() => {
         const { activeTransaction } = manualInputState;
-        if (activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
+        const smartContractChanged: boolean = smartContract.name !== smartContractName;
+        if (smartContractChanged || (activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction))) {
             // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
             updateManualInputState({ ...manualInputState, activeTransaction: emptyTransaction, transactionArguments: [] });
         } else if (preselectedTransaction && preselectedTransaction.name && activeTransaction !== preselectedTransaction) {
             // If the preselectedTransaction is changed, update the activeTransaction. Ignore if the preselectedTransaction is empty
             updateManualInputState({ ...manualInputState, activeTransaction: preselectedTransaction, transactionArguments: [] });
         }
+
+        if (smartContractChanged) {
+            setNewSmartContractName(smartContract.name);
+        }
+
     }, [smartContract, manualInputState, preselectedTransaction]);
 
     const submitTransaction: any = (evaluate: boolean): void => {
 
         const command: string = evaluate ? ExtensionCommands.EVALUATE_TRANSACTION : ExtensionCommands.SUBMIT_TRANSACTION;
-        const { name: smartContractName, channel: channelName, namespace } = smartContract;
+        const { channel: channelName, namespace } = smartContract;
 
         const data: any = {
             evaluate,
