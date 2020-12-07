@@ -20,8 +20,9 @@ import { PackageRegistryEntry } from '../../registries/PackageRegistryEntry';
 export class PackageTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-package-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly packageEntry: PackageRegistryEntry) {
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly extension: string, public readonly packageEntry: PackageRegistryEntry) {
         super(provider, name, vscode.TreeItemCollapsibleState.None);
-        this.tooltip = `${name}\nFile size: ${packageEntry.sizeKB} KB`;
+        this.tooltip = `${name} (${extension})\nFile size: ${packageEntry.sizeKB} KB`;
+        this.description = extension ? `(${extension})` : '';
     }
 }

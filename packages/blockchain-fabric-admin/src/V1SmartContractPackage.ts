@@ -70,6 +70,16 @@ export class V1SmartContractPackage extends SmartContractPackageBase {
         }
     }
 
+    /**
+     * Extracts name and version from chaincode buffer
+     * @param buffer
+     */
+    public static nameAndVersionFromBuffer(buffer: Buffer): {name: string, version: string} {
+        const chaincodeDeploymentSpec: protos.ChaincodeDeploymentSpec = protos.ChaincodeDeploymentSpec.decode(buffer);
+
+        return {name: chaincodeDeploymentSpec.chaincode_spec.chaincode_id.name, version: chaincodeDeploymentSpec.chaincode_spec.chaincode_id.version};
+    }
+
     private static async packageContract(smartContractPath: string, smartContractType: SmartContractType, metadataPath?: string, goPath?: string): Promise<Buffer> {
 
         const handler: LifecyclePackager = this.getHandler(smartContractType);
@@ -157,7 +167,7 @@ export class V1SmartContractPackage extends SmartContractPackageBase {
     }
 
     private static async convertChaincodeDeploymentSpecToBuffer(chaincodeDeploymentSpec: protos.IChaincodeDeploymentSpec): Promise<Buffer> {
-        return Buffer.from(protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish())
+        return Buffer.from(protos.ChaincodeDeploymentSpec.encode(chaincodeDeploymentSpec).finish());
     }
 
     protected async findFileNames(buffer: Buffer): Promise<any> {
@@ -182,5 +192,4 @@ export class V1SmartContractPackage extends SmartContractPackageBase {
             gunzip.end(codePackage);
         });
     }
-
 }

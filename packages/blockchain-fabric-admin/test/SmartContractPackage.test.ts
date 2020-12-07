@@ -252,6 +252,27 @@ describe('SmartContractPackage', () => {
                     await smartContract.getFileNames().should.eventually.be.rejectedWith(`Could not get file names for package, received error: some error`);
                 });
             });
+
+            describe(`getPackageInfo`, () => {
+                let mysandbox: sinon.SinonSandbox;
+
+                beforeEach(() => {
+                    mysandbox = sinon.createSandbox();
+                });
+
+                afterEach(() => {
+                    mysandbox.restore();
+                });
+
+                it(`should get the package information for v1 contracts`, async () => {
+                    if (packagePath.endsWith('.cds')) {
+                        const packageBuffer: Buffer = await fs.readFile(packagePath);
+                        const pkgInfo: {name: string, version: string} = V1SmartContractPackage.nameAndVersionFromBuffer(packageBuffer);
+                        pkgInfo.should.deep.equal({name: 'testv1typescript', version: '0.0.1'});
+                    }
+                });
+
+            });
         });
     });
 });

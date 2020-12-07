@@ -56,12 +56,19 @@ describe('packageExplorer', () => {
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
-        testPackages.length.should.equal(5);
-        testPackages[0].label.should.equal('fabcar-go.tgz');
-        testPackages[1].label.should.equal('fabcar-java.tar.gz');
-        testPackages[2].label.should.equal('fabcar-javascript@0.0.1.tar.gz');
-        testPackages[3].label.should.equal('fabcar-typescript@0.0.2.tgz');
-        testPackages[4].label.should.equal('mypackage@0.0.1.cds');
+        testPackages.length.should.equal(6);
+        testPackages[0].label.should.equal('fabcar-go');
+        testPackages[1].label.should.equal('fabcar-java');
+        testPackages[2].label.should.equal('fabcar-javascript@0.0.1');
+        testPackages[3].label.should.equal('fabcar-typescript@1.0.0');
+        testPackages[4].label.should.equal('fabcar-typescript@0.0.2');
+        testPackages[5].label.should.equal('ayy@0.0.1');
+        testPackages[0].description.should.equal('(.tgz)');
+        testPackages[1].description.should.equal('(.tar.gz)');
+        testPackages[2].description.should.equal('(.tar.gz)');
+        testPackages[3].description.should.equal('(.cds)');
+        testPackages[4].description.should.equal('(.tgz)');
+        testPackages[5].description.should.equal('(.cds)');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 
@@ -85,8 +92,9 @@ describe('packageExplorer', () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
-        firstTestPackage.label.should.equal('fabcar-go.tgz');
-        firstTestPackage.tooltip.should.equal('fabcar-go.tgz\nFile size: 2359 KB');
+        firstTestPackage.label.should.equal('fabcar-go');
+        firstTestPackage.description.should.equal('(.tgz)');
+        firstTestPackage.tooltip.should.equal('fabcar-go (.tgz)\nFile size: 2359 KB');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 
@@ -101,6 +109,7 @@ describe('packageExplorer', () => {
         mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
         testPackages.length.should.equal(1);
-        testPackages[0].label.should.equal('smartContractPackageBlue@0.0.1.cds');
+        testPackages[0].label.should.equal('smartContractPackageBlue@0.0.1');
+        testPackages[0].description.should.equal('(.cds)');
     });
 });
