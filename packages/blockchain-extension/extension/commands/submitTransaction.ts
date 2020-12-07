@@ -176,11 +176,14 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     }
 
     if (associatedTestData) {
-        if (transactionObject && transactionObject.txDataFile) {
-            // If txDataFile is sent, the transaction was read from file - it should've been sent with args and transient data
-            const validatedTxnDataObject: ITransactionData = validateTxnDataObject({ transactionName, arguments: transactionObject.args, transientData: transactionObject.transientData });
-            args = validatedTxnDataObject.arguments;
-            transientData = validatedTxnDataObject.transientData;
+        if (transactionObject) {
+            // if no txDataFile is given then the Transaction View has made a request using manual inputted data
+            if (transactionObject.txDataFile) {
+                // If txDataFile is sent, the transaction was read from file - it should've been sent with args and transient data
+                const validatedTxnDataObject: ITransactionData = validateTxnDataObject({ transactionName, arguments: transactionObject.args, transientData: transactionObject.transientData });
+                args = validatedTxnDataObject.arguments;
+                transientData = validatedTxnDataObject.transientData;
+            }
         } else {
             const testDataDirPath: string = associatedTestData.transactionDataPath;
             const quickPickItems: IBlockchainQuickPickItem<ITransactionData>[] = [];
