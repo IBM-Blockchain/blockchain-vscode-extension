@@ -17,6 +17,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as path from 'path';
 import { version as currentExtensionVersion, dependencies as extDeps } from '../../package.json';
 import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 import { DependencyManager } from '../../extension/dependencies/DependencyManager';
@@ -1188,6 +1189,7 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
+                existsStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe`).resolves(true);
                 sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe version`).resolves('OpenSSL 1.1.1d  26 Jan 2017');
 
                 const result: Dependencies = await dependencyManager.getPreReqVersions();
@@ -1195,10 +1197,38 @@ describe('DependencyManager Tests', () => {
                 totalmemStub.should.have.been.calledOnce;
             });
 
+            it('should search for openssl executable if not at default location', async () => {
+                mySandBox.stub(process, 'platform').value('win32');
+
+                existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
+                existsStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe`).resolves(false);
+                const getOpensslPathStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'findFilePath').resolves('C:\\OpenSSL-Win64\\notexpected\\openssl.exe');
+                sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\notexpected\\openssl.exe version`).resolves('OpenSSL 1.1.1d  26 Jan 2017');
+
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
+                result.openssl.version.should.equal('1.1.1');
+                totalmemStub.should.have.been.calledOnce;
+                getOpensslPathStub.should.have.been.calledOnce;
+            });
+
+            it('should return if no openssl executable is found', async () => {
+                mySandBox.stub(process, 'platform').value('win32');
+
+                existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
+                existsStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe`).resolves(false);
+                const getOpensslPathStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'findFilePath').resolves();
+
+                const result: Dependencies = await dependencyManager.getPreReqVersions();
+                should.not.exist(result.openssl.version);
+                totalmemStub.should.have.been.calledOnce;
+                getOpensslPathStub.should.have.been.calledOnce;
+            });
+
             it('should not get version of OpenSSL if command not found', async () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
+                existsStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe`).resolves(true);
                 sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe version`).resolves('openssl not recognized');
 
                 const result: Dependencies = await dependencyManager.getPreReqVersions();
@@ -1220,6 +1250,7 @@ describe('DependencyManager Tests', () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
                 existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
+                existsStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe`).resolves(true);
                 sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe version`).resolves('OpenSSL version 1.2.3');
 
                 const result: Dependencies = await dependencyManager.getPreReqVersions();
@@ -1367,6 +1398,36 @@ describe('DependencyManager Tests', () => {
 
             getExtensionPathStub.should.have.been.calledOnce;
             utimesStub.should.have.been.calledOnce;
+        });
+    });
+
+    describe('#findFilePath', () => {
+        it('should find file in nested structure', async () => {
+            const testDirectory: string = path.join(__dirname, '..', '..', '..', 'test', 'data', 'nestedInstallation');
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+
+            let filePath: string = await dependencyManager.findFilePath(testDirectory, 'file10.txt');
+            let expectedPath: string = path.join(testDirectory, 'subdir1', 'subdir4', 'subdir5', 'file10.txt');
+            filePath.should.equal(expectedPath);
+
+            filePath = await dependencyManager.findFilePath(testDirectory, 'file11.txt');
+            expectedPath = path.join(testDirectory, 'subdir6', 'subdir8', 'file11.txt');
+            filePath.should.equal(expectedPath);
+
+            filePath = await dependencyManager.findFilePath(testDirectory, 'file8.txt');
+            expectedPath = path.join(testDirectory, 'subdir1', 'subdir2', 'file8.txt');
+            filePath.should.equal(expectedPath);
+
+            filePath = await dependencyManager.findFilePath(testDirectory, 'file3.txt');
+            expectedPath = path.join(testDirectory, 'file3.txt');
+            filePath.should.equal(expectedPath);
+        });
+
+        it('should return if file not found in nested structure', async () => {
+            const testDirectory: string = path.join(__dirname, '..', '..', '..', 'test', 'data', 'nestedInstallation');
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            const filePath: string = await dependencyManager.findFilePath(testDirectory, 'file12.txt');
+            should.not.exist(filePath);
         });
     });
 });

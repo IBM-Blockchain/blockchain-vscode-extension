@@ -170,6 +170,41 @@ export class DependencyManager {
         return fs.writeFile(this.getPackageJsonPath(), packageJsonString, 'utf8');
     }
 
+    // BFS-type search where we check files first and then directories afterwards.
+    public async findFilePath(dirPath: string, fileToFind: string, _dirsToSearch: string[] = [], _result?: string): Promise<string> {
+
+        const contents: string[] = await fs.readdir(dirPath);
+
+        // Loop through directories contents.
+        for (const entry of contents) {
+
+            const pathToCheck: string = path.join(dirPath, entry);
+            const stat: fs.Stats = await fs.stat(pathToCheck);
+            if (stat.isDirectory()) {
+                // Push directory to queue / end of search array.
+                _dirsToSearch.push(pathToCheck);
+            } else {
+                if (path.basename(pathToCheck) === fileToFind) {
+                    // We've found what we're looking for!
+                    return pathToCheck;
+                }
+            }
+        }
+
+        // We haven't found executable, so will need to traverse directories in the order they were added.
+        for (const dir of _dirsToSearch) {
+            _dirsToSearch.shift(); // Remove first element of queue (current directory to search).
+            _result = await this.findFilePath(dir, fileToFind, _dirsToSearch, _result);
+            if (_result) {
+                // We've found the executable, calling back.
+                return _result;
+            }
+        }
+
+        // Executable not found.
+        return;
+    }
+
     private isCommandFound(output: string): boolean {
         if (output.toLowerCase().includes('not found') || output.toLowerCase().includes('not recognized') || output.toLowerCase().includes('no such file or directory') || output.toLowerCase().includes('unable to get active developer directory')) {
             return false;
@@ -300,10 +335,21 @@ export class DependencyManager {
 
     private async getOpensslVersion(): Promise<string> {
         try {
-            const win64: boolean = await fs.pathExists(`C:\\OpenSSL-Win64`);
-            if (win64) {
-                const binPath: string = path.win32.join('C:\\OpenSSL-Win64', 'bin', 'openssl.exe');
-                const opensslResult: string = await CommandUtil.sendCommand(`${binPath} version`); // Format: OpenSSL 1.0.2k  26 Jan 2017
+            const installationDir: string = `C:\\OpenSSL-Win64`; // This is hardcoded due to https://github.com/ampretia/node-x509/blob/6eea0feb126c19da409cbfb8d64ac9a8cd26eb99/binding.gyp#L28
+            const dirExists: boolean = await fs.pathExists(installationDir);
+            if (dirExists) {
+                let execPath: string = path.win32.join('C:\\OpenSSL-Win64', 'bin', 'openssl.exe');
+                const execPathExists: boolean = await fs.pathExists(execPath);
+                if (!execPathExists) {
+                    // Default expected path doesn't exist, lets try to find the executable elsewhere.
+                    execPath = await this.findFilePath(installationDir, 'openssl.exe');
+                    if (!execPath) {
+                        // openssl.exe not found
+                        return;
+                    }
+                }
+
+                const opensslResult: string = await CommandUtil.sendCommand(`${execPath} version`); // Format: OpenSSL 1.0.2k  26 Jan 2017
                 if (this.isCommandFound(opensslResult)) {
                     const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
                     const opensslVersionCoerced: semver.SemVer = semver.coerce(opensslMatchedVersion); // Format: X.Y.Z
