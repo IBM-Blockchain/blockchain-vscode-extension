@@ -87,6 +87,7 @@ export class ExtensionCommands {
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';
     static readonly OPEN_PRE_REQ_PAGE: string = 'preReq.open';
     static readonly OPEN_RELEASE_NOTES: string = 'releaseNotes.open';
+    static readonly OPEN_SAMPLE_GALLERY: string = 'sampleGallery.open';
     static readonly OPEN_SAMPLE_PAGE: string = 'sample.open';
     static readonly OPEN_TUTORIAL_GALLERY: string = 'tutorialGallery.open';
     static readonly OPEN_DEPLOY_PAGE: string = 'deploy.open';

@@ -95,6 +95,7 @@
         "onCommand:extensionHome.open",
         "onCommand:preReq.open",
         "onCommand:releaseNotes.open",
+        "onCommand:sampleGallery.open",
         "onCommand:tutorialGallery.open",
         "onCommand:deploy.open",
         "onCommand:transactionPage.open",
@@ -171,6 +172,7 @@
             "extensionHome.open",
             "preReq.open",
             "releaseNotes.open",
+            "sampleGallery.open",
             "tutorialGallery.open",
             "deploy.open",
             "transactionPage.open",
@@ -329,6 +331,11 @@
             {
                 "command": "releaseNotes.open",
                 "title": "Open Release Notes",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "sampleGallery.open",
+                "title": "View Sample Gallery",
                 "category": "IBM Blockchain Platform"
             },
             {

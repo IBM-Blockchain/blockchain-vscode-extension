@@ -61,9 +61,9 @@ describe('Tutorial page', () => {
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.title);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.length);
 
-        cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(1)').contains(currentTutorial.objectives[0]);
-        cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(2)').contains(currentTutorial.objectives[1]);
-        cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(3)').contains(currentTutorial.objectives[2]);
+        cy.get('[aria-hidden="false"] > .tab-container > .objectives > :nth-child(1)').contains(currentTutorial.objectives[0]);
+        cy.get('[aria-hidden="false"] > .tab-container > .objectives > :nth-child(2)').contains(currentTutorial.objectives[1]);
+        cy.get('[aria-hidden="false"] > .tab-container > .objectives > :nth-child(3)').contains(currentTutorial.objectives[2]);
 
         cy.get('[aria-hidden="false"] > .tab-container > .button-container > .pdf-button').contains('Download as PDF');
         cy.get('[aria-hidden="false"] > .tab-container > .button-container > .button').contains('Open tutorial');
@@ -75,9 +75,9 @@ describe('Tutorial page', () => {
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.title);
         cy.get('[aria-hidden="false"] > .tab-container').contains(currentTutorial.length);
 
-        cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(1)').contains(currentTutorial.objectives[0]);
-        cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(2)').contains(currentTutorial.objectives[1]);
-        cy.get('[aria-hidden="false"] > .tab-container > .tutorial-objectives > :nth-child(3)').contains(currentTutorial.objectives[2]);
+        cy.get('[aria-hidden="false"] > .tab-container > .objectives > :nth-child(1)').contains(currentTutorial.objectives[0]);
+        cy.get('[aria-hidden="false"] > .tab-container > .objectives > :nth-child(2)').contains(currentTutorial.objectives[1]);
+        cy.get('[aria-hidden="false"] > .tab-container > .objectives > :nth-child(3)').contains(currentTutorial.objectives[2]);
 
         cy.get('[aria-hidden="false"] > .tab-container > .button-container > .button').contains('Open tutorial');
 

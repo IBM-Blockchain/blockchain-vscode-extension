@@ -4,8 +4,7 @@ import { Button } from 'carbon-components-react';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import Utils from '../../../Utils';
-import './TutorialTile.scss';
-
+import '../../../styles/gallery.scss';
 interface IProps {
     tutorialObject: ITutorialObject;
 }
@@ -50,10 +49,10 @@ class TutorialTile extends Component <IProps> {
     render(): JSX.Element {
         return (
             <div className='tab-container'>
-                <div className='tutorial-title'>
+                <div className='title'>
                     {this.props.tutorialObject.title}
                 </div>
-                <div className='time-container'>
+                <div className='badges'>
                     <Timer16 className='icon'></Timer16>
                     <span className='text'>{this.props.tutorialObject.length}</span>
                     {this.props.tutorialObject.badge === true ?
@@ -64,7 +63,7 @@ class TutorialTile extends Component <IProps> {
                         <></>
                     }
                 </div>
-                <div className='tutorial-objectives'>
+                <div className='objectives'>
                     {this.populateObjectives()}
                 </div>
                 <div className='button-container'>

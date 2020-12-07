@@ -1,5 +1,5 @@
 @import '@carbon/colors/scss/colors';
-@import '../../../mixins/layout-mixins.scss';
+@import '../../../styles/mixins/layout-mixins.scss';
 
 .page-container {
     @include default-page-styling;

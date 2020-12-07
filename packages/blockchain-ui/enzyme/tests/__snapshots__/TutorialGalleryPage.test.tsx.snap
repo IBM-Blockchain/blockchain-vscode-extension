@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TutorialPage component should render the expected snapshot 1`] = `
+exports[`TutorialGalleryPage component should render the expected snapshot 1`] = `
 <div
-  className="bx--grid tutorial-page-container"
+  className="bx--grid gallery-page-container"
 >
   <div
     className="bx--row"
   >
     <div
-      className="tutorial-page-description-container"
+      className="gallery-page-description-container"
     >
       <h3>
         Blockchain Tutorials
@@ -29,8 +29,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
     </div>
   </div>
   <div
-    className="bx--row"
-    id="tutorial-tabs-container"
+    className="bx--row gallery-tabs-container"
   >
     <div
       className="bx--col-lg-13 bx--col-md-8 bx--col-sm-4"
@@ -144,12 +143,12 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           className="tab-container"
         >
           <div
-            className="tutorial-title"
+            className="title"
           >
             a1
           </div>
           <div
-            className="time-container"
+            className="badges"
           >
             <svg
               aria-hidden={true}
@@ -184,7 +183,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             </span>
           </div>
           <div
-            className="tutorial-objectives"
+            className="objectives"
           >
             <p
               className="objective"
@@ -238,12 +237,12 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           className="tab-container"
         >
           <div
-            className="tutorial-title"
+            className="title"
           >
             something really interesting
           </div>
           <div
-            className="time-container"
+            className="badges"
           >
             <svg
               aria-hidden={true}
@@ -278,7 +277,7 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             </span>
           </div>
           <div
-            className="tutorial-objectives"
+            className="objectives"
           >
             <p
               className="objective"

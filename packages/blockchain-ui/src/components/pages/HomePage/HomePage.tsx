@@ -73,9 +73,8 @@ class HomePage extends Component<IProps> {
 
                             </div>
                             <div className='bx--col link-list-container'>
-                                <CommandLink linkContents='Release notes' commandName={ExtensionCommands.OPEN_RELEASE_NOTES} id='home-link-02'/>
-                                <CommandLink linkContents='Sample code: FabCar' commandName={ExtensionCommands.OPEN_SAMPLE_PAGE} commandData={['fabric-samples', 'FabCar']} id='home-link-05'/>
-                                <CommandLink linkContents='Sample code: Commercial Paper' commandName={ExtensionCommands.OPEN_SAMPLE_PAGE} commandData={['fabric-samples', 'Commercial Paper']} id='home-link-06'/>
+                                <CommandLink linkContents='View Release notes' commandName={ExtensionCommands.OPEN_RELEASE_NOTES} id='home-link-02'/>
+                                <CommandLink linkContents='View Sample Gallery' commandName={ExtensionCommands.OPEN_SAMPLE_GALLERY} id='home-link-05'/>
                                 <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/' id='home-link-07'>
                                     Fabric Documentation
                                 </Link>

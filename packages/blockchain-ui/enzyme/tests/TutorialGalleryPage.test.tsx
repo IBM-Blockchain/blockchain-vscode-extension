@@ -9,7 +9,7 @@ import ITutorialObject from '../../src/interfaces/ITutorialObject';
 chai.should();
 chai.use(sinonChai);
 
-describe('TutorialPage component', () => {
+describe('TutorialGalleryPage component', () => {
 
     const tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}> = [
         {
