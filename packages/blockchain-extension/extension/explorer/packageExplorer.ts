@@ -51,8 +51,8 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
             for (const packageRegistryEntry of packageRegistryEntries) {
                 const { name, version, path: filePath } = packageRegistryEntry;
                 const ext: string = UserInputUtil.getPackageFileExtension(filePath);
-                const nameAndVersion: string = version ? `${name}@${version}${ext}` : `${name}${ext}`;
-                tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
+                const nameAndVersion: string = version ? `${name}@${version}` : `${name}`;
+                tree.push(new PackageTreeItem(this, nameAndVersion, ext, packageRegistryEntry));
             }
         }
 

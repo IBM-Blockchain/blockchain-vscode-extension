@@ -125,4 +125,14 @@ describe('PackageSmartContract', () => {
             await PackageSmartContract.packageContract(0, 'myContract', '0.0.1', contractPath, 'filepath', 'node', null).should.eventually.be.rejected;
         });
     });
+
+    describe('getPackageInfo', () => {
+        it('should return chaincode name and version', async () => {
+            await createTestFiles('myContract', '0.0.1', false);
+            const pkgFile: string = path.join(fileDest, 'myContract@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkgInfo: {name: string, version: string} = PackageSmartContract.getPackageInfo(pkgBuffer);
+            pkgInfo.should.deep.equal({name: 'myContract', version: '0.0.1'});
+        });
+    });
 });

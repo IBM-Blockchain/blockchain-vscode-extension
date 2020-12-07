@@ -15,8 +15,9 @@
 import { PackageRegistryEntry } from './PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FileSystemUtil, FileConfigurations } from 'ibm-blockchain-platform-common';
+import { FileSystemUtil, FileConfigurations, LogType } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../configurations';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 
 export class PackageRegistry {
 
@@ -80,16 +81,34 @@ export class PackageRegistry {
             // get size
             const sizeKB: number = Math.round(stat.size / 1000);
 
-            const packageRegex: RegExp = new RegExp(/(.+?)(@(.*?)){0,1}(\.cds|\.tar\.gz|\.tgz){1}/gm);
+            let name: string ;
+            let version: string;
 
-            const result: RegExpMatchArray = packageRegex.exec(pkgFileName);
+            if (pkgFileName.endsWith('.cds')) {
+                try {
+                    const pkgBuffer: Buffer = await fs.readFile(pkgPath);
 
-            if (!result) {
-                continue;
+                    const { PackageSmartContract } = await import('ibm-blockchain-platform-environment-v1');
+                    const pkgInfo: {name: string, version: string} = PackageSmartContract.getPackageInfo(pkgBuffer);
+
+                    name = pkgInfo.name;
+                    version = pkgInfo.version;
+                } catch (error) {
+                    VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, null, `Failed to parse package ${pkgFileName}: ${error.message}`);
+                    continue;
+                }
+            } else {
+                const packageRegex: RegExp = new RegExp(/(.+?)(@(.*?)){0,1}(\.tar\.gz|\.tgz){1}/gm);
+
+                const result: RegExpMatchArray = packageRegex.exec(pkgFileName);
+
+                if (!result) {
+                    continue;
+                }
+
+                name = result[1];
+                version = result[3];
             }
-
-            const name: string = result[1];
-            const version: string = result[3];
 
             // Create the package registry entry.
             pkgRegistryEntries.push(new PackageRegistryEntry({
