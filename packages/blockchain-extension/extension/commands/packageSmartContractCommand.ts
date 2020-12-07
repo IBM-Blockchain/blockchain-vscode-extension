@@ -126,7 +126,11 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             // Determine the filename of the new package.
             const pkgFileExtension: string = (fabricVersion === 1) ? 'cds' : 'tar.gz';
             const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.${pkgFileExtension}`);
-            const pkgFileExists: boolean = await fs.pathExists(pkgFile);
+            let pkgFileExists: boolean = await fs.pathExists(pkgFile);
+            if (!pkgFileExists && fabricVersion === 2) {
+                const altPkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.tgz`);
+                pkgFileExists = await fs.pathExists(altPkgFile);
+            }
             if (pkgFileExists) {
                 if (language === 'golang') {
                     throw new Error('Package with name and version already exists. Please input a different name or version for your Go project.');

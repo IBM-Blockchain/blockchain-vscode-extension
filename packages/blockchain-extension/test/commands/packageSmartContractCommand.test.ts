@@ -973,6 +973,32 @@ describe('packageSmartContract', () => {
             logSpy.callCount.should.equal(8);
         });
 
+        it('should throw an error packaging a .tar.gz if a .tgz package with the same name and version already exists', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const testIndex: number = 0;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+            chooseFabricVersionStub.resolves(fabricVersion2Option);
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
+
+            // First call: UserInputUtil.getLanguage. Second call: check if .tar.gz exists. Third call: check if .tgz exists.
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').callThrough();
+            pathExistsStub.onThirdCall().resolves(true);
+
+            const error: Error = new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            packageContractSpy.should.have.not.been.called;
+            pathExistsStub.should.have.been.calledThrice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.callCount.should.equal(2);
+        });
+
         it('should throw an error as the Go project already exists', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 

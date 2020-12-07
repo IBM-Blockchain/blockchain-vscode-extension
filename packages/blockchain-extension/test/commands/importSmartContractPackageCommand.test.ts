@@ -99,11 +99,11 @@ describe('importSmartContractPackageCommand', () => {
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
     });
 
-    it('should handle duplicate packages', async () => {
-        packagesList.push('test.tgz');
+    it('should handle duplicate packages - same file extensions (both tar.gz)', async () => {
+        packagesList.push('test.tar.gz');
         readdirStub.resolves(packagesList);
 
-        const error: Error = new Error(`Package with name test already exists`);
+        const error: Error = new Error(`Package with name test and same file extension already exists`);
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
         readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
@@ -111,6 +111,35 @@ describe('importSmartContractPackageCommand', () => {
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
         sendTelemetryEventStub.should.not.have.been.called;
+    });
+
+    it('should handle duplicate packages - equivalent file extensions (both t*gz)', async () => {
+        packagesList.push('test.tgz');
+        readdirStub.resolves(packagesList);
+
+        const error: Error = new Error(`Package with name test and equivalent file extension already exists`);
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        copyStub.should.not.have.been.called;
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
+        sendTelemetryEventStub.should.not.have.been.called;
+    });
+
+    it('should handle duplicate packages - different file extensions (cds vs t*gz)', async () => {
+        packagesList.push('test.cds');
+        readdirStub.resolves(packagesList);
+
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.tar.gz');
+        copyStub.should.have.been.calledWith(srcPackage, endPackage);
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.tar.gz');
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
     });
 
     it('should handle cancel choosing package', async () => {
