@@ -45,22 +45,34 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     // When more is needed, convert it to an object like above
     const [dataInputTransaction, updateDataInputTransaction] = useState<IDataFileTransaction>({ transactionName: '', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} });
 
+    const setManualActiveTransaction: any = (activeTransaction: ITransaction) => {
+        if (activeTransaction !== manualInputState.activeTransaction) {
+            updateManualInputState({ ...manualInputState, activeTransaction, transactionArguments: [] });
+        }
+    };
+
     useEffect(() => {
         const { activeTransaction } = manualInputState;
-        const smartContractChanged: boolean = smartContract.name !== smartContractName;
-        if (smartContractChanged || (activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction))) {
+        if (activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
             // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
-            updateManualInputState({ ...manualInputState, activeTransaction: emptyTransaction, transactionArguments: [] });
-        } else if (preselectedTransaction && preselectedTransaction.name && activeTransaction !== preselectedTransaction) {
-            // If the preselectedTransaction is changed, update the activeTransaction. Ignore if the preselectedTransaction is empty
-            updateManualInputState({ ...manualInputState, activeTransaction: preselectedTransaction, transactionArguments: [] });
+            setManualActiveTransaction(emptyTransaction);
         }
+    }, [smartContract, manualInputState.activeTransaction]);
 
+    useEffect(() => {
+        // If the preselectedTransaction is changed, update the activeTransaction. Ignore if the preselectedTransaction is empty
+        if (preselectedTransaction && preselectedTransaction.name) {
+            setManualActiveTransaction(preselectedTransaction);
+        }
+    }, [preselectedTransaction]);
+
+    useEffect(() => {
+        const smartContractChanged: boolean = smartContract.name !== smartContractName;
         if (smartContractChanged) {
             setNewSmartContractName(smartContract.name);
+            setManualActiveTransaction(emptyTransaction);
         }
-
-    }, [smartContract, manualInputState, preselectedTransaction]);
+    }, [smartContract.name]);
 
     const submitTransaction: any = (evaluate: boolean): void => {
 
