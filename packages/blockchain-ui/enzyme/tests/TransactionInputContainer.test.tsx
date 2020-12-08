@@ -121,12 +121,17 @@ describe('TransactionInputContainer component', () => {
         tag: ['submit']
     };
 
+    const transactionThree: ITransaction = {
+        ...transactionOne,
+        name: 'transactionThree',
+    };
+
     const greenContract: ISmartContract = {
         name: 'greenContract',
         version: '0.0.1',
         channel: 'mychannel',
         label: 'greenContract@0.0.1',
-        transactions: [transactionOne, transactionTwo],
+        transactions: [transactionOne, transactionTwo, transactionThree],
         namespace: 'GreenContract',
         peerNames: ['peer1', 'peer2']
     };
@@ -240,6 +245,62 @@ describe('TransactionInputContainer component', () => {
             expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
         });
 
+        it('does nothing when the same transaction is chosen from the dropdown', () => {
+            component = updateManualInputValues(component, 'transactionOne', undefined, undefined);
+
+            let dropdown: any = component.find(transactionNameSelector);
+            let manualInput: any = component.find(TransactionManualInput);
+            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionOne');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+
+            component = updateManualInputValues(component, 'transactionOne', undefined, undefined);
+
+            dropdown = component.find(transactionNameSelector);
+            manualInput = component.find(TransactionManualInput);
+            manualInputState = manualInput.prop('manualInputState');
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionOne');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+        });
+
+        it('should update a transaction but persist the parameters that have the same name as the new transaction', () => {
+            component = updateManualInputValues(component, 'transactionOne', '{"name": "the value"}', undefined);
+            let dropdown: any = component.find(transactionNameSelector);
+            let manualInput: any = component.find(TransactionManualInput);
+            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionOne');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+            expect(manualInputState.transactionArguments).toEqual('{"name": "the value"}');
+
+            component = updateManualInputValues(component, 'transactionThree', undefined, undefined);
+
+            dropdown = component.find(transactionNameSelector);
+            manualInput = component.find(TransactionManualInput);
+            manualInputState = manualInput.prop('manualInputState');
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionThree');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionThree');
+            expect(manualInputState.transactionArguments).toEqual(JSON.stringify({ name: 'the value' }, null, 2));
+        });
+
+        it('should update a transaction and reset the parameters as the current arguments are invalid', () => {
+            component = updateManualInputValues(component, 'transactionOne', '{"name": "the ', undefined);
+            let dropdown: any = component.find(transactionNameSelector);
+            let manualInput: any = component.find(TransactionManualInput);
+            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionOne');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+            expect(manualInputState.transactionArguments).toEqual('{"name": "the ');
+
+            component = updateManualInputValues(component, 'transactionThree', undefined, undefined);
+
+            dropdown = component.find(transactionNameSelector);
+            manualInput = component.find(TransactionManualInput);
+            manualInputState = manualInput.prop('manualInputState');
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionThree');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionThree');
+            expect(manualInputState.transactionArguments).toEqual(JSON.stringify({ name: '' }, null, 2));
+        });
+
         it('sets the activeTransaction to the preselectedTransaction prop when it is passed in', () => {
             const selectedTransaction: ITransaction = greenContract.transactions[0];
             // Use a different component as we need to pass in the preselectedTransaction
@@ -277,30 +338,30 @@ describe('TransactionInputContainer component', () => {
             let manualInput: any = component.find(TransactionManualInput);
             let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
 
-            expect(manualInputState.transactionArguments).toEqual([]);
+            expect(manualInputState.transactionArguments).toEqual('[]');
 
             component = updateManualInputValues(component, undefined, '{"key": "the value"}', undefined);
 
             manualInput = component.find(TransactionManualInput);
             manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual(['the value']);
+            expect(manualInputState.transactionArguments).toEqual('{"key": "the value"}');
         });
 
         it('updates when the user removes all args from the textarea', () => {
             let manualInput: any = component.find(TransactionManualInput);
             let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
 
-            expect(manualInputState.transactionArguments).toEqual([]);
+            expect(manualInputState.transactionArguments).toEqual('[]');
             component = updateManualInputValues(component, undefined, '{"key": "the value"}', undefined);
 
             manualInput = component.find(TransactionManualInput);
             manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual(['the value']);
+            expect(manualInputState.transactionArguments).toEqual('{"key": "the value"}');
             component = updateManualInputValues(component, undefined, '', undefined);
 
             manualInput = component.find(TransactionManualInput);
             manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual([]);
+            expect(manualInputState.transactionArguments).toEqual('');
         });
 
         it('updates when the user types in the transient data input box', () => {
@@ -332,15 +393,15 @@ describe('TransactionInputContainer component', () => {
             expect(selectedValues).toEqual([{ id: 'peer1', label: 'peer1' }]);
         });
 
-        it('should attempt to submit a transaction when the submit button is clicked ', () => {
-            component = updateManualInputValues(component, 'transactionOne', '{"key": "Green"}', undefined);
+        it('should attempt to submit a transaction when the submit button is clicked', () => {
+            component = updateManualInputValues(component, 'transactionOne', '{"key": "Green", "anObject": {\"anotherKey\":\"anotherValue\"}}', undefined);
 
             component.find('#submit-button').at(0).simulate('click');
 
             postToVSCodeStub.should.have.been.calledOnceWithExactly({
                 command: ExtensionCommands.SUBMIT_TRANSACTION,
                 data: {
-                    args: ['Green'],
+                    args: ['Green', '{"anotherKey":"anotherValue"}'],
                     channelName: 'mychannel',
                     evaluate: false,
                     namespace: 'GreenContract',
@@ -354,19 +415,40 @@ describe('TransactionInputContainer component', () => {
         });
 
         it('should attempt to evaluate a transaction when the evaluate button is clicked', () => {
-            component = updateManualInputValues(component, 'transactionOne', '{"key": "Green"}', undefined);
+            component = updateManualInputValues(component, 'transactionOne', '{"key": "Green", "anObject": {\"anotherKey\":\"anotherValue\"}}', undefined);
 
             component.find('#evaluate-button').at(1).simulate('click');
             postToVSCodeStub.should.have.been.calledOnceWithExactly({
                 command: ExtensionCommands.EVALUATE_TRANSACTION,
                 data: {
-                    args: ['Green'],
+                    args: ['Green', '{"anotherKey":"anotherValue"}'],
                     channelName: 'mychannel',
                     evaluate: true,
                     namespace: 'GreenContract',
                     peerTargetNames: greenContract.peerNames,
                     smartContract: 'greenContract',
                     transactionName: 'transactionOne',
+                    transientData: '',
+                    txDataFile: undefined,
+                }
+            });
+        });
+
+        it('should attempt to submit a transaction with no parameters', () => {
+            component = updateManualInputValues(component, 'transactionTwo', '', undefined);
+
+            component.find('#submit-button').at(0).simulate('click');
+
+            postToVSCodeStub.should.have.been.calledOnceWithExactly({
+                command: ExtensionCommands.SUBMIT_TRANSACTION,
+                data: {
+                    args: [],
+                    channelName: 'mychannel',
+                    evaluate: false,
+                    namespace: 'GreenContract',
+                    peerTargetNames: greenContract.peerNames,
+                    smartContract: 'greenContract',
+                    transactionName: 'transactionTwo',
                     transientData: '',
                     txDataFile: undefined,
                 }
@@ -438,7 +520,7 @@ describe('TransactionInputContainer component', () => {
             });
         });
 
-        it('should attempt to submit a transaction with custom peers when the evaluate button is clicked', () => {
+        it('should attempt to evaluate a transaction with custom peers when the evaluate button is clicked', () => {
             component = updateManualInputValues(component, 'transactionOne', '{"key": "Green"}', '{"some": "data"}');
 
             component = updateSharedInputValues(component, [{
@@ -499,7 +581,7 @@ describe('TransactionInputContainer component', () => {
             expect(manualInputState.activeTransaction).toEqual({ name: '', parameters: [], returns: { type: '' }, tag: [] });
         });
 
-        it('should clear the activeTransaction if a different smartContract is supplied regardless of whether the activeTransaction exists or not', () => {
+        it('should change the activeTransaction if a different smartContract is supplied and with no preselectedTransaction', () => {
             const newContract: ISmartContract = {
                 ...greenContract,
                 name: 'completelyNewSmartContract'
@@ -514,7 +596,7 @@ describe('TransactionInputContainer component', () => {
             expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
 
             act(() => {
-                component.setProps({ smartContract: newContract });
+                component.setProps({ smartContract: newContract, preselectedTransaction: undefined });
             });
             component = component.update();
 
@@ -525,6 +607,34 @@ describe('TransactionInputContainer component', () => {
             expect(manualInputSmartContract).toHaveProperty('name', newContract.name);
             expect(dropdown.prop('selectedItem')).toEqual('Select the transaction name');
             expect(manualInputState.activeTransaction).toEqual({ name: '', parameters: [], returns: { type: '' }, tag: [] });
+        });
+
+        it('should change the activeTransaction if a different smartContract is supplied and a new preselectedTransaction is sent', () => {
+            const newContract: ISmartContract = {
+                ...greenContract,
+                name: 'completelyNewSmartContract'
+            };
+            component = updateManualInputValues(component, 'transactionOne', undefined, undefined);
+            let manualInput: any = component.find(TransactionManualInput);
+            let manualInputSmartContract: ISmartContract = manualInput.prop('smartContract');
+            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            let dropdown: any = component.find(transactionNameSelector);
+            expect(manualInputSmartContract).toHaveProperty('name', greenContract.name);
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionOne');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionOne');
+
+            act(() => {
+                component.setProps({ smartContract: newContract, preselectedTransaction: transactionTwo });
+            });
+            component = component.update();
+
+            dropdown = component.find(transactionNameSelector);
+            manualInput = component.find(TransactionManualInput);
+            manualInputSmartContract = manualInput.prop('smartContract');
+            manualInputState = manualInput.prop('manualInputState');
+            expect(manualInputSmartContract).toHaveProperty('name', newContract.name);
+            expect(manualInputState.activeTransaction).toHaveProperty('name', 'transactionTwo');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionTwo');
         });
 
         it('should update the activeTransaction if a new preselectedTransaction is sent', () => {
@@ -547,6 +657,19 @@ describe('TransactionInputContainer component', () => {
             dropdown = component.find(transactionNameSelector);
             manualInput = component.find(TransactionManualInput);
             manualInputState = manualInput.prop('manualInputState');
+            expect(dropdown.prop('selectedItem')).toEqual('transactionTwo');
+            expect(manualInputState.activeTransaction).toEqual(transactionTwo);
+        });
+
+        it('should handle a transaction with no parameters', () => {
+            act(() => {
+                component.setProps({ smartContract: greenContract, preselectedTransaction: transactionTwo });
+            });
+            component = component.update();
+
+            const manualInput: any = component.find(TransactionManualInput);
+            const manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
+            const dropdown: any = component.find(transactionNameSelector);
             expect(dropdown.prop('selectedItem')).toEqual('transactionTwo');
             expect(manualInputState.activeTransaction).toEqual(transactionTwo);
         });
@@ -759,7 +882,7 @@ describe('TransactionInputContainer component', () => {
             let manualInput: any = component.find(TransactionManualInput);
             let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
 
-            expect(manualInputState.transactionArguments).toEqual([]);
+            expect(manualInputState.transactionArguments).toEqual('[]');
 
             component = updateManualInputValues(component, 'someTransaction', undefined, undefined, false);
 
@@ -773,56 +896,13 @@ describe('TransactionInputContainer component', () => {
             let manualInput: any = component.find(TransactionManualInput);
             let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
 
-            expect(manualInputState.transactionArguments).toEqual([]);
+            expect(manualInputState.transactionArguments).toEqual('[]');
 
             component = updateManualInputValues(component, undefined, '["the value"]', undefined, false);
 
             manualInput = component.find(TransactionManualInput);
             manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual(['the value']);
-        });
-
-        it('updates when the user types in the textarea with extra commas and whitespaces', () => {
-            let manualInput: any = component.find(TransactionManualInput);
-            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
-
-            expect(manualInputState.transactionArguments).toEqual([]);
-
-            component = updateManualInputValues(component, undefined, '\n  [\n  ,  \n"the value"\n\n  ,\n ]\n  \n ', undefined, false);
-
-            manualInput = component.find(TransactionManualInput);
-            manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual(['the value']);
-        });
-
-        it('updates when the user removes all args from the textarea', () => {
-            let manualInput: any = component.find(TransactionManualInput);
-            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
-
-            expect(manualInputState.transactionArguments).toEqual([]);
-            component = updateManualInputValues(component, undefined, '["the value"]', undefined), false;
-
-            manualInput = component.find(TransactionManualInput);
-            manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual(['the value']);
-            component = updateManualInputValues(component, undefined, '', undefined);
-
-            manualInput = component.find(TransactionManualInput);
-            manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual([]);
-        });
-
-        it('updates when the user types in the textarea and keeps empty args if some not empty', () => {
-            let manualInput: any = component.find(TransactionManualInput);
-            let manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
-
-            expect(manualInputState.transactionArguments).toEqual([]);
-
-            component = updateManualInputValues(component, undefined, '["the value", ""]', undefined), false;
-
-            manualInput = component.find(TransactionManualInput);
-            manualInputState = manualInput.prop('manualInputState');
-            expect(manualInputState.transactionArguments).toEqual(['the value', '']);
+            expect(manualInputState.transactionArguments).toEqual('["the value"]');
         });
 
         it('updates when the user types in the transient data input box', () => {
@@ -993,8 +1073,76 @@ describe('TransactionInputContainer component', () => {
 
         it('should not submit if no transaction name has been introduced as the evaluate button is disabled', () => {
             component = updateManualInputValues(component, undefined, '["Purple"]', '{"some": "data"}', false);
-            component.find('#evaluate-button').at(1).simulate('click');
+            const submit = component.find('#evaluate-button').at(0);
+            expect(submit.prop('disabled')).toBeTruthy();
+            submit.simulate('click');
             postToVSCodeStub.should.not.have.been.called;
+        });
+
+        it('when a transaction is submitted, it correctly parses the textarea when it contains an array rather than a JSON object', () => {
+            component = updateManualInputValues(component, 'transactionOne', '["the value", "another value", "final value"]', undefined, false);
+
+            component.find('#submit-button').at(0).simulate('click');
+
+            postToVSCodeStub.should.have.been.calledOnceWithExactly({
+                command: ExtensionCommands.SUBMIT_TRANSACTION,
+                data: {
+                    args: ['the value', 'another value', 'final value'],
+                    channelName: 'mychannel',
+                    evaluate: false,
+                    namespace: undefined,
+                    peerTargetNames: purpleContract.peerNames,
+                    smartContract: 'purpleContract',
+                    transactionName: 'transactionOne',
+                    transientData: '',
+                    txDataFile: undefined,
+                }
+            });
+        });
+
+        it('when a transaction is submitted, it correctly parses the textarea with extra whitespace', () => {
+            component = updateManualInputValues(component, 'transactionOne', '\n  [\n   \n"the value"\n\n  \n ]\n  \n ', undefined, false);
+
+            const submit = component.find('#submit-button').at(0);
+            expect(submit.prop('disabled')).toEqual(false);
+            submit.simulate('click');
+
+            postToVSCodeStub.should.have.been.called;
+            postToVSCodeStub.should.have.been.calledOnceWithExactly({
+                command: ExtensionCommands.SUBMIT_TRANSACTION,
+                data: {
+                    args: ['the value'],
+                    channelName: 'mychannel',
+                    evaluate: false,
+                    namespace: undefined,
+                    peerTargetNames: purpleContract.peerNames,
+                    smartContract: 'purpleContract',
+                    transactionName: 'transactionOne',
+                    transientData: '',
+                    txDataFile: undefined,
+                }
+            });
+        });
+
+        it('when a transaction is submitted, it correctly parses the textarea with an empty string as the only value', () => {
+            component = updateManualInputValues(component, 'transactionOne', '[""]', undefined, false);
+
+            component.find('#submit-button').at(0).simulate('click');
+
+            postToVSCodeStub.should.have.been.calledOnceWithExactly({
+                command: ExtensionCommands.SUBMIT_TRANSACTION,
+                data: {
+                    args: [""],
+                    channelName: 'mychannel',
+                    evaluate: false,
+                    namespace: undefined,
+                    peerTargetNames: purpleContract.peerNames,
+                    smartContract: 'purpleContract',
+                    transactionName: 'transactionOne',
+                    transientData: '',
+                    txDataFile: undefined,
+                }
+            });
         });
     });
 
