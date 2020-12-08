@@ -56,6 +56,16 @@ export class TransactionView extends ReactView {
         TransactionView.appState = appState;
     }
 
+    public async openView(keepContext: boolean, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): Promise<void> {
+        if (TransactionView.panel) {
+            TransactionView.panel.webview.postMessage({
+                transactionViewData: TransactionView.appState,
+            });
+        }
+
+        return super.openView(keepContext, viewColumn);
+    }
+
     async handleTransactionMessage(message: {command: string, data: any}, panel: vscode.WebviewPanel): Promise<void> {
         const response: string = await vscode.commands.executeCommand(message.command, undefined, undefined, undefined, message.data);
         panel.webview.postMessage({

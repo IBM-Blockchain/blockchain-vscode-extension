@@ -30,6 +30,7 @@ const activeTransactionExists: any = (smartContract: ISmartContract, currentlyAc
 
 const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, txdataTransactions, preselectedTransaction }) => {
     const { peerNames } = smartContract;
+    const [smartContractName, setNewSmartContractName] = useState(smartContract.name);
 
     const [isManual, setIsManual] = useState(true);
     const [peerTargetNames, setPeerTargetNames] = useState(peerNames);
@@ -44,17 +45,39 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     // When more is needed, convert it to an object like above
     const [dataInputTransaction, updateDataInputTransaction] = useState<IDataFileTransaction>({ transactionName: '', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} });
 
-    useEffect(() => {
-        if (manualInputState.activeTransaction && manualInputState.activeTransaction.name !== '' && !activeTransactionExists(smartContract, manualInputState.activeTransaction)) {
-                // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
-                updateManualInputState({ ...manualInputState, activeTransaction: emptyTransaction, transactionArguments: [] });
+    const setManualActiveTransaction: any = (activeTransaction: ITransaction) => {
+        if (activeTransaction !== manualInputState.activeTransaction) {
+            updateManualInputState({ ...manualInputState, activeTransaction, transactionArguments: [] });
         }
-    }, [smartContract, manualInputState]);
+    };
+
+    useEffect(() => {
+        const { activeTransaction } = manualInputState;
+        if (activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
+            // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
+            setManualActiveTransaction(emptyTransaction);
+        }
+    }, [smartContract, manualInputState.activeTransaction]);
+
+    useEffect(() => {
+        // If the preselectedTransaction is changed, update the activeTransaction. Ignore if the preselectedTransaction is empty
+        if (preselectedTransaction && preselectedTransaction.name) {
+            setManualActiveTransaction(preselectedTransaction);
+        }
+    }, [preselectedTransaction]);
+
+    useEffect(() => {
+        const smartContractChanged: boolean = smartContract.name !== smartContractName;
+        if (smartContractChanged) {
+            setNewSmartContractName(smartContract.name);
+            setManualActiveTransaction(emptyTransaction);
+        }
+    }, [smartContract.name]);
 
     const submitTransaction: any = (evaluate: boolean): void => {
 
         const command: string = evaluate ? ExtensionCommands.EVALUATE_TRANSACTION : ExtensionCommands.SUBMIT_TRANSACTION;
-        const { name: smartContractName, channel: channelName, namespace } = smartContract;
+        const { channel: channelName, namespace } = smartContract;
 
         const data: any = {
             evaluate,
