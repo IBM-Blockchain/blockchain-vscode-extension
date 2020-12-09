@@ -49,7 +49,25 @@ export async function getSmartContract(connection: IFabricGatewayConnection, sma
             return peer.name;
         });
         for (const chaincode of chaincodes) {
-            const metadataObj: any = await connection.getMetadata(chaincode.name, thisChannelName);
+            let metadataObj: any;
+            try {
+                metadataObj = await connection.getMetadata(chaincode.name, thisChannelName);
+            } catch (error) {
+                // If unable to get metadata, set contract without namespace.
+                if ((chaincode.name === smartContractName) && (!smartContractVersion || chaincode.version === smartContractVersion)) {
+                    data = {
+                        name: chaincode.name,
+                        version: chaincode.version,
+                        channel: thisChannelName,
+                        label: chaincode.name + '@' + chaincode.version,
+                        transactions: [],
+                        namespace: undefined,
+                        peerNames
+                    };
+                    selectedSmartContract = data;
+                }
+                continue;
+            }
             const contractsObject: any = metadataObj.contracts;
             Object.keys(contractsObject).forEach((key: string) => {
                 if (key !== 'org.hyperledger.fabric' && (contractsObject[key].transactions.length > 0)) {
