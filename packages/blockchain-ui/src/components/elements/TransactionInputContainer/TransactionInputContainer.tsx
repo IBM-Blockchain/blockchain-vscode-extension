@@ -53,7 +53,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
 
     useEffect(() => {
         const { activeTransaction } = manualInputState;
-        if (activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
+        if (smartContract.namespace !== undefined && activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
             // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
             setManualActiveTransaction(emptyTransaction);
         }
