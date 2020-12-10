@@ -32,5 +32,9 @@ fieldset > legend {
         width: 100%;
         resize: vertical;
     }
+
+    .bx--text-area__invalid-icon {
+        display: none;
+    }
 }
 

@@ -2,7 +2,7 @@ import ITransaction from './ITransaction';
 
 interface ITransactionManualInput {
     activeTransaction: ITransaction;
-    transactionArguments: Array<string>;
+    transactionArguments: string;
     transientData: string;
 }
 

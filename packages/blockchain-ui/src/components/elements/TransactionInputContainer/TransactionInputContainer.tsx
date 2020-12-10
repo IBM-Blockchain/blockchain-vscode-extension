@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import React, { FunctionComponent, useState, useEffect, useCallback } from 'react';
 import { ContentSwitcher, Form, Switch, MultiSelect } from 'carbon-components-react';
 import TransactionManualInput from '../TransactionManualInput/TransactionManualInput';
 import TransactionDataInput from '../TransactionDataInput/TransactionDataInput';
@@ -28,16 +28,55 @@ const activeTransactionExists: any = (smartContract: ISmartContract, currentlyAc
     return index > -1;
 };
 
+const areTransactionArgsValid: (t: string) => boolean = (transactionArguments: string) => {
+    if (transactionArguments === '') {
+        return true;
+    }
+    try {
+        JSON.parse(transactionArguments);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+const convertJSONToArgs: (t: string) => Array<string> = (transactionArguments: string) => {
+    if (!transactionArguments) {
+        return [];
+    }
+    const args: { [key: string]: any } = JSON.parse(transactionArguments);
+    const array: Array<any> = Object.keys(args).map((key: string) => typeof args[key] === 'object' && args[key] !== null ? JSON.stringify(args[key]) : `${args[key]}`);
+    return array;
+};
+
+const getArgsFromTransactionAndConvertToJSON: any = (transaction: ITransaction, transactionArguments: string): string => {
+    if (transaction && transaction.name !== '' && transaction.parameters && transaction.parameters.length > 0) {
+        const args: { [key: string]: any } = {};
+        let parsedTransactionArguments: { [key: string]: any };
+        try {
+            parsedTransactionArguments = JSON.parse(transactionArguments);
+        } catch {
+            parsedTransactionArguments = {};
+        }
+        transaction.parameters.forEach(({ name }) => {
+            args[name] = (parsedTransactionArguments && parsedTransactionArguments[name]) ? parsedTransactionArguments[name] : '';
+        });
+        return JSON.stringify(args, null, 2);
+    }
+    return '[]';
+};
+
 const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, txdataTransactions, preselectedTransaction }) => {
     const { peerNames } = smartContract;
     const [smartContractName, setNewSmartContractName] = useState(smartContract.name);
+    const [currentPreselectedTransaction, setCurrentPreselectedTransaction] = useState(preselectedTransaction);
 
     const [isManual, setIsManual] = useState(true);
     const [peerTargetNames, setPeerTargetNames] = useState(peerNames);
 
     const [manualInputState, updateManualInputState] = useState<ITransactionManualInput>({
         activeTransaction: preselectedTransaction || emptyTransaction,
-        transactionArguments: [],
+        transactionArguments: '[]',
         transientData: '',
     });
 
@@ -45,11 +84,15 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     // When more is needed, convert it to an object like above
     const [dataInputTransaction, updateDataInputTransaction] = useState<IDataFileTransaction>({ transactionName: '', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} });
 
-    const setManualActiveTransaction: any = (activeTransaction: ITransaction) => {
+    const setManualActiveTransaction: any = useCallback((activeTransaction: ITransaction) => {
         if (activeTransaction !== manualInputState.activeTransaction) {
-            updateManualInputState({ ...manualInputState, activeTransaction, transactionArguments: [] });
+            let args: string = '[]';
+            if (activeTransaction !== emptyTransaction) {
+                args = getArgsFromTransactionAndConvertToJSON(activeTransaction, manualInputState.transactionArguments);
+            }
+            updateManualInputState({ ...manualInputState, activeTransaction, transactionArguments: args });
         }
-    };
+    }, [manualInputState]);
 
     useEffect(() => {
         const { activeTransaction } = manualInputState;
@@ -57,27 +100,34 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
             // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
             setManualActiveTransaction(emptyTransaction);
         }
-    }, [smartContract, manualInputState.activeTransaction]);
-
-    useEffect(() => {
-        // If the preselectedTransaction is changed, update the activeTransaction. Ignore if the preselectedTransaction is empty
-        if (preselectedTransaction && preselectedTransaction.name) {
-            setManualActiveTransaction(preselectedTransaction);
-        }
-    }, [preselectedTransaction]);
+    }, [smartContract, manualInputState, setManualActiveTransaction]);
 
     useEffect(() => {
         const smartContractChanged: boolean = smartContract.name !== smartContractName;
         if (smartContractChanged) {
             setNewSmartContractName(smartContract.name);
-            setManualActiveTransaction(emptyTransaction);
         }
-    }, [smartContract.name]);
+    }, [smartContract, smartContractName]);
+
+    useEffect(() => {
+        // If the preselectedTransaction is changed, update the activeTransaction
+        const preselectedTransactionHasChanged: boolean = preselectedTransaction !== currentPreselectedTransaction;
+        if (preselectedTransactionHasChanged) {
+            if (preselectedTransaction && preselectedTransaction.name) {
+                setManualActiveTransaction(preselectedTransaction);
+            } else {
+                setManualActiveTransaction(emptyTransaction);
+            }
+            setCurrentPreselectedTransaction(preselectedTransaction);
+        }
+    }, [preselectedTransaction, currentPreselectedTransaction, setManualActiveTransaction]);
 
     const submitTransaction: any = (evaluate: boolean): void => {
 
         const command: string = evaluate ? ExtensionCommands.EVALUATE_TRANSACTION : ExtensionCommands.SUBMIT_TRANSACTION;
         const { channel: channelName, namespace } = smartContract;
+
+        const args: Array<string> = isManual ? convertJSONToArgs(manualInputState.transactionArguments) : dataInputTransaction.arguments;
 
         const data: any = {
             evaluate,
@@ -86,7 +136,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
             channelName,
             namespace,
             transactionName: isManual ? manualInputState.activeTransaction.name : dataInputTransaction.transactionName,
-            args: isManual ? manualInputState.transactionArguments : dataInputTransaction.arguments,
+            args,
             transientData: isManual ? manualInputState.transientData : dataInputTransaction.transientData,
             txDataFile: isManual ? undefined : dataInputTransaction.txDataFile,
         };
@@ -105,7 +155,9 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
         return peers.map((peer) => ({ id: peer, label: peer }));
     };
 
-    const shouldDisableManual: boolean = !(manualInputState && manualInputState.activeTransaction && manualInputState.activeTransaction.name !== '');
+    const transactionArgumentsAreValid: boolean = areTransactionArgsValid(manualInputState.transactionArguments);
+
+    const shouldDisableManual: boolean = !manualInputState.activeTransaction.name || !transactionArgumentsAreValid;
     const shouldDisableDataFile: boolean = dataInputTransaction.transactionName === '';
     const shouldDisableButtons: boolean = (isManual ? shouldDisableManual : shouldDisableDataFile) || peerTargetNames.length === 0;
 
@@ -125,6 +177,8 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
                             smartContract={smartContract}
                             manualInputState={manualInputState}
                             setManualInput={updateManualInputState}
+                            setActiveTransaction={setManualActiveTransaction}
+                            transactionArgumentsAreValid={transactionArgumentsAreValid}
                         />
                     ) : (
                         <TransactionDataInput
