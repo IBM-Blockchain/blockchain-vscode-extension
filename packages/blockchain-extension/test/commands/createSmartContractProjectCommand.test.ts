@@ -83,7 +83,6 @@ describe('CreateSmartContractProjectCommand', () => {
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         showQuickPickItemStub.onFirstCall().resolves({label: UserInputUtil.GENERATE_DEFAULT_CONTRACT, description: UserInputUtil.GENERATE_DEFAULT_CONTRACT_DESCRIPTION, data: 'default'});
-        showQuickPickItemStub.onSecondCall().resolves({label: 'v2.0 (recommended)', data: 'v2'});
     });
     afterEach(() => {
         mySandBox.restore();
@@ -268,23 +267,6 @@ describe('CreateSmartContractProjectCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
         });
 
-        it(`should start a v1 ${testLanguageItem.label} smart contract project in a new window`, async () => {
-            showLanguagesQuickPickStub.resolves(testLanguageItem);
-            if (testLanguageItem.type === LanguageType.CONTRACT) {
-                showInputBoxStub.onFirstCall().resolves('Conga');
-            }
-            showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-            browseStub.resolves(uri);
-            showQuickPickItemStub.onSecondCall().resolves({label: 'v1.4', data: 'v1'});
-
-            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-            executeCommandStub.should.have.been.calledThrice;
-            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
-            executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Smart Contract Project');
-            await checkSmartContract();
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', { contractLanguage: testLanguageItem.label, contractType: 'default' });
-        });
     }
 
     it('should start a typescript private data smart contract project, in a new window', async () => {
@@ -341,15 +323,6 @@ describe('CreateSmartContractProjectCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         browseStub.should.not.have.been.called;
         showLanguagesQuickPickStub.should.not.have.been.called;
-        sendTelemetryEventStub.should.not.have.been.called;
-    });
-
-    it('should not do anything if the user cancels the fabric version of the smart contract', async () => {
-        showQuickPickItemStub.onSecondCall().resolves(undefined);
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        browseStub.should.not.have.been.called;
-        showLanguagesQuickPickStub.should.not.have.been.called;
-        showInputBoxStub.should.not.have.been.called;
         sendTelemetryEventStub.should.not.have.been.called;
     });
 
@@ -413,7 +386,7 @@ describe('CreateSmartContractProjectCommand', () => {
         showLanguagesQuickPickStub.resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         showLanguagesQuickPickStub.should.have.been.calledOnce;
-        showQuickPickItemStub.should.have.been.calledTwice;
+        showQuickPickItemStub.should.have.been.calledOnce;
         showInputBoxStub.should.not.have.been.called;
         browseStub.should.not.have.been.called;
     });
@@ -423,7 +396,7 @@ describe('CreateSmartContractProjectCommand', () => {
         showInputBoxStub.onCall(0).resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         showInputBoxStub.should.have.been.calledOnce;
-        showQuickPickItemStub.should.have.been.calledTwice;
+        showQuickPickItemStub.should.have.been.calledOnce;
         browseStub.should.not.have.been.called;
     });
 
@@ -431,7 +404,7 @@ describe('CreateSmartContractProjectCommand', () => {
         showLanguagesQuickPickStub.resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onCall(0).resolves('@xyz/myAsset');
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        showQuickPickItemStub.should.have.been.calledTwice;
+        showQuickPickItemStub.should.have.been.calledOnce;
         browseStub.should.not.have.been.called;
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Invalid asset name, it should only contain lowercase and uppercase letters.');
     });

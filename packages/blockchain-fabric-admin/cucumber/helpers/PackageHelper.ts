@@ -23,7 +23,7 @@ import stripAnsi = require('strip-ansi');
 
 export class PackageHelper {
 
-    public static async packageContract(projectPath: string, name: string, version: string, type: SmartContractType, language: string, fabricVersion: number): Promise<string> {
+    public static async packageContract(projectPath: string, name: string, version: string, type: SmartContractType, language: string, packageFormat: string): Promise<string> {
 
         if (language === 'typescript') {
             await this.runCommand('npm', ['install'], projectPath);
@@ -36,7 +36,7 @@ export class PackageHelper {
         }
 
         let contractPackage: SmartContractPackageBase;
-        if (fabricVersion === 1) {
+        if (packageFormat === 'cds') {
             contractPackage = await V1SmartContractPackage.createSmartContractPackage({
                 smartContractPath: projectPath,
                 smartContractType: type,

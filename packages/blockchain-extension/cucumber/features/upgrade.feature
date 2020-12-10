@@ -7,17 +7,17 @@ Feature: Upgrade Smart Contracts
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And the contract has been deleted
     And the package has been deleted
-    And a <language> smart contract using Fabric v2 for <assetType2> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType2> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     When I deploy the contract on channel 'mychannel' with sequence '1'
     Then there should be a committed smart contract tree item with a label '<committedName>' in the 'Fabric Environments' panel for item mychannel
     And the tree item should have a tooltip equal to '<committedName>'
@@ -34,10 +34,10 @@ Feature: Upgrade Smart Contracts
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And a smart contract definition with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And a smart contract definition with the name <name> and version <version2>
     When I deploy the contract on channel 'mychannel' with sequence '2'

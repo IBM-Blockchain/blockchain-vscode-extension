@@ -81,9 +81,9 @@ Feature: Fabric Gateways
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
-    And a <contractLanguage> smart contract using Fabric v2 for <assetType> assets with the name <contractName> and version <version>
+    And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     When I generate a <testLanguage> functional test for a <contractLanguage> contract
     Then a functional test file with .<fileExtension> extension for the <testLanguage> contract <contractName> version <version> with assets <assetType> should exist and contain the correct contents
@@ -103,9 +103,9 @@ Feature: Fabric Gateways
     And an environment 'myFabric' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <contractLanguage> smart contract using Fabric v2 for <assetType> assets with the name <contractName> and version <version>
+    And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And the gateway 'myGateway' is created
     And I'm connected to the 'myGateway' gateway without association

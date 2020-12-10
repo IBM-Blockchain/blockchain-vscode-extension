@@ -2,8 +2,8 @@ Feature: Package Smart Contract
   Package smart contracts for each of the languages
 
   Scenario Outline: Package Smart Contract using Fabric v2
-    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
-    When I package the smart contract
+    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+    When I package the smart contract as a tar.gz
     Then a package should exist
     Examples:
       | language   | type   |
@@ -13,8 +13,8 @@ Feature: Package Smart Contract
       | go         | golang |
 
   Scenario Outline: Get list of files for a Fabric v2 contract
-    Given a '<language>' smart contract using Fabric v2 of type '<type>' using 'fabcar'
-    And the package exists
+    Given a '<language>' smart contract of type '<type>' using 'fabcar'
+    And the tar.gz package exists
     When I get the list of files from a file
     Then the file list is correct '<fileList>'
     Examples:
@@ -25,8 +25,8 @@ Feature: Package Smart Contract
       | go         | golang | metadata.json src/fabcar.go src/go.mod src/go.sum src/vendor/google.golang.org/grpc/backoff.go                                                                                               |
 
 Scenario Outline: Package Smart Contract using Fabric v1
-  Given a '<language>' smart contract using Fabric v1 of type '<type>' using 'fabcar'
-  When I package the smart contract
+  Given a '<language>' smart contract of type '<type>' using 'fabcar'
+  When I package the smart contract as a cds
   Then a package should exist
   Examples:
     | language   | type   |
@@ -36,8 +36,8 @@ Scenario Outline: Package Smart Contract using Fabric v1
     | go         | golang |
 
 Scenario Outline: Get list of files for a Fabric v1 contract
-  Given a '<language>' smart contract using Fabric v1 of type '<type>' using 'fabcar'
-  And the package exists
+  Given a '<language>' smart contract of type '<type>' using 'fabcar'
+  And the cds package exists
   When I get the list of files from a file
   Then the file list is correct '<fileList>'
   Examples:

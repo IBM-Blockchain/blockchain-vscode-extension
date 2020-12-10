@@ -29,8 +29,9 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given('the contract has been packaged', this.timeout, async () => {
-        this.packageRegistryEntry = await this.smartContractHelper.packageSmartContract(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, this.contractDirectory, this.fabricVersion);
+    this.Given(/the contract has been packaged as a (cds|tar\.gz|tgz)/, this.timeout, async (_packageFormat: string) => {
+        this.packageFormat = _packageFormat;
+        this.packageRegistryEntry = await this.smartContractHelper.packageSmartContract(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, this.contractDirectory, this.packageFormat);
     });
 
     this.Given(/the package has been deleted/, this.timeout, async () => {
@@ -43,8 +44,9 @@ module.exports = function(): any {
      * When
      */
 
-    this.When('I package the contract', this.timeout, async () => {
-        this.packageRegistryEntry = await this.smartContractHelper.packageSmartContract(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, this.contractDirectory, this.fabricVersion);
+    this.When(/I package the contract as a (cds|tar\.gz|tgz)/, this.timeout, async (_packageFormat: string) => {
+        this.packageFormat = _packageFormat;
+        this.packageRegistryEntry = await this.smartContractHelper.packageSmartContract(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, this.contractDirectory, this.packageFormat);
     });
 
     this.When(/I run the command View package Information for package with name (.*) and version (.\S+)/, this.timeout, async (packagedName: string, version: string) => {
