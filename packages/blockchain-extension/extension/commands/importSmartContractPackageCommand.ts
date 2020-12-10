@@ -61,6 +61,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         }
 
         const newName: string = result[1];
+        const newExt: string = result[2];
 
         let existingPackages: string[] = await fs.readdir(resolvedPkgDir);
 
@@ -71,11 +72,14 @@ export async function importSmartContractPackageCommand(): Promise<void> {
                 return false;
             }
 
-            return newName === existingName[1];
+            const existingIsCds: boolean = existingName[2] === '.cds';
+            const newIsCds: boolean = newExt === '.cds';
+            return newName === existingName[1] && existingIsCds === newIsCds;
         });
 
         if (existingPackages.length > 0) {
-            throw new Error(`Package with name ${newName} already exists`);
+            const extText: string = newExt === nameRegex.exec(existingPackages[0])[2] ? 'same' : 'equivalent';
+            throw new Error(`Package with name ${newName} and ${extText} file extension already exists`);
         }
 
         await fs.copy(packagePath, resolvedPkgPath);
