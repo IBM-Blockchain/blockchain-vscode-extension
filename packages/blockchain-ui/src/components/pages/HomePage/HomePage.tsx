@@ -30,7 +30,7 @@ interface IProps {
 
 class HomePage extends Component<IProps> {
     render(): JSX.Element {
-        const fabric2TileString: string = 'Congratulations on upgrading to Fabric v2.0! This update brings a new smart contract lifecycle, as well as new features. Learn about how this update will affect your workflow here.';
+        const fabric2TileString: string = 'Congratulations on upgrading to v2.0 of the IBM Blockchain Platform VS Code extension! This update brings support for the Fabric 2.0 smart contract lifecycle, as well as new features. Learn about how this update will affect your workflow here.';
         const tutorialTileString: string = 'Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills and earn accredited badges along the way!';
 
         return (
@@ -57,24 +57,21 @@ class HomePage extends Component<IProps> {
                         />
                         <div className='bx--row resources-links-container'>
                             <div className='bx--col link-list-container'>
-                                <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features' id='home-link-01'>
-                                    Extension documentation
-                                </Link>
-                                <Link href='https://cloud.ibm.com/docs/blockchain?topic=blockchain-get-started-ibp' id='home-link-03'>
+                                <Link href='https://cloud.ibm.com/docs/blockchain?topic=blockchain-get-started-ibp' id='home-link-01'>
                                     IBM Blockchain Platform documentation
                                 </Link>
-                                <TelemetryLink linkContents='Free e-book: Getting Started with Enterprise Blockchain' url='https://www.ibm.com/account/reg/uk-en/signup?formid=urx-38322&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Oreilly+book+promo&cm_mmca1=000026VG&cm_mmca2=10008691' id='home-link-04'/>
+                                <TelemetryLink linkContents='Free e-book: Getting Started with Enterprise Blockchain' url='https://www.ibm.com/account/reg/uk-en/signup?formid=urx-38322&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Oreilly+book+promo&cm_mmca1=000026VG&cm_mmca2=10008691' id='home-link-02'/>
                                 <Link href='http://ibm.biz/blockchainuserseries' id='home-link-03'>
                                     Join the IBM Blockchain Platform User Series Webcast
                                 </Link>
-                                <Link href='https://www.ibm.com/blockchain/platform?schedulerform' id='home-link-03'>
+                                <Link href='https://www.ibm.com/blockchain/platform?schedulerform' id='home-link-04'>
                                     Schedule a free 1:1 consultation with an IBM Blockchain Platform expert
                                 </Link>
 
                             </div>
                             <div className='bx--col link-list-container'>
-                                <CommandLink linkContents='View Release notes' commandName={ExtensionCommands.OPEN_RELEASE_NOTES} id='home-link-02'/>
-                                <CommandLink linkContents='View Sample Gallery' commandName={ExtensionCommands.OPEN_SAMPLE_GALLERY} id='home-link-05'/>
+                                <CommandLink linkContents='View Release notes' commandName={ExtensionCommands.OPEN_RELEASE_NOTES} id='home-link-05'/>
+                                <CommandLink linkContents='View Sample Gallery' commandName={ExtensionCommands.OPEN_SAMPLE_GALLERY} id='home-link-06'/>
                                 <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/' id='home-link-07'>
                                     Fabric Documentation
                                 </Link>

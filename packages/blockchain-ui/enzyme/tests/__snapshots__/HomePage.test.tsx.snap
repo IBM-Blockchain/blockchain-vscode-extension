@@ -52,7 +52,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
               </h3>
             </div>
             <p>
-              Congratulations on upgrading to Fabric v2.0! This update brings a new smart contract lifecycle, as well as new features. Learn about how this update will affect your workflow here.
+              Congratulations on upgrading to v2.0 of the IBM Blockchain Platform VS Code extension! This update brings support for the Fabric 2.0 smart contract lifecycle, as well as new features. Learn about how this update will affect your workflow here.
             </p>
           </div>
           <img
@@ -108,22 +108,15 @@ exports[`HomePage component should render the expected snapshot 1`] = `
         >
           <a
             className="bx--link"
-            href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features"
-            id="home-link-01"
-          >
-            Extension documentation
-          </a>
-          <a
-            className="bx--link"
             href="https://cloud.ibm.com/docs/blockchain?topic=blockchain-get-started-ibp"
-            id="home-link-03"
+            id="home-link-01"
           >
             IBM Blockchain Platform documentation
           </a>
           <a
             className="bx--link"
             href="https://www.ibm.com/account/reg/uk-en/signup?formid=urx-38322&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Oreilly+book+promo&cm_mmca1=000026VG&cm_mmca2=10008691"
-            id="home-link-04"
+            id="home-link-02"
             onClick={[Function]}
           >
             Free e-book: Getting Started with Enterprise Blockchain
@@ -138,7 +131,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
           <a
             className="bx--link"
             href="https://www.ibm.com/blockchain/platform?schedulerform"
-            id="home-link-03"
+            id="home-link-04"
           >
             Schedule a free 1:1 consultation with an IBM Blockchain Platform expert
           </a>
@@ -149,7 +142,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
           <a
             className="bx--link"
             href=""
-            id="home-link-02"
+            id="home-link-05"
             onClick={[Function]}
           >
             View Release notes
@@ -157,7 +150,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
           <a
             className="bx--link"
             href=""
-            id="home-link-05"
+            id="home-link-06"
             onClick={[Function]}
           >
             View Sample Gallery

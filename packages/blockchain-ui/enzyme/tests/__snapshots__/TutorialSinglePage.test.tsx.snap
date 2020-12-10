@@ -44,6 +44,11 @@ exports[`TutorialPage component should render the component when no tutorialData
           <img
             alt="alt"
             src="../resources/tutorials/some/file/relative/link"
+            style={
+              Object {
+                "maxWidth": "550px",
+              }
+            }
           />
           mailto ignore me
           <a
@@ -79,6 +84,11 @@ exports[`TutorialPage component should render the component when no tutorialData
             <img
               alt="alt"
               src="../resources/tutorials/some/file/image/within/link"
+              style={
+                Object {
+                  "maxWidth": "550px",
+                }
+              }
             />
           </a>
         </p>
@@ -249,6 +259,11 @@ exports[`TutorialPage component should render the expected snapshot (when the st
           <img
             alt="alt"
             src="../resources/tutorials/some/file/relative/link"
+            style={
+              Object {
+                "maxWidth": "550px",
+              }
+            }
           />
           mailto ignore me
           <a
@@ -288,6 +303,11 @@ exports[`TutorialPage component should render the expected snapshot (when the st
             <img
               alt="alt"
               src="../resources/tutorials/some/file/image/within/link"
+              style={
+                Object {
+                  "maxWidth": "550px",
+                }
+              }
             />
           </a>
         </p>
@@ -469,6 +489,11 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           <img
             alt="alt"
             src="../resources/tutorials/some/file/relative/link"
+            style={
+              Object {
+                "maxWidth": "550px",
+              }
+            }
           />
           mailto ignore me
           <a
@@ -508,6 +533,11 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             <img
               alt="alt"
               src="../resources/tutorials/some/file/image/within/link"
+              style={
+                Object {
+                  "maxWidth": "550px",
+                }
+              }
             />
           </a>
         </p>

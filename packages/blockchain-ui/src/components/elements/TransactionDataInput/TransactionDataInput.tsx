@@ -47,7 +47,7 @@ const TransactionDataInput: FunctionComponent<IProps> = ({ smartContract, associ
         <>
             <div className='associate-tx-data'>
                 <h6>Select transaction directory</h6>
-                <p>Not sure how to get started? Find out more information <a href='https://github.com/IBM-Blockchain/blockchain-vscode-extension#using-transaction-data-files-to-submit-a-transaction'>here</a></p>
+                <p>Not sure how to get started? Find out more information <a href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/wiki/Common-tasks-and-how-to-complete-them#using-transaction-data-files-to-submit-a-transaction'>here</a></p>
                 {associatedTxdata
                     ? (
                         <FileUploaderItem
