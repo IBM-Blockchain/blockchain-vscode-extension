@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DeployOrgApprovalTable component should render the expected snapshot 1`] = `
+<div
+  className="bx--data-table-container"
+>
+  <table
+    className="bx--data-table bx--data-table--short bx--data-table--no-border"
+  >
+    <thead>
+      <tr>
+        <th
+          scope="col"
+        >
+          <span
+            className="bx--table-header-label"
+          >
+            Organization
+          </span>
+        </th>
+        <th
+          scope="col"
+        >
+          <span
+            className="bx--table-header-label"
+          >
+            Approval status
+          </span>
+        </th>
+      </tr>
+    </thead>
+    <tbody
+      aria-live="polite"
+    >
+      <tr
+        id="Org1MSP-row"
+      >
+        <td>
+          Org1MSP
+        </td>
+        <td>
+          Approved
+        </td>
+      </tr>
+      <tr
+        id="Org2MSP-row"
+      >
+        <td>
+          Org2MSP
+        </td>
+        <td>
+          Not approved
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;

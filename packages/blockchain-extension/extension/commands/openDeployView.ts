@@ -71,13 +71,27 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
             channelName = _chosenChannel.label;
         }
 
-        const packageEntries: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        const channelMap: Map<string, string[]> = await connection.createChannelMap();
+        const channelPeers: string[] = channelMap.get(channelName);
+
+        let hasV1Capabilities: boolean = false;
+        for (const peer of channelPeers) {
+            const capabilities: string[] = await connection.getChannelCapabilityFromPeer(channelName, peer);
+            if (!capabilities.includes('V2_0')) {
+                hasV1Capabilities = true;
+            }
+        }
+
+        let packageEntries: PackageRegistryEntry[] = [];
+        const allPackageEntries: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        packageEntries = allPackageEntries.filter((entry: PackageRegistryEntry) => {
+            const fileExtension: string = UserInputUtil.getPackageFileExtension(entry.path);
+            return hasV1Capabilities ? fileExtension === '.cds' : fileExtension !== '.cds';
+        });
 
         const workspaceFolders: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         const workspaceNames: string[] = workspaceFolders.map((item: vscode.WorkspaceFolder) => item.name);
 
-        const channelMap: Map<string, string[]> = await connection.createChannelMap();
-        const channelPeers: string[] = channelMap.get(channelName);
         const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);
         const committedDefinitions: string[] = allCommittedContracts.map((definition: FabricSmartContractDefinition) => `${definition.name}@${definition.version}`);
 
@@ -103,8 +117,9 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
             orgMap[org] = peers;
         });
 
-        const appState: { channelName: string, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[], committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any } = {
+        const appState: { channelName: string, hasV1Capabilities: boolean, environmentName: string, packageEntries: PackageRegistryEntry[], workspaceNames: string[], committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any } = {
             channelName,
+            hasV1Capabilities,
             environmentName: selectedEnvironmentName,
             packageEntries,
             workspaceNames,

@@ -4,6 +4,7 @@ import './DeployProgressBar.scss';
 
 interface IProps {
     currentIndex: number;
+    hasV1Capabilities: boolean;
 }
 
 class DeployProgressBar extends Component<IProps> {
@@ -11,6 +12,7 @@ class DeployProgressBar extends Component<IProps> {
     // For the deploy progress bar
 
     render(): JSX.Element {
+        const stepTwoLabel: string = this.props.hasV1Capabilities ? 'Configure smart contract deployment' : 'Create definition';
         return (
             <div className='bx--col-lg-10'>
                 <ProgressIndicator currentIndex={this.props.currentIndex} vertical={false}>
@@ -23,7 +25,7 @@ class DeployProgressBar extends Component<IProps> {
                     />
                     <ProgressStep
                         label='Step 2'
-                        secondaryLabel='Create definition'
+                        secondaryLabel={stepTwoLabel}
                         description=''
 
                     />

@@ -1,6 +1,5 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import { mount } from 'enzyme';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
 
@@ -10,9 +9,16 @@ chai.should();
 chai.use(sinonChai);
 
 describe('DeployProgressBar component', () => {
-    it('should render the expected snapshot', () => {
+    it('should render the expected snapshot when showing v1 deploy view', () => {
         const component: any = renderer
-            .create(<DeployProgressBar currentIndex={0}/>)
+            .create(<DeployProgressBar currentIndex={0} hasV1Capabilities={false}/>)
+            .toJSON();
+        expect(component).toMatchSnapshot();
+    });
+
+    it('should render the expected snapshot when showing v2 deploy view', () => {
+        const component: any = renderer
+            .create(<DeployProgressBar currentIndex={0} hasV1Capabilities={true}/>)
             .toJSON();
         expect(component).toMatchSnapshot();
     });

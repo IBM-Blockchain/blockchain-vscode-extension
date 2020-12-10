@@ -99,6 +99,21 @@ describe('importSmartContractPackageCommand', () => {
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
     });
 
+    it('should import a cds package', async () => {
+        srcPackage = path.join('myPath', 'test.cds');
+        browseStub.resolves(srcPackage);
+
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        const endPackage: string = path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages', 'test.cds');
+        copyStub.should.have.been.calledWith(srcPackage, endPackage);
+        logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
+        logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.cds');
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
+        readdirStub.should.have.been.calledWith(path.join(TEST_PACKAGE_DIRECTORY, 'v2', 'packages'));
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
+    });
+
     it('should handle duplicate packages - same file extensions (both tar.gz)', async () => {
         packagesList.push('test.tar.gz');
         readdirStub.resolves(packagesList);
@@ -155,7 +170,7 @@ describe('importSmartContractPackageCommand', () => {
         srcPackage = path.join('myPath', 'test.json');
         browseStub.resolves(srcPackage);
 
-        const error: Error = new Error('Incorrect file type, file extension must be "tar.gz" or "tgz"');
+        const error: Error = new Error('Incorrect file type, file extension must be "cds", "tar.gz" or "tgz"');
 
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 

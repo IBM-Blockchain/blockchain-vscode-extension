@@ -26,11 +26,11 @@ describe('DeployPage component', () => {
     const packageOne: IPackageRegistryEntry = { name: 'mycontract', version: '0.0.1', path: '/package/one', sizeKB: 9000 };
     const packageTwo: IPackageRegistryEntry = { name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000 };
     const packageThree: IPackageRegistryEntry = { name: 'importedContract', path: '/package/three', sizeKB: 16000 };
-    let deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
+    let deployData: { channelName: string, hasV1Capabilities: boolean, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, selectedWorkspace: string | undefined, chosenWorkspaceData: { language: string, name: string, version: string }, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        deployData = { channelName: 'mychannel', environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined, committedDefinitions: [], environmentPeers: ['Org1Peer1'], discoveredPeers: ['Org2Peer1'], orgMap: { Org1MSP: ['Org1Peer1'], Org2MSP: ['Org2Peer1'] }, orgApprovals: { Org1MSP: true, Org2MSP: false } };
+        deployData = { channelName: 'mychannel', hasV1Capabilities: false, environmentName: 'myEnvironment', packageEntries: [packageOne, packageTwo, packageThree], workspaceNames: ['workspaceOne'], selectedPackage: undefined, selectedWorkspace: undefined, chosenWorkspaceData: { language: '', name: '', version: '' }, committedDefinitions: [], environmentPeers: ['Org1Peer1'], discoveredPeers: ['Org2Peer1'], orgMap: { Org1MSP: ['Org1Peer1'], Org2MSP: ['Org2Peer1'] }, orgApprovals: { Org1MSP: true, Org2MSP: false } };
     });
 
     afterEach(async () => {
@@ -165,6 +165,8 @@ describe('DeployPage component', () => {
         });
 
         it('should handle a workspace selected', () => {
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
 
@@ -173,6 +175,12 @@ describe('DeployPage component', () => {
             instance.handlePackageChange(undefined, 'workspaceOne');
 
             setStateStub.should.have.been.calledOnceWithExactly({ selectedPackage: undefined, disableNext: true, selectedWorkspace: 'workspaceOne', deletedSelectedPackage: false });
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'getPackageLanguage',
+                data: {
+                    workspaceName: 'workspaceOne'
+                }
+            });
         });
     });
 
@@ -239,113 +247,252 @@ describe('DeployPage component', () => {
     });
 
     describe('handleDeploy', () => {
-        it('should send deploy message', () => {
-            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
-            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            const instance: DeployPage = component.instance() as DeployPage;
+        describe('handleDeploy - v2', () => {
 
-            instance.setState({
-                environmentName: 'myEnvironment',
-                channelName: 'myChannel',
-                selectedPackage: packageTwo,
-                definitionName: packageTwo.name,
-                definitionVersion: packageTwo.version as string,
-                commitSmartContract: undefined,
-                currentCollectionFile: undefined,
-                selectedPeers: ['Org1Peer1', 'Org2Peer1']
-            });
+            it('should send deploy message', () => {
+                postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
-            instance.handleDeploy();
+                const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+                const instance: DeployPage = component.instance() as DeployPage;
 
-            postToVscodeStub.should.have.been.calledOnceWithExactly({
-                command: 'deploy',
-                data: {
+                instance.setState({
                     environmentName: 'myEnvironment',
                     channelName: 'myChannel',
                     selectedPackage: packageTwo,
                     definitionName: packageTwo.name,
-                    definitionVersion: packageTwo.version,
+                    definitionVersion: packageTwo.version as string,
                     commitSmartContract: undefined,
-                    collectionConfigPath: undefined,
+                    currentCollectionFile: undefined,
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1']
+                });
+
+                instance.handleDeploy();
+
+                postToVscodeStub.should.have.been.calledOnceWithExactly({
+                    command: 'deploy',
+                    data: {
+                        environmentName: 'myEnvironment',
+                        channelName: 'myChannel',
+                        selectedPackage: packageTwo,
+                        definitionName: packageTwo.name,
+                        definitionVersion: packageTwo.version,
+                        commitSmartContract: undefined,
+                        collectionConfigPath: undefined,
+                        endorsementPolicy: undefined,
+                        selectedPeers: ['Org1Peer1', 'Org2Peer1']
+                    }
+                });
+            });
+
+            it('should send deploy message with collection path if set', () => {
+                postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+                const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+                const instance: DeployPage = component.instance() as DeployPage;
+
+                const file: File = new File([], 'someFile');
+                file['path'] = '/some/path';
+
+                instance.setState({
+                    environmentName: 'myEnvironment',
+                    channelName: 'myChannel',
+                    selectedPackage: packageTwo,
+                    definitionName: packageTwo.name,
+                    definitionVersion: packageTwo.version as string,
+                    commitSmartContract: undefined,
+                    currentCollectionFile: file,
                     endorsementPolicy: undefined,
                     selectedPeers: ['Org1Peer1', 'Org2Peer1']
-                }
-            });
-        });
+                });
 
-        it('should send deploy message with collection path if set', () => {
-            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+                instance.handleDeploy();
 
-            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            const instance: DeployPage = component.instance() as DeployPage;
-
-            const file: File = new File([], 'someFile');
-            file['path'] = '/some/path';
-
-            instance.setState({
-                environmentName: 'myEnvironment',
-                channelName: 'myChannel',
-                selectedPackage: packageTwo,
-                definitionName: packageTwo.name,
-                definitionVersion: packageTwo.version as string,
-                commitSmartContract: undefined,
-                currentCollectionFile: file,
-                endorsementPolicy: undefined,
-                selectedPeers: ['Org1Peer1', 'Org2Peer1']
+                postToVscodeStub.should.have.been.calledOnceWithExactly({
+                    command: 'deploy',
+                    data: {
+                        environmentName: 'myEnvironment',
+                        channelName: 'myChannel',
+                        selectedPackage: packageTwo,
+                        definitionName: packageTwo.name,
+                        definitionVersion: packageTwo.version,
+                        commitSmartContract: undefined,
+                        collectionConfigPath: '/some/path',
+                        endorsementPolicy: undefined,
+                        selectedPeers: ['Org1Peer1', 'Org2Peer1']
+                    }
+                });
             });
 
-            instance.handleDeploy();
+            it('should send deploy message with endorsement policy if set', () => {
+                postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
-            postToVscodeStub.should.have.been.calledOnceWithExactly({
-                command: 'deploy',
-                data: {
+                const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+                const instance: DeployPage = component.instance() as DeployPage;
+
+                instance.setState({
                     environmentName: 'myEnvironment',
                     channelName: 'myChannel',
                     selectedPackage: packageTwo,
                     definitionName: packageTwo.name,
-                    definitionVersion: packageTwo.version,
+                    definitionVersion: packageTwo.version as string,
                     commitSmartContract: undefined,
-                    collectionConfigPath: '/some/path',
-                    endorsementPolicy: undefined,
-                    selectedPeers: ['Org1Peer1', 'Org2Peer1']
-                }
-            });
-        });
-
-        it('should send deploy message with endorsement policy if set', () => {
-            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
-
-            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
-            const instance: DeployPage = component.instance() as DeployPage;
-
-            instance.setState({
-                environmentName: 'myEnvironment',
-                channelName: 'myChannel',
-                selectedPackage: packageTwo,
-                definitionName: packageTwo.name,
-                definitionVersion: packageTwo.version as string,
-                commitSmartContract: undefined,
-                currentCollectionFile: undefined,
-                endorsementPolicy: 'OR("Org1MSP.member")',
-                selectedPeers: ['Org1Peer1', 'Org2Peer1']
-            });
-
-            instance.handleDeploy();
-
-            postToVscodeStub.should.have.been.calledOnceWithExactly({
-                command: 'deploy',
-                data: {
-                    environmentName: 'myEnvironment',
-                    channelName: 'myChannel',
-                    selectedPackage: packageTwo,
-                    definitionName: packageTwo.name,
-                    definitionVersion: packageTwo.version,
-                    commitSmartContract: undefined,
-                    collectionConfigPath: undefined,
+                    currentCollectionFile: undefined,
                     endorsementPolicy: 'OR("Org1MSP.member")',
                     selectedPeers: ['Org1Peer1', 'Org2Peer1']
-                }
+                });
+
+                instance.handleDeploy();
+
+                postToVscodeStub.should.have.been.calledOnceWithExactly({
+                    command: 'deploy',
+                    data: {
+                        environmentName: 'myEnvironment',
+                        channelName: 'myChannel',
+                        selectedPackage: packageTwo,
+                        definitionName: packageTwo.name,
+                        definitionVersion: packageTwo.version,
+                        commitSmartContract: undefined,
+                        collectionConfigPath: undefined,
+                        endorsementPolicy: 'OR("Org1MSP.member")',
+                        selectedPeers: ['Org1Peer1', 'Org2Peer1']
+                    }
+                });
+            });
+        });
+
+        describe('handleDeploy - v1', () => {
+
+            beforeEach(() => {
+                deployData.hasV1Capabilities = true;
+            });
+
+            it('should send instantiate message', () => {
+                postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+                const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+                const instance: DeployPage = component.instance() as DeployPage;
+
+                instance.setState({
+                    channelName: 'myChannel',
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                    environmentName: 'myEnvironment',
+                    selectedPackage: packageTwo,
+                });
+
+                instance.handleDeploy();
+
+                postToVscodeStub.should.have.been.calledOnceWithExactly({
+                    command: 'instantiate',
+                    data: {
+                        channelName: 'myChannel',
+                        selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                        environmentName: 'myEnvironment',
+                        selectedPackage: packageTwo,
+                        instantiateFunctionName: '',
+                        instantiateFunctionArgs: '',
+                        collectionConfigPath: undefined,
+                        endorsementPolicy: undefined,
+                    }
+                });
+            });
+
+            it('should send instantiate message with collection path if set', () => {
+                postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+                const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+                const instance: DeployPage = component.instance() as DeployPage;
+
+                const file: File = new File([], 'someFile');
+                file['path'] = '/some/path';
+
+                instance.setState({
+                    channelName: 'myChannel',
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                    environmentName: 'myEnvironment',
+                    selectedPackage: packageTwo,
+                    currentCollectionFile: file
+                });
+
+                instance.handleDeploy();
+
+                postToVscodeStub.should.have.been.calledOnceWithExactly({
+                    command: 'instantiate',
+                    data: {
+                        channelName: 'myChannel',
+                        selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                        environmentName: 'myEnvironment',
+                        selectedPackage: packageTwo,
+                        instantiateFunctionName: '',
+                        instantiateFunctionArgs: '',
+                        collectionConfigPath: '/some/path',
+                        endorsementPolicy: undefined,
+                    }
+                });
+            });
+
+            it('should send instantiate message with endorsement policy if set', () => {
+                postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+                const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+                const instance: DeployPage = component.instance() as DeployPage;
+
+                instance.setState({
+                    channelName: 'myChannel',
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                    environmentName: 'myEnvironment',
+                    selectedPackage: packageTwo,
+                    endorsementPolicy: 'OR("Org1MSP.member")'
+                });
+
+                instance.handleDeploy();
+
+                postToVscodeStub.should.have.been.calledOnceWithExactly({
+                    command: 'instantiate',
+                    data: {
+                        channelName: 'myChannel',
+                        selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                        environmentName: 'myEnvironment',
+                        selectedPackage: packageTwo,
+                        instantiateFunctionName: '',
+                        instantiateFunctionArgs: '',
+                        collectionConfigPath: undefined,
+                        endorsementPolicy: 'OR("Org1MSP.member")',
+                    }
+                });
+            });
+
+            it('should send upgrade message', () => {
+                postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+                deployData.committedDefinitions = ['othercontract@0.0.2'];
+
+                const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+                const instance: DeployPage = component.instance() as DeployPage;
+
+                instance.setState({
+                    channelName: 'myChannel',
+                    selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                    environmentName: 'myEnvironment',
+                    selectedPackage: packageTwo,
+                    definitionName: packageTwo.name
+                });
+
+                instance.handleDeploy();
+
+                postToVscodeStub.should.have.been.calledOnceWithExactly({
+                    command: 'upgrade',
+                    data: {
+                        channelName: 'myChannel',
+                        selectedPeers: ['Org1Peer1', 'Org2Peer1'],
+                        environmentName: 'myEnvironment',
+                        selectedPackage: packageTwo,
+                        instantiateFunctionName: '',
+                        instantiateFunctionArgs: '',
+                        collectionConfigPath: undefined,
+                        endorsementPolicy: undefined,
+                    }
+                });
             });
         });
     });
@@ -417,18 +564,41 @@ describe('DeployPage component', () => {
     });
 
     describe('handlePackageWorkspace', () => {
-        it('should handle a workspace being packaged', () => {
+        it('should handle a v2 workspace being packaged', () => {
             postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
 
-            instance.handlePackageWorkspace('workspaceOne');
+            instance.handlePackageWorkspace('workspaceOne', 'mycontract', '0.0.1',);
 
             postToVscodeStub.should.have.been.calledOnceWithExactly({
                 command: 'package',
                 data: {
-                    workspaceName: 'workspaceOne'
+                    workspaceName: 'workspaceOne',
+                    packageName: 'mycontract',
+                    packageVersion: '0.0.1',
+                    versionNumber: 2
+                }
+            });
+        });
+
+        it('should handle a v1 workspace being packaged', () => {
+            deployData.hasV1Capabilities = true;
+            postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+
+            instance.handlePackageWorkspace('workspaceOne', 'mycontract', '0.0.1',);
+
+            postToVscodeStub.should.have.been.calledOnceWithExactly({
+                command: 'package',
+                data: {
+                    workspaceName: 'workspaceOne',
+                    packageName: 'mycontract',
+                    packageVersion: '0.0.1',
+                    versionNumber: 1
                 }
             });
         });
@@ -491,6 +661,46 @@ describe('DeployPage component', () => {
 
             setStateStub.should.have.been.calledWithExactly({ selectedPeers: ['Org1Peer1'] });
 
+        });
+    });
+
+    describe('handleInstantiateFunctionNameChange', () => {
+        it('should set instantiateFunctionName to new value', () => {
+            const component: ShallowWrapper = shallow(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.state.instantiateFunctionName.should.deep.equal('');
+
+            instance.handleInstantiateFunctionNameChange('myFunction');
+            instance.state.instantiateFunctionName.should.deep.equal('myFunction');
+        });
+    });
+
+    describe('handleInstantiateFunctionArgsChange', () => {
+        it('should set instantiateFunctionArgs to new value', () => {
+            const component: ShallowWrapper = shallow(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.state.instantiateFunctionArgs.should.deep.equal('');
+
+            instance.handleInstantiateFunctionArgsChange('["arg1", "arg2"]');
+            instance.state.instantiateFunctionArgs.should.deep.equal('["arg1", "arg2"]');
+        });
+    });
+
+    describe('handleEnableOrDisableNext', () => {
+        it('should update disableNext if the incoming value is different', () => {
+            const component: ShallowWrapper = shallow(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.state.disableNext.should.deep.equal(true);
+            instance.handleEnableOrDisableNext(false);
+            instance.state.disableNext.should.deep.equal(false);
+        });
+
+        it('should not update disableNext if the incoming value is the same', () => {
+            const component: ShallowWrapper = shallow(<DeployPage deployData={deployData} />);
+            const instance: DeployPage = component.instance() as DeployPage;
+            instance.state.disableNext.should.deep.equal(true);
+            instance.handleEnableOrDisableNext(true);
+            instance.state.disableNext.should.deep.equal(true);
         });
     });
 
@@ -635,6 +845,29 @@ describe('DeployPage component', () => {
                     Org2MSP: true
                 }
             });
+        });
+    });
+
+    describe('componentDidUpdate', () => {
+        it('should update chosenWorkspaceData when new props are received', () => {
+            const componentDidUpdateSpy: sinon.SinonSpy = sinon.spy(DeployPage.prototype, 'componentDidUpdate');
+            const component: any = shallow(<DeployPage deployData={deployData} />);
+            component.state().chosenWorkspaceData.should.deep.equal({
+                language: '',
+                name: '',
+                version: ''
+            });
+
+            const chosenWorkspaceData: { language: string, name: string, version: string } = {
+                language: 'node',
+                name: 'myContract',
+                version: '0.0.1'
+            };
+
+            component.setProps({ deployData: { chosenWorkspaceData } });
+
+            componentDidUpdateSpy.should.have.been.called;
+            component.state().chosenWorkspaceData.should.deep.equal(chosenWorkspaceData);
         });
     });
 

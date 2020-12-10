@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import { Link, UnorderedList, ListItem, Accordion, AccordionItem, Toggle, MultiSelect, DataTable, TableContainer, Table, TableHead, TableRow, TableHeader, TableBody, TableCell, InlineNotification } from 'carbon-components-react';
+import { Link, UnorderedList, ListItem, Accordion, AccordionItem, Toggle, MultiSelect, TextArea, TextInput} from 'carbon-components-react';
 import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry';
+import DeployOrgApprovalTable from '../../DeployOrgApprovalTable/DeployOrgApprovalTable';
 
 interface IProps {
+    hasV1Capabilities: boolean;
     selectedPackage: IPackageRegistryEntry;
     channelName: string;
     commitSmartContract: undefined | boolean;
@@ -11,9 +13,12 @@ interface IProps {
     orgMap: any;
     environmentPeers: string[];
     discoveredPeers: string[];
+    committedDefinitions: string[];
     onCommitChange: (value: boolean) => void;
     onPeerChange: (peers: string[]) => void;
     onGetOrgApproval: () => void;
+    onInstantiateFunctionNameChange: (value: string) => void;
+    onInstantiateFunctionArgsChange: (value: string) => void;
 }
 
 interface StepThreeState {
@@ -57,93 +62,102 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
         });
     }
 
-    render(): JSX.Element {
-        const headerData: { header: string, key: string }[] = [
-            {
-                header: 'Organization',
-                key: 'organization',
-            },
-            {
-                header: 'Approval status',
-                key: 'status',
-            }
-        ];
+    handleInstantiateFunctionNameChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        this.props.onInstantiateFunctionNameChange(event.target.value);
+    }
 
-        let tableElement: JSX.Element = <></>;
+    handleInstantiateFunctionArgsChange(event: React.ChangeEvent<HTMLTextAreaElement>): void {
+        this.props.onInstantiateFunctionArgsChange(event.currentTarget.value);
+    }
 
-        if (this.props.orgApprovals) {
-            const rowData: { id: string, organization: string, status: string }[] = [];
+    checkIfUpgrade(): boolean {
+        let isUpgrade: boolean = false;
+        if (this.props.committedDefinitions.find((entry: string) => entry.includes(`${this.props.selectedPackage.name}@`))) {
+            isUpgrade = true;
+        }
+        return isUpgrade;
+    }
 
-            const approvalEntries: any[] = Object.entries(this.props.orgApprovals);
+    renderAdvancedOptions(): JSX.Element {
+        let advancedOptionsJSX: JSX.Element = <></>;
 
-            if (approvalEntries.length > 0) {
-                for (const [org, approved] of approvalEntries) {
-
-                    let environmentPeer: string | undefined;
-                    if (!approved) {
-                        // Org should be marked as pending if we're about to deploy on an organisations peers.
-                        environmentPeer = this.props.orgMap[org].find((_peer: string) => this.props.environmentPeers.includes(_peer));
-                    }
-
-                    const entry: { id: string, organization: string, status: string } = {
-                        id: org,
-                        organization: org,
-                        status: approved ? 'Approved' : environmentPeer ? 'Pending (part of this deploy)' : 'Not approved'
-                    };
-
-                    rowData.push(entry);
-
-                    tableElement = (
-                        <DataTable
-                            rows={rowData}
-                            headers={headerData}
-                            render={({ rows, headers, getHeaderProps }) => (
-                                <TableContainer>
-                                    <Table size='short'>
-                                        <TableHead>
-                                            <TableRow>
-                                                {headers.map((header) => (
-                                                    <TableHeader {...getHeaderProps({ header })}>
-                                                        {header.header}
-                                                    </TableHeader>
-                                                ))}
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {rows.map((row) => (
-                                                <TableRow id={row.id + '-row'} key={row.id}>
-                                                    {row.cells.map((cell) => (
-                                                        <TableCell key={cell.id}>{cell.value}</TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>)}
-                        />
-                    );
-                }
-            } else {
-            tableElement = (
-                    <InlineNotification
-                        hideCloseButton={true}
-                        kind='info'
-                        lowContrast={true}
-                        notificationType='inline'
-                        role='alert'
-                        statusIconDescription='describes the status icon'
-                        subtitle={<p>Commit has already been performed for this definition name and version.</p>}
-                        title='Unable to get organisation approvals'
-                    />
-                );
-            }
+        if (this.props.hasV1Capabilities) {
+            advancedOptionsJSX = (
+                <>
+                    <div className='bx--row margin-top-06'>
+                        <div className='bx--col'>
+                            <p>Optional: Enter name of function to call on instantiate</p>
+                            <TextInput
+                                id='instantiate-function-input'
+                                labelText='Optional: Enter name of function to call on instantiate'
+                                hideLabel={true}
+                                placeholder=''
+                                onChange={this.handleInstantiateFunctionNameChange}
+                            />
+                        </div>
+                    </div>
+                    <div className='bx--row margin-top-06'>
+                        <div className='bx--col'>
+                            <p>Optional: Enter arguments for instantiate function</p>
+                            <TextArea
+                                labelText='Optional: Enter arguments for instantiate function'
+                                id='instantiate-args-text-area'
+                                hideLabel={true}
+                                placeholder={`eg ["arg1", "arg2"]`}
+                                onChange={this.handleInstantiateFunctionArgsChange}
+                            />
+                        </div>
+                    </div>
+                </>
+            );
         } else {
-            tableElement = (<p>Retrieving organisation approvals...</p>);
+            const discoveredPeerObjects: { id: string, label: string }[] = this.formatDiscoveredPeers(this.props.discoveredPeers);
+            const selectedPeers: { id: string, label: string }[] = this.formatDiscoveredPeers(this.state.selectedPeers);
+            advancedOptionsJSX = (
+                <>
+                    <div className='bx--row margin-top-06'>
+                        <div className='bx--col'>
+                            <p>Perform commit</p>
+                            <Toggle
+                                defaultToggled={this.state.showCommitListItem}
+                                id='commitToggle'
+                                labelA='Off'
+                                labelB='On'
+                                onToggle={this.toggleCommit}
+                            />
+                        </div>
+                        <div className='bx--col'>
+                            <p>Additional peers to endorse commit transactions</p>
+                            <MultiSelect
+                                id='peer-select'
+                                initialSelectedItems={selectedPeers}
+                                items={discoveredPeerObjects}
+                                label='Select peers'
+                                onChange={this.changePeers}
+                            />
+                        </div>
+                    </div>
+                    <div className='bx--row margin-top-07'>
+                        <div className='bx--col'>
+                            <DeployOrgApprovalTable orgApprovals={this.props.orgApprovals} orgMap={this.props.orgMap} environmentPeers={this.props.environmentPeers}/>
+                        </div>
+                    </div>
+                    <div className='bx--row margin-top-07'>
+                        <div className='bx--col'>
+                            <p>For an explanation of advanced scenarios, see the <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html'>documentation</Link>.</p>
+                        </div>
+                    </div>
+                </>
+            );
         }
 
+        return advancedOptionsJSX;
+    }
+
+    render(): JSX.Element {
         let commitListItem: JSX.Element = <></>;
 
-        if (this.state.showCommitListItem) {
+        if (this.state.showCommitListItem && !this.props.hasV1Capabilities) {
             commitListItem = <ListItem>Commit the definition to `{this.props.channelName}`</ListItem>;
         }
 
@@ -154,8 +168,14 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
             packageName = `${this.props.selectedPackage.name}`;
         }
 
-        const discoveredPeerObjects: { id: string, label: string }[] = this.formatDiscoveredPeers(this.props.discoveredPeers);
-        const selectedPeers: { id: string, label: string }[] = this.formatDiscoveredPeers(this.state.selectedPeers);
+        let actionUppercase: string = '';
+        let actionLowercase: string = '';
+        if (this.props.hasV1Capabilities) {
+            actionUppercase = this.checkIfUpgrade() ? 'Upgrade' : 'Instantiate';
+            actionLowercase = this.checkIfUpgrade() ? 'upgrade' : 'instantiation';
+        }
+
+        const advancedOptionsJSX: JSX.Element = this.renderAdvancedOptions();
 
         return (
             <>
@@ -167,9 +187,10 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                             <ListItem>
                                 Install smart contract package `{packageName}` on all peers
                             </ListItem>
-                            <ListItem>
-                                Approve the same smart contract definition for each organization
-                            </ListItem>
+                            {this.props.hasV1Capabilities
+                                ? <ListItem> {actionUppercase} smart contract package </ListItem>
+                                : <ListItem> Approve the same smart contract definition for each organization </ListItem>
+                            }
                             {commitListItem}
 
                         </UnorderedList>
@@ -178,44 +199,10 @@ class DeployStepThree extends Component<IProps, StepThreeState> {
                 <div className='bx--row margin-bottom-07'>
                     <div className='bx--col-lg-10'>
                         <Accordion id='advancedAccordion'>
-                            <AccordionItem id='customize' title={'Customize commit (advanced)'}>
-                                <div className='bx--row margin-top-06'>
-                                    <div className='bx--col'>
-                                        <p>Perform commit</p>
-                                        <Toggle
-                                            defaultToggled={this.state.showCommitListItem}
-                                            id='commitToggle'
-                                            labelA='Off'
-                                            labelB='On'
-                                            onToggle={this.toggleCommit}
-                                        />
-                                    </div>
-                                    <div className='bx--col'>
-                                        <p>Additional peers to endorse commit transactions</p>
-
-                                        <MultiSelect
-                                            id='peer-select'
-                                            initialSelectedItems={selectedPeers}
-                                            items={discoveredPeerObjects}
-                                            label='Select peers'
-                                            onChange={this.changePeers}
-                                        />
-
-                                    </div>
-                                </div>
-                                <div className='bx--row margin-top-07'>
-                                    <div className='bx--col'>
-                                        {tableElement}
-                                    </div>
-                                </div>
-                                <div className='bx--row margin-top-07'>
-                                    <div className='bx--col'>
-                                        <p>For an explanation of advanced scenarios, see the <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html'>documentation</Link>.</p>
-                                    </div>
-                                </div>
+                            <AccordionItem id='customize' title={this.props.hasV1Capabilities ? `Customize ${actionLowercase} (advanced)` : 'Customize commit (advanced)'}>
+                                {advancedOptionsJSX}
                             </AccordionItem>
                         </Accordion>
-
                     </div>
                 </div>
             </>

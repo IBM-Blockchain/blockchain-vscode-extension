@@ -26,7 +26,6 @@ import { FabricEnvironmentConnection } from 'ibm-blockchain-platform-environment
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../extension/configurations';
-import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -57,11 +56,7 @@ describe('InstallCommand', () => {
         let environmentRegistryStub: sinon.SinonStub;
         let getSettingsStub: sinon.SinonStub;
         let getConfigurationStub: sinon.SinonStub;
-        let showV1ChannelQuickPickBoxStub: sinon.SinonStub;
-        let showInstallableSmartContractsQuickPickStub: sinon.SinonStub;
-        let cdsPackageRegistryEntry: PackageRegistryEntry;
         let packageLabel: string;
-        let cdsPackageLabel: string;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -99,18 +94,6 @@ describe('InstallCommand', () => {
             });
 
             packageLabel = `${packageRegistryEntry.name}_${packageRegistryEntry.version}`;
-
-            // Stubs for v1 (cds) contracts
-            cdsPackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-2',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-2@0.0.1.cds'),
-                version: '0.0.1',
-                sizeKB: 54.32
-            });
-            cdsPackageLabel = `${cdsPackageRegistryEntry.name}_${cdsPackageRegistryEntry.version}`;
-
-            showV1ChannelQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showV1ChannelQuickPickBox').resolves({label: 'myChannel', data: ['peerOne', 'peerThree'] });
-            showInstallableSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').resolves({data: { packageEntry: cdsPackageRegistryEntry} });
 
             logOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(FabricRuntimeUtil.LOCAL_FABRIC), 'show');
@@ -253,100 +236,6 @@ describe('InstallCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Failed to install on peer peerOne with reason: failed to install for some reason');
-        });
-
-        // TODO: this will need to be modified/removed when v1 integration complete
-        it('should install the v1 smart contract from the command palette - cds', async () => {
-            fabricRuntimeMock.installSmartContract.resolves();
-
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
-            should.equal(undefined, result);
-
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(cdsPackageRegistryEntry.path, 'peerOne', cdsPackageLabel, 9000000);
-            fabricRuntimeMock.installSmartContract.should.have.been.calledWithExactly(cdsPackageRegistryEntry.path, 'peerThree', cdsPackageLabel, 9000000);
-
-            showV1ChannelQuickPickBoxStub.should.have.been.calledOnce;
-            showInstallableSmartContractsQuickPickStub.should.have.been.calledOnce;
-            dockerLogsOutputSpy.should.have.been.called;
-            logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
-            logOutputSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
-            logOutputSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerThree');
-            logOutputSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        });
-
-        // TODO: this will need to be modified/removed when v1 integration complete
-        it('should handle user not choosing a channel when installing the v1 smart contract from the command palette - cds', async () => {
-            showV1ChannelQuickPickBoxStub.resolves();
-
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
-            should.equal(undefined, result);
-
-            fabricRuntimeMock.installSmartContract.should.have.not.been.called;
-
-            showV1ChannelQuickPickBoxStub.should.have.been.calledOnce;
-            showInstallableSmartContractsQuickPickStub.should.have.not.been.called;
-            dockerLogsOutputSpy.should.have.been.called;
-            logOutputSpy.should.have.been.calledOnceWith(LogType.INFO, undefined, 'installSmartContract');
-            logOutputSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        });
-
-        // TODO: this will need to be modified/removed when v1 integration complete
-        it('should handle chosen channel no having nodes associated with it when installing the v1 smart contract from the command palette - cds', async () => {
-            showV1ChannelQuickPickBoxStub.resolves({label: 'myChannel', data: [] });
-
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
-            should.equal(undefined, result);
-
-            fabricRuntimeMock.installSmartContract.should.have.not.been.called;
-
-            showV1ChannelQuickPickBoxStub.should.have.been.calledOnce;
-            showInstallableSmartContractsQuickPickStub.should.have.not.been.called;
-            dockerLogsOutputSpy.should.have.been.called;
-            logOutputSpy.should.have.been.calledOnceWith(LogType.INFO, undefined, 'installSmartContract');
-            logOutputSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        });
-
-        // TODO: this will need to be modified/removed when v1 integration complete
-        it('should handle user not choosing a contract when installing a v1 smart contract from the command palette - cds', async () => {
-            showInstallableSmartContractsQuickPickStub.resolves();
-
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
-            should.equal(undefined, result);
-
-            fabricRuntimeMock.installSmartContract.should.have.not.been.called;
-
-            showV1ChannelQuickPickBoxStub.should.have.been.calledOnce;
-            showInstallableSmartContractsQuickPickStub.should.have.been.calledOnce;
-            dockerLogsOutputSpy.should.have.been.called;
-            logOutputSpy.should.have.been.calledOnceWith(LogType.INFO, undefined, 'installSmartContract');
-            logOutputSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        });
-
-        // TODO: this will need to be modified/removed when v1 integration complete
-        it('should handle error when installing a v1 smart contract from the command palette - cds', async () => {
-            const error: Error = new Error('some install error');
-            showInstallableSmartContractsQuickPickStub.rejects(error);
-
-            const result: string = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
-            should.equal(undefined, result);
-
-            fabricRuntimeMock.installSmartContract.should.have.not.been.called;
-
-            showV1ChannelQuickPickBoxStub.should.have.been.calledOnce;
-            showInstallableSmartContractsQuickPickStub.should.have.been.calledOnce;
-            dockerLogsOutputSpy.should.have.been.called;
-            logOutputSpy.should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
-            logOutputSpy.should.have.been.calledWith(LogType.ERROR, `Unable to proceed with install command: ${error.message}`, `Unable to proceed with install command: ${error.toString()}`);
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         });
 
     });

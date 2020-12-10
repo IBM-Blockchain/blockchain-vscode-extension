@@ -52,12 +52,12 @@ export async function importSmartContractPackageCommand(): Promise<void> {
 
         const resolvedPkgPath: string = path.join(resolvedPkgDir, packageName);
 
-        const nameRegex: RegExp = new RegExp(/^(.+?)(\.tar\.gz|\.tgz)$/);
+        const nameRegex: RegExp = new RegExp(/^(.+?)(\.cds|\.tar\.gz|\.tgz)$/);
 
         const result: RegExpExecArray = nameRegex.exec(packageName);
 
         if (!result) {
-            throw new Error('Incorrect file type, file extension must be "tar.gz" or "tgz"');
+            throw new Error('Incorrect file type, file extension must be "cds", "tar.gz" or "tgz"');
         }
 
         const newName: string = result[1];
