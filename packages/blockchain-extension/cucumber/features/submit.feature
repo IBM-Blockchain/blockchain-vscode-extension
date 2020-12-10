@@ -2,15 +2,14 @@ Feature: Submit transaction
   Test submitting a transaction
 
   Scenario Outline: Submit a transaction for a smart contract (local fabric)
-    Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     When I submit the transaction 'createConga' on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
     Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createConga'
@@ -23,15 +22,14 @@ Feature: Submit transaction
 
 
   Scenario Outline: Submit a transaction for a smart contract using generated transaction data
-    Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And the contract has been associated with a directory of transaction data
     When I submit the transaction 'createConga' on the channel 'mychannel' using the transaction data labelled 'A test createConga transaction'
@@ -41,15 +39,14 @@ Feature: Submit transaction
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
 
   Scenario Outline: Submit a verify transaction for a private data smart contract
-    Given a private <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version> and mspid <mspid>
+    Given a private <language> smart contract for <assetType> assets with the name <name> and version <version> and mspid <mspid>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
     And the private contract has been created
-    And the contract has been packaged
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     When I deploy the contract on channel 'mychannel' with sequence '2' with private data
     When I submit the transaction 'createPrivateConga' on the channel 'mychannel' with args '["001"]' and with the transient data '{"privateValue":"125"}'
     Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
@@ -69,9 +66,9 @@ Feature: Submit transaction
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And the gateway 'myGateway' is created
     And I'm connected to the 'myGateway' gateway without association
@@ -95,7 +92,7 @@ Feature: Submit transaction
     And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
     And the 'software' opstools environment is setup
     And the 'myOpsToolsFabric' environment is connected
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And I have created a gateway 'myOpsGateway' from an 'environment'
     And the 'opsToolsWallet' wallet
     And the 'Org1MSPAdmin' identity
@@ -116,7 +113,7 @@ Feature: Submit transaction
     And I have edited filters and imported all nodes to environment 'mySaaSOpsToolsFabric'
     And the 'SaaS' opstools environment is setup
     And the 'mySaaSOpsToolsFabric' environment is connected
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And I have created a gateway 'mySaaSOpsGateway' from an 'environment'
     And the 'SaaSOpsToolsWallet' wallet
     And the 'SaaSOrg1MSPAdmin' identity

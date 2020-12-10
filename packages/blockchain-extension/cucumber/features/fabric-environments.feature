@@ -30,9 +30,9 @@ Feature: Fabric Environments
   Scenario Outline: It should persist data after being stopped
     Given the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     When I stop the 1 Org Local Fabric
     Then there should be a tree item with a label 'Simple local networks' in the 'Fabric Environments' panel

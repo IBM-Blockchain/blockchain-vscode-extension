@@ -2,14 +2,13 @@ Feature: Evaluate transaction
   Test evaluating a transaction
 
   Scenario Outline: Evaluate a transaction for a smart contract (local fabric)
-    Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the 'Local Fabric Admin' identity
     And the '1 Org Local Fabric' environment is connected
     And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And the transaction 'createConga' has been submitted on the channel 'mychannel' with args '["Conga_001", "Big Conga"]'
     When I evaluate the transaction 'readConga' on the channel 'mychannel' with args '["Conga_001"]'
@@ -22,15 +21,14 @@ Feature: Evaluate transaction
       | Go         | Conga     | GoContract         | 0.0.1   |
 
   Scenario Outline: Evaluate a transaction for a smart contract using generated transaction data
-    Given a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And the contract has been associated with a directory of transaction data
     And the transaction 'createConga' has been submitted on the channel 'mychannel' with args '["001", "some value"]'
@@ -46,9 +44,9 @@ Feature: Evaluate transaction
     And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
     And the environment is setup
     And the 'myFabric' environment is connected
-    And a <language> smart contract using Fabric v2 for <assetType> assets with the name <name> and version <version>
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the contract has been created
-    And the contract has been packaged
+    And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel'
     And the gateway 'myGateway' is created
     And I'm connected to the 'myGateway' gateway without association

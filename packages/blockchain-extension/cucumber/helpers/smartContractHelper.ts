@@ -53,23 +53,14 @@ export class SmartContractHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createSmartContract(fabricVersion: string, language: string, assetType: string, contractName: string, mspid?: string): Promise<string> {
+    public async createSmartContract(language: string, assetType: string, contractName: string, mspid?: string): Promise<string> {
 
         let type: LanguageType;
         if (language === 'JavaScript' || language === 'TypeScript' || language === 'Java' || language === 'Go') {
-            if (fabricVersion === 'v2' || (fabricVersion === 'v1' && language !== 'Go')) {
-                type = LanguageType.CONTRACT;
-            } else {
-                type = LanguageType.CHAINCODE;
-            }
+            type = LanguageType.CONTRACT;
         } else {
             throw new Error(`You must update this test to support the ${language} language`);
         }
-
-        this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose the contract dependency version:').resolves({
-            label: fabricVersion === 'v1' ? 'v1.4' : 'v2.0',
-            data: fabricVersion
-        });
 
         if (contractName.includes('Private')) {
             this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a contract type to generate:').resolves({
@@ -123,7 +114,7 @@ export class SmartContractHelper {
         return contractDirectory;
     }
 
-    public async packageSmartContract(name: string, version: string, language: string, directory: string, fabricVersion: string): Promise<PackageRegistryEntry> {
+    public async packageSmartContract(name: string, version: string, language: string, directory: string, packageFormat: string): Promise<PackageRegistryEntry> {
         // Check that the package exists!
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
         if (!_package) {
@@ -145,10 +136,15 @@ export class SmartContractHelper {
                 throw new Error(`I do not know how to handle language ${language}`);
             }
 
-            // Default the fabric version to 2
-            const sanitisedFabricVersion: number = (fabricVersion === 'v1' || fabricVersion === '1') ? 1 : 2;
+            let packageVersion: number;
+            if (packageFormat === 'cds') {
+                packageVersion = 1;
+            } else {
+                // tar.gz or tgz
+                packageVersion = 2;
+            }
 
-            return vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version, sanitisedFabricVersion);
+            return vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version, packageVersion);
         } else {
             return _package;
         }

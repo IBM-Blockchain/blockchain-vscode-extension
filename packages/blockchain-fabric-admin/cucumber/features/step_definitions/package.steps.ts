@@ -30,7 +30,7 @@ chai.use(chaiAsPromised);
 
 setDefaultTimeout(60 * 1000);
 
-Given(/^a '(.*)' smart contract using Fabric (.+) of type '(.*)' using '(.*)'( with name )?(.*?)$/, function(language: string, fabricVersion: string, type: string, contract: string, _withName: string, name: string): void {
+Given(/^a '(.*)' smart contract of type '(.*)' using '(.*)'( with name )?(.*?)$/, function(language: string, type: string, contract: string, _withName: string, name: string): void {
 
     if (contract === 'marbles') {
         this.projectPath = path.join(Helper.TMP_DIR, 'fabric-samples', 'chaincode', 'marbles02_private', language);
@@ -42,25 +42,25 @@ Given(/^a '(.*)' smart contract using Fabric (.+) of type '(.*)' using '(.*)'( w
     this.type = type;
     this.name = name || `${contract}-${language}`;
     this.version = '0.0.1';
-    // default fabricVersion to 2
-    this.fabricVersion = (['v1', '1'].includes(fabricVersion)) ? 1 : 2;
     this.label = SmartContractPackageBase.getLabel(this.name, this.version);
 });
 
-Given(/the package exists$/, {timeout: 120000 * 1000}, async function(): Promise<void> {
-    const packagedContractPath: string = path.join(Helper.PACKAGE_DIR, `${this.name}.tar.gz`);
+Given(/the (cds|tar\.gz|tgz) package exists$/, {timeout: 120000 * 1000}, async function(_packageFormat: string): Promise<void> {
+    const packagedContractPath: string = path.join(Helper.PACKAGE_DIR, `${this.name}.${_packageFormat}`);
 
     const exists: boolean = await fs.pathExists(packagedContractPath);
 
     if (!exists) {
-        this.packagePath = await PackageHelper.packageContract(this.projectPath, this.name, this.version, this.type, this.language, this.fabricVersion);
+        this.packageFormat = _packageFormat;
+        this.packagePath = await PackageHelper.packageContract(this.projectPath, this.name, this.version, this.type, this.language, this.packageFormat);
     } else {
         this.packagePath = packagedContractPath;
     }
 });
 
-When('I package the smart contract', async function(): Promise<void> {
-    this.packagePath = await PackageHelper.packageContract(this.projectPath, this.name, this.version, this.type, this.language, this.fabricVersion);
+When(/I package the smart contract as a (cds|tar\.gz|tgz)/, async function(_packageFormat: string): Promise<void> {
+    this.packageFormat = _packageFormat;
+    this.packagePath = await PackageHelper.packageContract(this.projectPath, this.name, this.version, this.type, this.language, this.packageFormat);
 });
 
 Then('a package should exist', async function(): Promise<void> {
@@ -74,7 +74,7 @@ When(/^I get the list of files from a (.*)$/, async function(method: string): Pr
     } else {
         contractBuffer = this.packageBuffer;
     }
-    this.fileList = (this.fabricVersion === 1) ? await PackageHelper.getV1PackageFileList(contractBuffer) : await PackageHelper.getV2PackageFileList(contractBuffer);
+    this.fileList = (this.packageFormat === 'cds') ? await PackageHelper.getV1PackageFileList(contractBuffer) : await PackageHelper.getV2PackageFileList(contractBuffer);
 });
 
 // tslint:disable-next-line:only-arrow-functions

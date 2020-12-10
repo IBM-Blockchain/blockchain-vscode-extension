@@ -30,8 +30,7 @@ export async function createSmartContractProject(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     let chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
-    let smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
-    let fabricVersion: IBlockchainQuickPickItem<string>;
+    const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
     let contractType: IBlockchainQuickPickItem<string>;
     let privateOrDefault: string;
     let mspID: string;
@@ -47,11 +46,6 @@ export async function createSmartContractProject(): Promise<void> {
         // User has cancelled the QuickPick box
     }
 
-    fabricVersion = await UserInputUtil.showQuickPickItem('Choose the contract dependency version:', [{ label: 'v2.0 (recommended)', data: 'v2' }, { label: 'v1.4', data: 'v1' }] as IBlockchainQuickPickItem<string>[]) as IBlockchainQuickPickItem<string>;
-    if (!fabricVersion) {
-        return;
-    }
-
     if (contractType.data === typeDefault) {
         privateOrDefault = defaultContract;
     } else {
@@ -64,12 +58,6 @@ export async function createSmartContractProject(): Promise<void> {
     }
 
     const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
-
-    if (fabricVersion.data === 'v1') {
-        smartContractLanguageOptions = smartContractLanguageOptions.filter((language: string) => {
-            return language !== 'Go';
-        });
-    }
 
     if (contractType.data !== typeDefault) {
         // don't want to show low level options for private data
@@ -135,7 +123,6 @@ export async function createSmartContractProject(): Promise<void> {
 
         const runOptions: any = {
             'destination': folderPath,
-            'fabricVersion': fabricVersion.data,
             'contractType': contractType.data,
             'language': smartContractLanguage,
             'name': folderName,
