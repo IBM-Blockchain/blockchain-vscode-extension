@@ -132,6 +132,7 @@ const transform: any = (node: any, index: any, tutorialDirectory: string, tutori
             // html needs the imageLocation to be up a directory
             const imageLocation: string = path.join('..', tutorialDirectory, attribs.src);
             attribs.src = imageLocation;
+            attribs.style = 'max-width: 550px;';
             return convertNodeToElement(node, index, transformWrapper);
         }
 
