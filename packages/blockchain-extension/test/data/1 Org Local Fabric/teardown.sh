@@ -6,10 +6,10 @@
 #
 # Exit on first error, print all commands.
 set -ev
-for CONTAINER in $(docker ps -f label=fabric-environment-name="1 Org Local Fabric" -q -a); do
+for CONTAINER in $(docker ps -f label=fabric-environment-name="1 Org Local FabricMicrofab" -q -a); do
     docker rm -f ${CONTAINER}
 done
-for VOLUME in $(docker volume ls -f label=fabric-environment-name="1 Org Local Fabric" -q); do
+for VOLUME in $(docker volume ls -f label=fabric-environment-name="1 Org Local FabricMicrofab" -q); do
     docker volume rm -f ${VOLUME}
 done
 exit 0

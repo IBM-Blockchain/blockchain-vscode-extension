@@ -187,23 +187,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // We only want to do this stuff if the extension has all the required dependencies
         if (dependenciesInstalled || bypassPreReqs) {
             await ExtensionUtil.completeActivation(extensionUpdated);
-
-        }
-
-        if (originalExtensionData.version && newExtensionData.version) {
-            const semverOriginal: number = semver.major(originalExtensionData.version);
-            const semverNew: number = semver.major(newExtensionData.version);
-            if (semverNew > semverOriginal) {
-                // If user has migrated and installed a new major version
-
-                const whatsNewPrompt: string = 'Learn more';
-                const response: string = await vscode.window.showInformationMessage(`You have successfully updated to version 2 of the IBM Blockchain Platform extension. Lots of changes have happened since version 1, so be sure to check what's new!`, whatsNewPrompt);
-                if (response === whatsNewPrompt) {
-                    await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+            
+            if (originalExtensionData.version && newExtensionData.version) {
+                const semverOriginal: number = semver.major(originalExtensionData.version);
+                const semverNew: number = semver.major(newExtensionData.version);
+                if (semverNew > semverOriginal) {
+                    // If user has migrated and installed a new major version
+    
+                    const whatsNewPrompt: string = 'Learn more';
+                    const response: string = await vscode.window.showInformationMessage(`You have successfully updated to version 2 of the IBM Blockchain Platform extension. Lots of changes have happened since version 1, so be sure to check what's new!`, whatsNewPrompt);
+                    if (response === whatsNewPrompt) {
+                        await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+                    }
+    
                 }
-
             }
         }
+
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
