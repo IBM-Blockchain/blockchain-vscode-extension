@@ -45,7 +45,12 @@ Feature: Smart Contracts packages
         | JavaScript | Conga     | JavaScriptContractV1 | JavaScriptContractV1@0.0.1 | 39       | 0.0.1   | .cds      |
         | TypeScript | Conga     | TypeScriptContractV1 | TypeScriptContractV1@0.0.1 | 37       | 0.0.1   | .cds      |
         | Java       | Conga     | JavaContractV1       | JavaContractV1@0.0.1       | 55       | 0.0.1   | .cds      |
-        | Go         | Conga     | GoContractV1         | GoContractV1@0.0.1         | 2523     | 0.0.1   | .cds      |
+
+    Scenario: Do not package go contract as cds from outside gopath
+        Given a Go smart contract for Conga assets with the name GoContractV1 and version 0.0.1
+        And the contract has been created
+        When I package the contract as a cds
+        Then no package should be created with the name GoContractV1 and version 0.0.1
 
     Scenario Outline: Inspect smart contract contents for a cds contract
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
