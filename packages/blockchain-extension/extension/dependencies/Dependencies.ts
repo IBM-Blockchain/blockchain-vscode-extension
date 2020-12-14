@@ -18,7 +18,7 @@ export class DependencyProperties {
     static readonly DOCKER_COMPOSE_REQUIRED_VERSION: string = '>=1.14.0';
     static readonly NODEJS_REQUIRED_VERSION: string =  '>=10.15.3 < 11.0.0|| >=12.13.1 < 13.0.0';
     static readonly NPM_REQUIRED_VERSION: string = '>=6.0.0';
-    static readonly OPENSSL_REQUIRED_VERSION: string = '1.0.2 || 1.1.1';
+    static readonly OPENSSL_REQUIRED_VERSION: string = '1.0.2';
     static readonly GO_REQUIRED_VERSION: string = '>=1.12.0';
     static readonly JAVA_REQUIRED_VERSION: string = '1.8.x';
 
@@ -105,12 +105,12 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
         },
         openssl: {
             name: 'OpenSSL',
-            required: true,
+            required: false,
             version: undefined,
             url: 'https://www.openssl.org/community/binaries.html',
             requiredVersion: DependencyProperties.OPENSSL_REQUIRED_VERSION,
             requiredLabel: 'only',
-            tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`.'
+            tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`. Required for smart contract and applications using v1.x of the Fabric contract API and SDK.'
         },
         dockerForWindows: {
             name: 'Docker for Windows',

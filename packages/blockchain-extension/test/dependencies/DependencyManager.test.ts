@@ -1184,43 +1184,20 @@ describe('DependencyManager Tests', () => {
                 existsStub = mySandBox.stub(fs, 'pathExists');
             });
 
-            it('should check if OpenSSL (64-bit) is installed', async () => {
+            it('should check if OpenSSL is installed / if libeay32.lib is found', async () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
-                existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
-                sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe version`).resolves('OpenSSL 1.1.1d  26 Jan 2017');
+                existsStub.withArgs(`C:\\OpenSSL-Win64\\lib\\libeay32.lib`).resolves(true);
 
                 const result: Dependencies = await dependencyManager.getPreReqVersions();
-                result.openssl.version.should.equal('1.1.1');
+                result.openssl.version.should.equal('1.0.2');
                 totalmemStub.should.have.been.calledOnce;
             });
 
-            it('should not get version of OpenSSL if command not found', async () => {
+            it('should not get version of OpenSSL if not installed / if libeay32.lib is not found', async () => {
                 mySandBox.stub(process, 'platform').value('win32');
 
-                existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
-                sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe version`).resolves('openssl not recognized');
-
-                const result: Dependencies = await dependencyManager.getPreReqVersions();
-                should.not.exist(result.openssl.version);
-                totalmemStub.should.have.been.calledOnce;
-            });
-
-            it('should not get version of OpenSSL if installation path(s) not found', async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(false);
-
-                const result: Dependencies = await dependencyManager.getPreReqVersions();
-                should.not.exist(result.openssl.version);
-                totalmemStub.should.have.been.calledOnce;
-            });
-
-            it('should not get version of OpenSSL if unexpected format is returned', async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                existsStub.withArgs(`C:\\OpenSSL-Win64`).resolves(true);
-                sendCommandStub.withArgs(`C:\\OpenSSL-Win64\\bin\\openssl.exe version`).resolves('OpenSSL version 1.2.3');
+                existsStub.withArgs(`C:\\OpenSSL-Win64\\lib\\libeay32.lib`).resolves(false);
 
                 const result: Dependencies = await dependencyManager.getPreReqVersions();
                 should.not.exist(result.openssl.version);

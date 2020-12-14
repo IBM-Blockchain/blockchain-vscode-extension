@@ -70,7 +70,7 @@ const generateDependencies: any = (versions: VersionOverrides = {}, completes: C
     dependencies.javaDebuggerExtension.version = versions.hasOwnProperty('javaDebuggerExtension') ? versions.javaDebuggerExtension : '1.0.0';
     dependencies.javaTestRunnerExtension.version = versions.hasOwnProperty('javaTestRunnerExtension') ? versions.javaTestRunnerExtension : '1.0.0';
     dependencies.systemRequirements.version = versions.hasOwnProperty('systemRequirements') ? versions.systemRequirements : 4;
-    dependencies.openssl.version = versions.hasOwnProperty('openssl') ? versions.openssl : '1.1.1';
+    dependencies.openssl.version = versions.hasOwnProperty('openssl') ? versions.openssl : '1.0.2';
 
     // Add complete
     dependencies.dockerForWindows.complete = versions.hasOwnProperty('dockerForWindows') ? completes.dockerForWindows : true;

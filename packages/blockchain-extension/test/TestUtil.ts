@@ -58,6 +58,8 @@ export class TestUtil {
 
             createStub = sandbox.stub(LocalMicroEnvironment.prototype, 'create').resolves();
 
+            sandbox.stub(vscode.window, 'showInformationMessage').withArgs(`You have successfully updated to version 2 of the IBM Blockchain Platform extension. Lots of changes have happened since version 1, so be sure to check what's new!`).resolves(undefined);
+
             await this.setupLocalFabric();
 
             await ExtensionUtil.activateExtension();

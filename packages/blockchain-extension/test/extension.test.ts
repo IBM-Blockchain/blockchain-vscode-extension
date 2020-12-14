@@ -592,6 +592,8 @@ describe('Extension Tests', () => {
 
             await GlobalState.update(extensionData);
 
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+
             await myExtension.activate(context);
 
             const newExtData: ExtensionData = GlobalState.get();
@@ -611,10 +613,12 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            showInformationMessageStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
             completeActivationStub.should.have.been.calledOnce;
         });
 
@@ -690,6 +694,8 @@ describe('Extension Tests', () => {
             extensionData.createOneOrgLocalFabric = true;
             extensionData.deletedOneOrgLocalFabric = false;
 
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+
             await GlobalState.update(extensionData);
 
             await myExtension.activate(context);
@@ -714,9 +720,14 @@ describe('Extension Tests', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
             completeActivationStub.should.have.been.calledOnce;
 
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+
         });
 
         it('should activate extension and bypass prereqs', async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
@@ -724,7 +735,9 @@ describe('Extension Tests', () => {
             completeActivationStub.resolves();
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
             setExtensionContextStub.returns(undefined);
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
             hasPreReqsInstalledStub.resolves(true);
             registerPreReqAndReleaseNotesCommandStub.resolves(context);
             createTempCommandsStub.returns(undefined);
@@ -737,6 +750,8 @@ describe('Extension Tests', () => {
             extensionData.migrationCheck = 2;
             extensionData.createOneOrgLocalFabric = true;
             extensionData.deletedOneOrgLocalFabric = false;
+
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
 
             await GlobalState.update(extensionData);
 
@@ -753,9 +768,65 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
             registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
 
-            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
-            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
             completeActivationStub.should.have.been.calledOnce;
+
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+
+        });
+
+        it(`should open 'whats new page' when major extension version has been updated and user selects 'Read more'`, async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.OPEN_FABRIC_2_PAGE).resolves();
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '1.0.6';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves('Learn more');
+
+            await GlobalState.update(extensionData);
+
+            await myExtension.activate(context);
+
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            setExtensionContextStub.should.have.been.calledTwice;
+            hasPreReqsInstalledStub.should.not.have.been.called;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            completeActivationStub.should.have.been.calledOnce;
+
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
 
         });
 
@@ -807,6 +878,9 @@ describe('Extension Tests', () => {
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
             setExtensionContextStub.returns(undefined);
 
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
             extensionData.preReqPageShown = true;
             extensionData.dockerForWindows = true;
@@ -816,14 +890,18 @@ describe('Extension Tests', () => {
             extensionData.createOneOrgLocalFabric = true;
             extensionData.deletedOneOrgLocalFabric = false;
 
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+
             await GlobalState.update(extensionData);
             const error: Error = new Error('some error');
 
             hasPreReqsInstalledStub.rejects(error);
 
-            const failedActivationWindowStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'failedActivationWindow').resolves();
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
 
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const failedActivationWindowStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'failedActivationWindow').resolves();
 
             await myExtension.activate(context);
             setExtensionContextStub.should.have.been.calledOnce;
@@ -832,10 +910,16 @@ describe('Extension Tests', () => {
             failedActivationWindowStub.should.have.been.calledOnceWithExactly('some error');
             sendTelemetryStub.should.have.been.calledWith('activationFailed', { activationError: 'some error' });
             logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`, error.stack);
-            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showInformationMessageStub.should.not.have.been.called;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
         });
 
         it('should add home page button to the status bar', async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+
             setupCommandsStub.resolves();
             completeActivationStub.resolves();
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
@@ -852,7 +936,10 @@ describe('Extension Tests', () => {
             extensionData.migrationCheck = 2;
             await GlobalState.update(extensionData);
 
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
 
             await myExtension.activate(context);
 
@@ -875,7 +962,10 @@ describe('Extension Tests', () => {
             homePageButton.tooltip.should.equal('View Homepage');
             homePageButton.command.should.equal(ExtensionCommands.OPEN_HOME_PAGE);
 
-            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
 
         });
     });

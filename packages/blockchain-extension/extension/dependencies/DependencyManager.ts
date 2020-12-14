@@ -300,16 +300,10 @@ export class DependencyManager {
 
     private async getOpensslVersion(): Promise<string> {
         try {
-            const win64: boolean = await fs.pathExists(`C:\\OpenSSL-Win64`);
-            if (win64) {
-                const binPath: string = path.win32.join('C:\\OpenSSL-Win64', 'bin', 'openssl.exe');
-                const opensslResult: string = await CommandUtil.sendCommand(`${binPath} version`); // Format: OpenSSL 1.0.2k  26 Jan 2017
-                if (this.isCommandFound(opensslResult)) {
-                    const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
-                    const opensslVersionCoerced: semver.SemVer = semver.coerce(opensslMatchedVersion); // Format: X.Y.Z
-                    const opensslVersion: string = semver.valid(opensslVersionCoerced); // Returns version
-                    return opensslVersion;
-                }
+            const libPath: string = path.win32.join('C:\\OpenSSL-Win64', 'lib', 'libeay32.lib');
+            const libExists: boolean = await fs.pathExists(libPath); // This path only exists for OpenSSL 1.0.2 - x509 REQUIRES this exact path.
+            if (libExists) {
+                return '1.0.2';
             }
         } catch (error) {
             // Ignore
