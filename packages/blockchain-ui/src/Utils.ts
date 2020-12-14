@@ -20,6 +20,24 @@ class Utils {
         }
     }
 
+    static isNameInvalid(name: string): boolean {
+        const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
+        const validName: boolean = regex.test(name);
+        if (name.length === 0 || !validName) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static isVersionInvalid(version: string): boolean {
+        if (version.length === 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
 
 export default Utils;

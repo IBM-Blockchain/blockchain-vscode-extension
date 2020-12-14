@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
-import { TextInput, FileUploader, Accordion, AccordionItem, Link, FileUploaderItem, InlineNotification } from 'carbon-components-react';
+import { TextInput, FileUploader, Accordion, AccordionItem, Link, FileUploaderItem, InlineNotification, NotificationKind } from 'carbon-components-react';
 import IPackageRegistryEntry from '../../../../interfaces/IPackageRegistryEntry';
+import './DeployStepTwo.scss';
 
 interface IProps {
+    hasV1Capabilities: boolean;
     selectedPackage: IPackageRegistryEntry;
     onDefinitionNameChange: (name: string, nameInvalid: boolean) => void;
     onDefinitionVersionChange: (name: string, versionInvalid: boolean) => void;
     onCollectionChange: (file: File) => void;
     onEndorsementPolicyChange: (policy: string) => void;
+    enableOrDisableNext: (value: boolean) => void;
     currentDefinitionName: string;
     currentDefinitionVersion: string;
     currentCollectionFile: File | undefined;
@@ -48,7 +51,7 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
     }
 
-    componentWillReceiveProps(props: any): void {
+    componentWillReceiveProps(props: IProps): void {
         if (props.currentDefinitionName !== this.state.definitionNameValue || props.currentDefinitionVersion !== this.state.definitionVersionValue) {
             this.setState({ definitionNameValue: props.currentDefinitionName, definitionVersionValue: props.currentDefinitionVersion });
         }
@@ -102,6 +105,107 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
 
     }
 
+    renderInlineNotification(): JSX.Element | undefined {
+        let notificationJSX: JSX.Element | undefined;
+        let notificationKind: NotificationKind;
+        let notificationSubtitle: string;
+
+        if (this.props.committedDefinitions.indexOf(`${this.state.definitionNameValue}@${this.state.definitionVersionValue}`) > -1) {
+            if (this.props.hasV1Capabilities) {
+                notificationKind = 'error';
+                notificationSubtitle = 'Please select a different smart contract to deploy.';
+                this.props.enableOrDisableNext(true);
+            } else {
+                notificationKind = 'info';
+                notificationSubtitle = 'We recommend changing the definition version to update the existing smart contract. Alternatively, provide a new name to deploy as a new definition.';
+            }
+            notificationJSX = (
+                <div className='bx--row margin-bottom-05'>
+                    <div className='bx--col-lg-10'>
+                        <InlineNotification
+                            hideCloseButton={true}
+                            kind={notificationKind}
+                            lowContrast={true}
+                            notificationType='inline'
+                            role='alert'
+                            statusIconDescription='describes the status icon'
+                            subtitle={<p>{notificationSubtitle}</p>}
+                            title='Name matches an existing smart contract'
+                            className='deploy-step-two-notification'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (this.props.committedDefinitions.find((entry: string) => entry.includes(`${this.state.definitionNameValue}@`))) {
+            // If there exists an entry with a different version
+            if (this.props.hasV1Capabilities) {
+                notificationSubtitle = 'This deployment will upgrade the existing smart contract.';
+                this.props.enableOrDisableNext(false);
+            } else {
+                notificationSubtitle = 'This deployment will update the existing smart contract. Alternatively, provide a new name to deploy as a new definition.';
+            }
+            notificationJSX = (
+                <div className='bx--row margin-bottom-05'>
+                    <div className='bx--col-lg-10'>
+                        <InlineNotification
+                            hideCloseButton={true}
+                            kind='info'
+                            lowContrast={true}
+                            notificationType='inline'
+                            role='alert'
+                            statusIconDescription='describes the status icon'
+                            subtitle={<p>{notificationSubtitle}</p>}
+                            title='Name matches an existing smart contract'
+                            className='deploy-step-two-notification'
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        return notificationJSX;
+    }
+
+    renderNameAndDefinitionInputs(): JSX.Element {
+        let inputsJSX: JSX.Element = <></>;
+        const contractExists: JSX.Element | undefined = this.renderInlineNotification();
+
+        if (this.props.hasV1Capabilities) {
+            inputsJSX = contractExists as JSX.Element;
+        } else {
+            inputsJSX = (
+                <>
+                    <div className='bx--row margin-bottom-06'>
+                        <div className='bx--col-lg-10'>
+                            A smart contract definition describes how the selected package will be deployed in this channel.
+                            The package's name and version (where available) are copied across to the definition as defaults.
+                            You may optionally change them.
+                        </div>
+                    </div>
+                    <div className={'bx--row' + (contractExists ? ' margin-bottom-03' : ' margin-bottom-06')}>
+                        <div className='bx--col-lg-11'>
+                            <h5>Smart contract definition</h5>
+                        </div>
+                        <div className='bx--col-lg-11'>
+                            <div className='bx--row'>
+                                <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
+                                    <TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.nameInvalid} id='nameInput' labelText='Definition name' defaultValue={this.state.definitionNameValue} onChange={this.handleDefinitionNameChange}></TextInput>
+                                </div>
+                                <div className='bx--col-lg-2 bx--col-md-1 bx--col-sm-0'></div>
+                                <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
+                                    <TextInput invalidText={'Version cannot be empty'} invalid={this.versionInvalid} id='versionInput' labelText='Definition version' defaultValue={this.state.definitionVersionValue} onChange={this.handleDefinitionVersionChange}></TextInput>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {contractExists}
+                </>
+            );
+        }
+
+        return inputsJSX;
+    }
+
     render(): JSX.Element {
         const defaultCollectionValue: string[] = this.state.collectionFile ? [this.state.collectionFile.name] : [];
 
@@ -112,73 +216,10 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
             );
         }
 
-        let contractExists: JSX.Element | undefined;
-
-        if (this.props.committedDefinitions.indexOf(`${this.state.definitionNameValue}@${this.state.definitionVersionValue}`) > -1) {
-            contractExists = (
-                <div className='bx--row margin-bottom-05'>
-                    <div className='bx--col-lg-10'>
-                        <InlineNotification
-                            hideCloseButton={true}
-                            kind='info'
-                            lowContrast={true}
-                            notificationType='inline'
-                            role='alert'
-                            statusIconDescription='describes the status icon'
-                            subtitle={<p>We recommend changing the definition version to update the existing smart contract. Alternatively, provide a new name to deploy as a new definition.</p>}
-                            title='Name matches an existing smart contract'
-                        />
-                    </div>
-                </div>
-            );
-        } else if (this.props.committedDefinitions.find((entry: string) => entry.includes(`${this.state.definitionNameValue}@`))) {
-            // If there exists an entry with a different version
-            contractExists = (
-                <div className='bx--row margin-bottom-05'>
-                    <div className='bx--col-lg-10'>
-                        <InlineNotification
-                            hideCloseButton={true}
-                            kind='info'
-                            lowContrast={true}
-                            notificationType='inline'
-                            role='alert'
-                            statusIconDescription='describes the status icon'
-                            subtitle={<p>This deployment will update the existing smart contract. Alternatively, provide a new name to deploy as a new definition.</p>}
-                            title='Name matches an existing smart contract'
-                        />
-                    </div>
-                </div>
-            );
-        }
-
+        const cliLink: string = this.props.hasV1Capabilities ? 'https://hyperledger-fabric.readthedocs.io/en/release-1.4/command_ref.html' : 'https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html';
         return (
             <>
-                <div className='bx--row margin-bottom-06'>
-                    <div className='bx--col-lg-10'>
-                        A smart contract definition describes how the selected package will be deployed in this channel.
-                        The package's name and version (where available) are copied across to the definition as defaults.
-                        You may optionally change them.
-                    </div>
-                </div>
-                <div className={'bx--row' + (contractExists ? ' margin-bottom-03' : ' margin-bottom-06')}>
-                    <div className='bx--col-lg-11'>
-                        <h5>Smart contract definition</h5>
-                    </div>
-                    <div className='bx--col-lg-11'>
-                        <div className='bx--row'>
-
-                            <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
-                                <TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.nameInvalid} id='nameInput' labelText='Definition name' defaultValue={this.state.definitionNameValue} onChange={this.handleDefinitionNameChange}></TextInput>
-                            </div>
-                            <div className='bx--col-lg-2 bx--col-md-1 bx--col-sm-0'></div>
-                            <div className='bx--col-lg-7 bx--col-md-3 bx--col-sm-4'>
-                                <TextInput invalidText={'Version cannot be empty'} invalid={this.versionInvalid} id='versionInput' labelText='Definition version' defaultValue={this.state.definitionVersionValue} onChange={this.handleDefinitionVersionChange}></TextInput>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {contractExists}
+                {this.renderNameAndDefinitionInputs()}
 
                 <div className='bx--row margin-bottom-06'>
                     <div className='bx--col-lg-11'>
@@ -219,16 +260,16 @@ class DeployStepTwo extends Component<IProps, DeployStepTwoState> {
                 <div className='bx--row'>
                     <div className='bx--col-lg-10'>
                         <Accordion>
-                            <AccordionItem title={'Learn about other smart contract definition parameters (advanced)'}>
+                            <AccordionItem title={`Learn about other smart contract ${this.props.hasV1Capabilities ? '' : 'definition'} parameters (advanced)`}>
                                 <p>
                                     These developer tools automatically handle other parameters for simplified deployment. Learn what values are used in our <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension'>documentation</Link>.
                                 </p>
                                 <p className='margin-bottom-05'>
-                                    Find out more information about the endorsement policy syntax <Link href='https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html#endorsement-policy-syntax'>here</Link>.
+                                    Find out more information about the endorsement policy syntax <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.2/endorsement-policies.html#endorsement-policy-syntax'>here</Link>.
                                 </p>
 
                                 <p className='margin-bottom-05'>
-                                    To deploy with full control of all parameters, please use the <Link href='https://cloud.ibm.com/catalog/services/blockchain-platform'>IBM Blockchain Platform Console</Link> or <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/chaincode_lifecycle.html'>Hyperledger Fabric CLIs</Link>.
+                                    To deploy with full control of all parameters, please use the <Link href='https://cloud.ibm.com/catalog/services/blockchain-platform'>IBM Blockchain Platform Console</Link> or <Link href={cliLink}>Hyperledger Fabric CLIs</Link>.
                                 </p>
                             </AccordionItem>
                         </Accordion>

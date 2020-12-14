@@ -19,7 +19,7 @@ import SampleGalleryPage from './components/pages/SampleGalleryPage/SampleGaller
 interface AppState {
     redirectPath: string;
     extensionVersion: string;
-    deployData: { channelName: string, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
+    deployData: { channelName: string, hasV1Capabilities: boolean, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, selectedWorkspace: string | undefined, chosenWorkspaceData: { language: string, name: string, version: string }, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
     tutorialData: Array<{ name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string }>;
     repositoryData: {repositories: IRepositoryObject[]};
     activeTutorial: ITutorialObject;
@@ -36,7 +36,7 @@ class App extends Component<{}, AppState> {
             tutorialData: [],
             repositoryData: {repositories: []},
             activeTutorial: { title: '', series: '', length: '', file: '', objectives: [] },
-            deployData: { channelName: '', environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
+            deployData: { channelName: '', hasV1Capabilities: false, environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, selectedWorkspace: undefined, chosenWorkspaceData: { language: '', name: '', version: '' }, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
             transactionViewData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', peerNames: [] }, associatedTxdata: undefined, txdataTransactions: [], preselectedTransaction: { name: '', parameters: [], tag: [], returns: { type: '' } } },
             transactionOutput: ''
         };

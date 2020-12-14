@@ -767,6 +767,18 @@
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
                     "when": "local-fabric-enabled"
+                },
+                {
+                    "command": "environmentExplorer.installSmartContractEntry",
+                    "when": "false"
+                }, 
+                {
+                    "command": "environmentExplorer.instantiateSmartContractEntry",
+                    "when": "false"
+                },
+                {
+                    "command": "environmentExplorer.upgradeSmartContractEntry",
+                    "when": "false"
                 }
             ],
             "view/title": [

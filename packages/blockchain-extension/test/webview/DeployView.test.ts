@@ -51,15 +51,9 @@ describe('DeployView', () => {
     let executeCommandStub: sinon.SinonStub;
     let logStub: sinon.SinonStub;
 
-    const deployData: { channelName: string, environmentName: string } = {
-        channelName: 'mychannel',
-        environmentName: FabricRuntimeUtil.LOCAL_FABRIC
-    };
+    let deployData: { channelName: string, environmentName: string };
 
-    const initialMessage: { path: string, deployData: { channelName: string, environmentName: string } } = {
-        path: '/deploy',
-        deployData
-    };
+    let initialMessage: { path: string, deployData: { channelName: string, environmentName: string } };
 
     let fabricEnvironmentManager: FabricEnvironmentManager;
     let getConnectionStub: sinon.SinonStub;
@@ -87,6 +81,16 @@ describe('DeployView', () => {
     });
 
     beforeEach(async () => {
+        deployData = {
+            channelName: 'mychannel',
+            environmentName: FabricRuntimeUtil.LOCAL_FABRIC
+        };
+
+        initialMessage = {
+            path: '/deploy',
+            deployData
+        };
+
         context = GlobalState.getExtensionContext();
 
         localEntry = await FabricEnvironmentRegistry.instance().get(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -597,13 +601,13 @@ describe('DeployView', () => {
 
     describe('updatePackages', () => {
 
-        it('should update deploy view with new packages', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
-            packageEntry.name = 'packageOne';
-            packageEntry.version = '0.0.1';
-            packageEntry.sizeKB = 90000;
-            packageEntry.path = '/some/path';
-            const getAllStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packageEntry]);
+        beforeEach(() => {
+            packageEntryOne.path = 'some/path.tgz';
+            packageEntryTwo.path = 'some/path.cds';
+        });
+
+        it('should update deploy view with new packages [v2]', async () => {
+            const getAllStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packageEntryOne, packageEntryTwo]);
 
             const webviewPanel: vscode.WebviewPanel = {
                 webview: {
@@ -611,11 +615,34 @@ describe('DeployView', () => {
                 }
             } as unknown as vscode.WebviewPanel;
             DeployView.panel = webviewPanel;
-            DeployView.appState = {};
+            DeployView.appState = { hasV1Capabilities: false };
 
             await DeployView.updatePackages();
 
-            DeployView.appState.packageEntries.should.deep.equal([packageEntry]);
+            DeployView.appState.packageEntries.should.deep.equal([packageEntryOne]);
+
+            getAllStub.should.have.been.calledOnce;
+            postMessageStub.should.have.been.calledOnceWithExactly({
+                path: '/deploy',
+                deployData: DeployView.appState
+            });
+
+        });
+
+        it('should update deploy view with new packages [v1]', async () => {
+            const getAllStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packageEntryOne, packageEntryTwo]);
+
+            const webviewPanel: vscode.WebviewPanel = {
+                webview: {
+                    postMessage: postMessageStub
+                }
+            } as unknown as vscode.WebviewPanel;
+            DeployView.panel = webviewPanel;
+            DeployView.appState = { hasV1Capabilities: true };
+
+            await DeployView.updatePackages();
+
+            DeployView.appState.packageEntries.should.deep.equal([packageEntryTwo]);
 
             getAllStub.should.have.been.calledOnce;
             postMessageStub.should.have.been.calledOnceWithExactly({
@@ -640,7 +667,10 @@ describe('DeployView', () => {
                             await callback({
                                 command: 'package',
                                 data: {
-                                    workspaceName: 'myWorkspace'
+                                    workspaceName: 'myWorkspace',
+                                    packageName: 'packageName',
+                                    packageVersion: '0.0.1',
+                                    versionNumber: 2
                                 }
                             });
                             resolve();
@@ -672,7 +702,7 @@ describe('DeployView', () => {
             await deployView.openView(false);
             await Promise.all(onDidDisposePromises);
 
-            packageStub.should.have.been.calledOnceWithExactly('myWorkspace');
+            packageStub.should.have.been.calledOnceWithExactly('myWorkspace', 'packageName', '0.0.1', 2);
             updatePackagesStub.should.have.been.calledOnce;
         });
 
@@ -686,7 +716,7 @@ describe('DeployView', () => {
             await deployView.openView(false);
             await Promise.all(onDidDisposePromises);
 
-            packageStub.should.have.been.calledOnceWithExactly('myWorkspace');
+            packageStub.should.have.been.calledOnceWithExactly('myWorkspace', 'packageName', '0.0.1', 2);
             updatePackagesStub.should.not.have.been.called;
         });
 
@@ -707,10 +737,10 @@ describe('DeployView', () => {
             const getWorkspaceFoldersStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceOne, workspaceTwo]);
 
             const deployView: DeployView = new DeployView(context, deployData);
-            await deployView.package(workspaceTwo.name);
+            await deployView.package(workspaceTwo.name, 'packageName', '0.0.1', 2);
 
             getWorkspaceFoldersStub.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledOnceWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceTwo);
+            executeCommandStub.should.have.been.calledOnceWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceTwo, 'packageName', '0.0.1', 2);
         });
     });
 
@@ -937,10 +967,6 @@ describe('DeployView', () => {
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.not.have.been.called;
 
             localEnvironmentConnectionMock.getOrgApprovals.should.not.have.been.called;
-            DeployView.appState.orgApprovals.should.not.deep.equal({
-                'Org1MSP': true,
-                'Org2MSP': false
-            });
             postMessageStub.should.not.have.been.called;
             const error: Error = new Error(`Unable to deploy, cannot connect to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
             logStub.should.have.been.calledOnceWithExactly(LogType.ERROR, error.message, error.toString());
@@ -1109,4 +1135,325 @@ describe('DeployView', () => {
         });
 
     });
+
+    describe('instantiate / upgrade message', () => {
+        const onDidDisposePromises: any[] = [];
+
+        it('should handle instantiate message', async () => {
+            onDidDisposePromises.push(new Promise((resolve: any): void => {
+                createWebviewPanelStub.returns({
+                    title: 'Deploy Smart Contract',
+                    webview: {
+                        postMessage: postMessageStub,
+                        onDidReceiveMessage: async (callback: any): Promise<void> => {
+                            await callback({
+                                command: 'instantiate',
+                                data: {
+                                    channelName: 'mychannel',
+                                    environmentName: FabricRuntimeUtil.LOCAL_FABRIC,
+                                    selectedPackage: packageEntryOne,
+                                    instantiateFunctionName: '',
+                                    instantiateFunctionArgs: '',
+                                    endorsmentPolicy: undefined,
+                                    collectionConfigPath: undefined,
+                                }
+                            });
+                            resolve();
+                        }
+                    },
+                    reveal: (): void => {
+                        return;
+                    },
+                    onDidDispose: mySandBox.stub(),
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
+                });
+            }));
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            const deployV1Stub: sinon.SinonStub = mySandBox.stub(deployView, 'deployV1').resolves();
+            await deployView.openView(false);
+            await Promise.all(onDidDisposePromises);
+            deployV1Stub.should.have.been.calledWith('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+        });
+
+        it('should handle instantiate message', async () => {
+            onDidDisposePromises.push(new Promise((resolve: any): void => {
+                createWebviewPanelStub.returns({
+                    title: 'Deploy Smart Contract',
+                    webview: {
+                        postMessage: postMessageStub,
+                        onDidReceiveMessage: async (callback: any): Promise<void> => {
+                            await callback({
+                                command: 'upgrade',
+                                data: {
+                                    channelName: 'mychannel',
+                                    environmentName: FabricRuntimeUtil.LOCAL_FABRIC,
+                                    selectedPackage: packageEntryOne,
+                                    instantiateFunctionName: '',
+                                    instantiateFunctionArgs: '',
+                                    endorsmentPolicy: undefined,
+                                    collectionConfigPath: undefined,
+                                }
+                            });
+                            resolve();
+                        }
+                    },
+                    reveal: (): void => {
+                        return;
+                    },
+                    onDidDispose: mySandBox.stub(),
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
+                });
+            }));
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            const deployV1Stub: sinon.SinonStub = mySandBox.stub(deployView, 'deployV1').resolves();
+            await deployView.openView(false);
+            await Promise.all(onDidDisposePromises);
+            deployV1Stub.should.have.been.calledWith('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+        });
+    });
+
+    describe('deployV1', () => {
+        it('should instantiate new contract if already connected', async () => {
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            disposeStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'mychannel', ["Org1Peer1", "Org1Peer2"], packageEntryOne, '', [], undefined, undefined);
+        });
+
+        it('should disconnect, connect to correct environment and instantiate new contract', async () => {
+            getConnectionStub.onCall(0).returns(otherEnvironmentConnectionMock);
+            getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'mychannel', ["Org1Peer1", "Org1Peer2"], packageEntryOne, '', [], undefined, undefined);
+        });
+
+        it('should connect to environment if disconnected and instantiate new contract', async () => {
+            getConnectionStub.onCall(0).returns(undefined);
+            getConnectionStub.onCall(1).returns(localEnvironmentConnectionMock);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'mychannel', ["Org1Peer1", "Org1Peer2"], packageEntryOne, '', [], undefined, undefined);
+        });
+
+        it('should error if unable to connect to environment', async () => {
+            getConnectionStub.returns(undefined);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+
+            const error: Error = new Error(`Unable to deploy, cannot connect to environment: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
+            logStub.should.have.been.calledOnceWithExactly(LogType.ERROR, error.message, error.toString());
+        });
+
+        it('should parse instantiate function arguments', async () => {
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'myFunction', '["arg1", "arg2"]', undefined, undefined);
+            disposeStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'mychannel', ["Org1Peer1", "Org1Peer2"], packageEntryOne, 'myFunction', ['arg1', 'arg2'], undefined, undefined);
+        });
+
+        it(`should throw error if instantiate arguments aren't valid`, async () => {
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'myFunction', '["arg1", "arg2"', undefined, undefined);
+            disposeStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+
+            const error: Error = new Error('instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
+            logStub.should.have.been.calledOnceWithExactly(LogType.ERROR, error.message, error.toString());
+        });
+
+        it('should be able to pass endorsement policy and replace double quotes', async () => {
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', `OR("Org1.member","Org2.member")`, undefined);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, 'mychannel', ["Org1Peer1", "Org1Peer2"], packageEntryOne, '', [], `OR('Org1.member','Org2.member')`, undefined);
+        });
+
+        it('should upgrade a smart contract', async () => {
+            getConnectionStub.returns(localEnvironmentConnectionMock);
+
+            const disposeStub: sinon.SinonStub = mySandBox.stub();
+            const webviewPanel: vscode.WebviewPanel = {
+                dispose: disposeStub
+            } as unknown as vscode.WebviewPanel;
+
+            const deployView: DeployView = new DeployView(context, deployData);
+            DeployView.panel = webviewPanel;
+            await deployView.deployV1('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            disposeStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.UPGRADE_SMART_CONTRACT, 'mychannel', ["Org1Peer1", "Org1Peer2"], packageEntryOne, '', [], undefined, undefined);
+        });
+    });
+
+    describe('getPackageLanguage message', () => {
+        const onDidDisposePromises: any[] = [];
+
+        beforeEach(async () => {
+            onDidDisposePromises.push(new Promise((resolve: any): void => {
+                createWebviewPanelStub.returns({
+                    title: 'Deploy Smart Contract',
+                    webview: {
+                        postMessage: postMessageStub,
+                        onDidReceiveMessage: async (callback: any): Promise<void> => {
+                            await callback({
+                                command: 'getPackageLanguage',
+                                data: {
+                                    workspaceName: 'myWorkspace'
+                                }
+                            });
+                            resolve();
+                        }
+                    },
+                    reveal: (): void => {
+                        return;
+                    },
+                    onDidDispose: mySandBox.stub(),
+                    onDidChangeViewState: mySandBox.stub(),
+                    _isDisposed: false
+                });
+            }));
+        });
+
+        it('should get the language of a node project', async () => {
+            const deployView: DeployView = new DeployView(context, deployData);
+            const getWorkspaceStub: sinon.SinonStub = mySandBox.stub(deployView, 'getWorkspace').returns({ uri: { fsPath: 'some/file/path' } });
+            const getLanguageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getLanguage').resolves('node');
+
+            const mockWorkspaceString: string = '{"name": "packageName", "version": "0.0.1"}';
+            mySandBox.stub(fs, 'readFile').resolves(Buffer.from(mockWorkspaceString));
+
+            await deployView.openView(false);
+            await Promise.all(onDidDisposePromises);
+
+            getWorkspaceStub.should.have.been.calledOnceWithExactly('myWorkspace');
+            getLanguageStub.should.have.been.calledOnce;
+            postMessageStub.should.have.been.calledWith({
+                path: 'deploy',
+                deployData: ({
+                    channelName: 'mychannel',
+                    environmentName: FabricRuntimeUtil.LOCAL_FABRIC,
+                    selectedPackage: undefined,
+                    selectedWorkspace: "myWorkspace",
+                    chosenWorkspaceData: {
+                        language: 'node',
+                        name: 'packageName',
+                        version: '0.0.1'
+                    }
+                })
+            });
+        });
+
+        it('should get the language of any other project', async () => {
+            const deployView: DeployView = new DeployView(context, deployData);
+            const getWorkspaceStub: sinon.SinonStub = mySandBox.stub(deployView, 'getWorkspace');
+            const getLanguageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getLanguage').resolves('go');
+            await deployView.openView(false);
+            await Promise.all(onDidDisposePromises);
+
+            getWorkspaceStub.should.have.been.calledOnceWithExactly('myWorkspace');
+            getLanguageStub.should.have.been.calledOnce;
+            postMessageStub.should.have.been.calledWith({
+                path: 'deploy',
+                deployData: ({
+                    channelName: 'mychannel',
+                    environmentName: FabricRuntimeUtil.LOCAL_FABRIC,
+                    selectedPackage: undefined,
+                    selectedWorkspace: "myWorkspace",
+                    chosenWorkspaceData: {
+                        language: 'go',
+                        name: '',
+                        version: ''
+                    }
+                })
+            });
+        });
+
+    });
+
 });

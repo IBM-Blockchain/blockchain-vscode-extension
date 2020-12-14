@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DeployStepThree component render should render the expected snapshot 1`] = `
+exports[`DeployStepThree component render should render the expected snapshot when showing v1 deploy view 1`] = `
 Array [
   <div
     className="bx--row margin-bottom-06"
@@ -24,7 +24,167 @@ Array [
         <li
           className="bx--list__item"
         >
-          Approve the same smart contract definition for each organization
+           
+          Instantiate
+           smart contract package 
+        </li>
+      </ul>
+    </div>
+  </div>,
+  <div
+    className="bx--row margin-bottom-07"
+  >
+    <div
+      className="bx--col-lg-10"
+    >
+      <ul
+        className="bx--accordion bx--accordion--end"
+        id="advancedAccordion"
+      >
+        <li
+          className="bx--accordion__item"
+          id="customize"
+          onAnimationEnd={[Function]}
+        >
+          <button
+            aria-expanded={false}
+            className="bx--accordion__heading"
+            onClick={[Function]}
+            onKeyDown={[Function]}
+            title="Expand/Collapse"
+            type="button"
+          >
+            <svg
+              aria-label="Expand/Collapse"
+              className="bx--accordion__arrow"
+              focusable="false"
+              height={16}
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              viewBox="0 0 16 16"
+              width={16}
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="11,8 6,13 5.3,12.3 9.6,8 5.3,3.7 6,3"
+              />
+            </svg>
+            <div
+              className="bx--accordion__title"
+            >
+              Customize instantiation (advanced)
+            </div>
+          </button>
+          <div
+            className="bx--accordion__content"
+          >
+            <div
+              className="bx--row margin-top-06"
+            >
+              <div
+                className="bx--col"
+              >
+                <p>
+                  Optional: Enter name of function to call on instantiate
+                </p>
+                <div
+                  className="bx--form-item bx--text-input-wrapper"
+                >
+                  <label
+                    className="bx--label bx--visually-hidden"
+                    htmlFor="instantiate-function-input"
+                  >
+                    Optional: Enter name of function to call on instantiate
+                  </label>
+                  <div
+                    className="bx--text-input__field-wrapper"
+                    data-invalid={null}
+                  >
+                    <input
+                      className="bx--text-input bx--text__input"
+                      disabled={false}
+                      id="instantiate-function-input"
+                      onChange={[Function]}
+                      onClick={[Function]}
+                      placeholder=""
+                      title=""
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              className="bx--row margin-top-06"
+            >
+              <div
+                className="bx--col"
+              >
+                <p>
+                  Optional: Enter arguments for instantiate function
+                </p>
+                <div
+                  className="bx--form-item"
+                >
+                  <label
+                    className="bx--label bx--visually-hidden"
+                    htmlFor="instantiate-args-text-area"
+                  >
+                    Optional: Enter arguments for instantiate function
+                  </label>
+                  <div
+                    className="bx--text-area__wrapper"
+                    data-invalid={null}
+                  >
+                    <textarea
+                      aria-describedby={null}
+                      aria-invalid={null}
+                      className="bx--text-area"
+                      cols={50}
+                      disabled={false}
+                      id="instantiate-args-text-area"
+                      onChange={[Function]}
+                      onClick={[Function]}
+                      placeholder="eg [\\"arg1\\", \\"arg2\\"]"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>,
+]
+`;
+
+exports[`DeployStepThree component render should render the expected snapshot when showing v2 deploy view 1`] = `
+Array [
+  <div
+    className="bx--row margin-bottom-06"
+  >
+    <div
+      className="bx--col-lg-10"
+    >
+      <span>
+        When you select 'Deploy', the following actions will automatically occur:
+      </span>
+      <ul
+        className="bx--list--unordered padding-left-07 padding-top-05"
+      >
+        <li
+          className="bx--list__item"
+        >
+          Install smart contract package \`
+          mycontract@0.0.1
+          \` on all peers
+        </li>
+        <li
+          className="bx--list__item"
+        >
+           Approve the same smart contract definition for each organization 
         </li>
         <li
           className="bx--list__item"

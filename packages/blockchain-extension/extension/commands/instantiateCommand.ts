@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -21,182 +20,38 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
-import { PackageRegistry } from '../registries/PackageRegistry';
-import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
-export async function instantiateSmartContract(channelName?: string, peerNames?: Array<string>): Promise<void> {
+export async function instantiateSmartContract(channelName: string, peerNames: Array<string>, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string[], endorsementPolicy: any, collectionConfigPath: string): Promise<void> {
 
-    let packageToInstall: PackageRegistryEntry;
     let smartContractName: string;
     let smartContractVersion: string;
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
 
-    let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+    // can assume a connection, if there isn't one then something when wrong so just return out
+    const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
     if (!connection) {
-        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-        connection = FabricEnvironmentManager.instance().getConnection();
-        if (!connection) {
-            // something went wrong with connecting so return
-            return;
-        }
-    }
-
-    if (!channelName && !peerNames) {
-
-        const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
-        if (!chosenChannel) {
-            return;
-        }
-        channelName = chosenChannel.label;
-        peerNames = chosenChannel.data;
+        return;
     }
 
     try {
-        let data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder };
-        let chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
+        const isPackageInstalled: boolean = await checkPackageInstalled(connection, peerNames, selectedPackage);
 
-        if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
-            // called from debug session - get the chaincode ID name and folder used to debug
-            smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
-            smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
-        } else {
-            // Not called during debugging, ask for smart contract to instantiate
-            chosenChaincode = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a smart contract and version to instantiate', channelName, peerNames);
-            if (!chosenChaincode) {
-                return;
-            }
-            data = chosenChaincode.data;
-            packageToInstall = chosenChaincode.data.packageEntry;
-        }
+        if (!isPackageInstalled) {
+            // Install smart contract package
+            const channelMap: Map<string, string[]> = await connection.createChannelMap();
+            await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, channelMap, selectedPackage);
 
-        if (chosenChaincode && chosenChaincode.description === 'Open Project') {
-            // Project needs packaging and installing
-
-            // Package smart contract project using the given 'open workspace'
-            packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace);
-            if (!packageToInstall) {
-                return;
-            }
-        } else if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
-            // Called from debug session so override package command parameters with smart contract name and version
-            const packageRegistryEntry: PackageRegistryEntry = await PackageRegistry.instance().get(smartContractName, smartContractVersion);
-            if (!packageRegistryEntry) {
-                packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, vscode.debug.activeDebugSession.workspaceFolder, smartContractName, smartContractVersion);
-                if (!packageToInstall) {
-                    return;
-                }
-            } else {
-                packageToInstall = packageRegistryEntry;
-            }
-        }
-        if ((chosenChaincode && chosenChaincode.description === 'Open Project') || (chosenChaincode && chosenChaincode.description === 'Packaged') || vscode.debug.activeDebugSession) {
-            let doInstall: boolean = true;
-            if (vscode.debug.activeDebugSession && vscode.debug.activeDebugSession.configuration.debugEvent === FabricDebugConfigurationProvider.debugEvent) {
-                // on local fabric so assume one peer
-                let installedChaincode: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peerNames[0]);
-
-                // TODO: this is wrong but this whole file will be deleted so just making the tests pass for now
-                installedChaincode = installedChaincode.filter((chaincode: FabricInstalledSmartContract) => {
-                    return chaincode.label === `${packageToInstall.name}@${packageToInstall.version}` && chaincode.packageId === packageToInstall.name;
-                });
-
-                if (installedChaincode.length > 0) {
-                    doInstall = false;
-                }
-            }
-
-            if (doInstall) {
-                // Install smart contract package
-                const channelMap: Map<string, string[]> = await connection.createChannelMap();
-                await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, channelMap, packageToInstall);
-
-                // check install was successful:
-                let installedChaincode: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peerNames[0], true);
-                installedChaincode = installedChaincode.filter((chaincode: FabricInstalledSmartContract) => {
-                    return chaincode.label === `${packageToInstall.name}@${packageToInstall.version}` && chaincode.packageId === packageToInstall.name;
-                });
-                if (installedChaincode.length === 0) {
-                    throw new Error('failed to get contract from peer after install');
-                }
-
-                smartContractName = packageToInstall.name;
-                smartContractVersion = packageToInstall.version;
-            }
-        } else {
-            // Installed smart contract chosen
-            smartContractName = data.packageEntry.name;
-            smartContractVersion = data.packageEntry.version;
-        }
-        // Project should be packaged and installed. Now the package can be instantiated.
-
-        const fcn: string = await UserInputUtil.showInputBox('optional: What function do you want to call on instantiate?');
-
-        let args: Array<string>;
-        if (fcn === undefined) {
-            return;
-        } else if (fcn === '') {
-            args = [];
-        } else {
-            const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]');
-            if (argsString === undefined) {
-                return;
-            } else if (argsString === '') {
-                args = [];
-            } else {
-                try {
-                    if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
-                        throw new Error('instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
-                    }
-                    args = JSON.parse(argsString);
-                } catch (error) {
-                    outputAdapter.log(LogType.ERROR, `Error with instantiate function arguments: ${error.message}`);
-                    return;
-                }
+            // check install was successful:
+            const didInstallWork: boolean = await checkPackageInstalled(connection, peerNames, selectedPackage);
+            if (!didInstallWork) {
+                throw new Error('failed to get contract from peer after install');
             }
         }
 
-        let collectionPath: string;
-        const wantCollection: string = await UserInputUtil.showQuickPickYesNo('Do you want to provide a private data collection configuration file?');
-
-        if (!wantCollection) {
-            return;
-        } else if (wantCollection === UserInputUtil.YES) {
-            let defaultUri: vscode.Uri;
-            const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
-            if (workspaceFolders.length > 0) {
-                defaultUri = workspaceFolders[0].uri;
-            }
-
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                defaultUri: defaultUri
-            };
-
-            collectionPath = await UserInputUtil.browse('Enter a file path to the collection configuration', UserInputUtil.BROWSE_LABEL, openDialogOptions) as string;
-            if (collectionPath === undefined) {
-                return;
-            }
-        }
-
-        let contractEP: any;
-        const wantsContractEP: string = await UserInputUtil.showQuickPick('Choose a smart contract endorsement policy', [UserInputUtil.DEFAULT_SC_EP, UserInputUtil.CUSTOM]) as string;
-
-        if (!wantsContractEP) {
-            return;
-        } else if (wantsContractEP === UserInputUtil.CUSTOM) {
-            contractEP = await UserInputUtil.showInputBox('Enter the smart contract endorsement policy: e.g. OR("Org1MSP.member","Org2MSP.member")');
-            if (!contractEP) {
-                // User cancelled dialog box
-                return;
-            } else {
-                contractEP = contractEP.replace(/"/g, "\'");
-            }
-        }
+        smartContractName = selectedPackage.name;
+        smartContractVersion = selectedPackage.version;
 
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -211,7 +66,7 @@ export async function instantiateSmartContract(channelName?: string, peerNames?:
                 VSCodeBlockchainDockerOutputAdapter.instance(fabricEnvironmentRegistryEntry.name).show();
             }
 
-            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath, contractEP);
+            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, instantiateFunctionName, instantiateFunctionArgs, collectionConfigPath, endorsementPolicy);
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 
@@ -223,4 +78,13 @@ export async function instantiateSmartContract(channelName?: string, peerNames?:
         outputAdapter.log(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);
         return;
     }
+}
+
+async function checkPackageInstalled(connection: IFabricEnvironmentConnection, peerNames: string[], selectedPackage: PackageRegistryEntry): Promise<boolean> {
+    let installedChaincode: FabricInstalledSmartContract[] = await connection.getInstalledSmartContracts(peerNames[0], true);
+    installedChaincode = installedChaincode.filter((chaincode: FabricInstalledSmartContract) => {
+        return chaincode.label === `${selectedPackage.name}@${selectedPackage.version}` && chaincode.packageId === selectedPackage.name;
+    });
+
+    return (installedChaincode.length > 0);
 }

@@ -268,7 +268,7 @@ Array [
               Find out more information about the endorsement policy syntax 
               <a
                 className="bx--link"
-                href="https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html#endorsement-policy-syntax"
+                href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/endorsement-policies.html#endorsement-policy-syntax"
               >
                 here
               </a>

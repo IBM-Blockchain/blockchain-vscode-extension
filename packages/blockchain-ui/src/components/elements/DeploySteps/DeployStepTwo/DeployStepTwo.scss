@@ -1,3 +1,6 @@
-#root {
-
+.deploy-step-two-notification {
+    .bx--inline-notification__text-wrapper {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
 }

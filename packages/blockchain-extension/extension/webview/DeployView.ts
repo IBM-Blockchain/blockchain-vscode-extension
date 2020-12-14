@@ -38,8 +38,13 @@ export class DeployView extends ReactView {
     public static appState: any;
 
     static async updatePackages(): Promise<void> {
-        const packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
-        DeployView.appState.packageEntries = packages;
+        let packageEntries: PackageRegistryEntry[] = [];
+        const allPackageEntries: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        packageEntries = allPackageEntries.filter((entry: PackageRegistryEntry) => {
+            const fileExtension: string = UserInputUtil.getPackageFileExtension(entry.path);
+            return DeployView.appState.hasV1Capabilities ? fileExtension === '.cds' : fileExtension !== '.cds';
+        });
+        DeployView.appState.packageEntries = packageEntries;
         DeployView.panel.webview.postMessage({
             path: '/deploy',
             deployData: DeployView.appState
@@ -78,9 +83,24 @@ export class DeployView extends ReactView {
                 const selectedPeers: string[] = message.data.selectedPeers;
 
                 await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, endorsementPolicy, collectionConfigPath, selectedPeers);
+
+            } else if (message.command === 'instantiate' || message.command === 'upgrade') {
+                const channelName: string = message.data.channelName;
+                const environmentName: string = message.data.environmentName;
+                const selectedPackage: PackageRegistryEntry = message.data.selectedPackage;
+                const instantiateFunctionName: string = message.data.instantiateFunctionName;
+                const instantiateFunctionArgs: string = message.data.instantiateFunctionArgs;
+                const endorsementPolicy: string = message.data.endorsementPolicy;
+                const collectionConfigPath: string = message.data.collectionConfigPath;
+
+                await this.deployV1(message.command, channelName, environmentName, selectedPackage, instantiateFunctionName, instantiateFunctionArgs, endorsementPolicy, collectionConfigPath);
+
             } else if (message.command === 'package') {
                 const workspaceName: string = message.data.workspaceName;
-                const entry: PackageRegistryEntry = await this.package(workspaceName);
+                const packageName: string = message.data.packageName;
+                const packageVersion: string = message.data.packageVersion;
+                const versionNumber: number = message.data.versionNumber;
+                const entry: PackageRegistryEntry = await this.package(workspaceName, packageName, packageVersion, versionNumber);
                 if (entry) {
                     DeployView.appState.selectedPackage = entry;
                     await DeployView.updatePackages();
@@ -95,6 +115,32 @@ export class DeployView extends ReactView {
                 const collectionConfigPath: string = message.data.collectionConfigPath;
 
                 await this.getOrgApprovals(environmentName, channelName, definitionName, definitionVersion, endorsementPolicy, collectionConfigPath);
+            } else if (message.command === 'getPackageLanguage') {
+                const chosenWorkspaceData: { language: string, name: string, version: string } = {
+                    language: '',
+                    name: '',
+                    version: ''
+                };
+
+                const workspace: vscode.WorkspaceFolder = this.getWorkspace(message.data.workspaceName);
+                chosenWorkspaceData.language = await UserInputUtil.getLanguage(workspace);
+
+                if (chosenWorkspaceData.language === 'node') {
+                    const workspacePackage: string = path.join(workspace.uri.fsPath, '/package.json');
+                    const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
+                    const workspacePackageObj: any = JSON.parse(workspacePackageContents.toString('utf8'));
+
+                    chosenWorkspaceData.name = workspacePackageObj.name;
+                    chosenWorkspaceData.version = workspacePackageObj.version;
+                }
+
+                DeployView.appState.selectedPackage = undefined;
+                DeployView.appState.selectedWorkspace = message.data.workspaceName;
+                DeployView.appState.chosenWorkspaceData = chosenWorkspaceData;
+                panel.webview.postMessage({
+                    path: 'deploy',
+                    deployData: DeployView.appState
+                });
             }
         });
 
@@ -226,11 +272,69 @@ export class DeployView extends ReactView {
 
     }
 
-    async package(workspaceName: string): Promise<PackageRegistryEntry> {
-        const workspaces: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
-        const workspace: vscode.WorkspaceFolder = workspaces.find((_workspace: vscode.WorkspaceFolder) => _workspace.name === workspaceName);
+    async deployV1(command: string, channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string, endorsementPolicy: any, collectionConfigPath: string): Promise<void> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-        const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspace);
+        try {
+            DeployView.panel.dispose(); // Close the panel before attempting to deploy.
+
+            const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+
+            let connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+            if (connection) {
+                // Check we're connected to the selected environment
+                const connectedName: string = connection.environmentName;
+                if (connectedName !== environmentEntry.name) {
+                    // If we're not connected to the selected environment we should disconnect, then connect to the correct environment.
+                    await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                    await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentEntry);
+                    connection = FabricEnvironmentManager.instance().getConnection();
+                }
+            } else {
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentEntry);
+                connection = FabricEnvironmentManager.instance().getConnection();
+            }
+
+            if (!connection) {
+                // This can occur if the runtime isn't running, then gets started by the connect, but it fails.
+                throw new Error(`Unable to deploy, cannot connect to environment: ${environmentEntry.name}`);
+            }
+
+            const channelMap: Map<string, string[]> = await connection.createChannelMap();
+            const peerNames: string[] = channelMap.get(channelName);
+
+            // check an instantiate function has been provided and either parse args to JSON or clear them
+
+            let parsedArgs: string[];
+            if (instantiateFunctionName === '') {
+                parsedArgs = [];
+            } else {
+                if (!instantiateFunctionArgs.startsWith('[') || !instantiateFunctionArgs.endsWith(']')) {
+                    throw new Error('instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
+                }
+                parsedArgs = JSON.parse(instantiateFunctionArgs);
+            }
+
+            if (endorsementPolicy) {
+                // Replace double quotes with single quotes
+                endorsementPolicy = endorsementPolicy.replace(/"/g, "\'");
+            }
+
+            const extensionCommand: string = (command === 'instantiate') ? ExtensionCommands.INSTANTIATE_SMART_CONTRACT : ExtensionCommands.UPGRADE_SMART_CONTRACT;
+            await vscode.commands.executeCommand(extensionCommand, channelName, peerNames, selectedPackage, instantiateFunctionName, parsedArgs, endorsementPolicy, collectionConfigPath);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, error.message, error.toString());
+        }
+    }
+
+    getWorkspace(workspaceName: string): vscode.WorkspaceFolder {
+        const workspaces: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+        return workspaces.find((_workspace: vscode.WorkspaceFolder) => _workspace.name === workspaceName);
+    }
+
+    async package(workspaceName: string, packageName: string, packageVersion: string, versionNumber: number): Promise<PackageRegistryEntry> {
+        const workspace: vscode.WorkspaceFolder = this.getWorkspace(workspaceName);
+        const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspace, packageName, packageVersion, versionNumber);
         return packageEntry;
     }
 
