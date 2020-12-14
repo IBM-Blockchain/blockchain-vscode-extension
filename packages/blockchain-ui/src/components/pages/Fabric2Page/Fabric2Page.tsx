@@ -37,6 +37,10 @@ function Fabric2Page(): JSX.Element {
                         <p>The install, instantiate and upgrade commands are now a part of the deploy view and can be performed in a single action - this occurs when attempting to deploy a smart contract to a V1 capability channel.</p>
                         <p>In order to install and instantiate (or upgrade) using the deploy view, you must make sure you create or connect to a network with a channel that uses V1 channel capabilities.</p>
                     </AccordionItem>
+                    <AccordionItem title='Previously added environments, gateways and wallets using version 1'>
+                        <p>Due to changes within the extension's code, any environments, gateways and wallets will need to be re-added to the extension.</p>
+                        <p>No need to worry, these files have not been deleted and can be retrieved from "~/.fabric-vscode" (default location) if required.</p>
+                    </AccordionItem>
 
                 </Accordion>
             </div>

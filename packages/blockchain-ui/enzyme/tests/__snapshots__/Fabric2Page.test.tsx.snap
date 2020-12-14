@@ -213,6 +213,50 @@ Array [
           </p>
         </div>
       </li>
+      <li
+        className="bx--accordion__item"
+        onAnimationEnd={[Function]}
+      >
+        <button
+          aria-expanded={false}
+          className="bx--accordion__heading"
+          onClick={[Function]}
+          onKeyDown={[Function]}
+          title="Expand/Collapse"
+          type="button"
+        >
+          <svg
+            aria-label="Expand/Collapse"
+            className="bx--accordion__arrow"
+            focusable="false"
+            height={16}
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            viewBox="0 0 16 16"
+            width={16}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <polygon
+              points="11,8 6,13 5.3,12.3 9.6,8 5.3,3.7 6,3"
+            />
+          </svg>
+          <div
+            className="bx--accordion__title"
+          >
+            Previously added environments, gateways and wallets using version 1
+          </div>
+        </button>
+        <div
+          className="bx--accordion__content"
+        >
+          <p>
+            Due to changes within the extension's code, any environments, gateways and wallets will need to be re-added to the extension.
+          </p>
+          <p>
+            No need to worry, these files have not been deleted and can be retrieved from "~/.fabric-vscode" (default location) if required.
+          </p>
+        </div>
+      </li>
     </ul>
   </div>,
   <div
