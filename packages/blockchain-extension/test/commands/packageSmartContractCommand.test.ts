@@ -657,11 +657,43 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
+        it('should package the v1 Go project module', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false, false, true, false);
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+            chooseFabricVersionStub.resolves(fabricVersion1Option);
+
+            const runVendorStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            packageContractSpy.should.have.been.calledOnceWith(1, 'myProject', '0.0.3');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/go.mod`);
+            runVendorStub.should.have.been.called;
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
         it('should allow a low level go module chaincode to be packaged if its v2', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const projectDir: string = path.join(testWorkspace, 'src', 'goProject');
-            const gradleFile: string = path.join(projectDir, 'go.mod');
+            const modFile: string = path.join(projectDir, 'go.mod');
 
             const v2LowLevelContent: string = `module example.org/chaincode
 
@@ -682,7 +714,7 @@ describe('packageSmartContract', () => {
                 gopkg.in/yaml.v2 v2.2.5 // indirect
             )`;
 
-            await fs.writeFile(gradleFile, v2LowLevelContent);
+            await fs.writeFile(modFile, v2LowLevelContent);
 
             const runVendorStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
 
@@ -1072,7 +1104,7 @@ describe('packageSmartContract', () => {
 
             warningStub.resolves(true);
 
-            const error: Error = new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+            const error: Error = new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package this Go smart contract without setting the environment variable GOPATH.');
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);

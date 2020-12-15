@@ -45,4 +45,4 @@ Scenario Outline: Get list of files for a Fabric v1 contract
     | javascript | node   | src/.editorconfig src/.eslintignore src/.eslintrc.js src/.gitignore src/index.js src/lib/fabcar.js src/package.json                                                            |
     | typescript | node   | src/.editorconfig src/.gitignore src/dist/car.d.ts src/dist/car.js src/dist/car.js.map src/package-lock.json src/package.json src/src/car.ts src/tsconfig.json src/tslint.json |
     | java       | java   | src/fabcar-1.0-SNAPSHOT.jar src/lib/genson-1.5.jar                                                                                                                             |
-    | go         | golang | src/fabcar.go src/go.mod src/go.sum src/vendor/google.golang.org/grpc/backoff.go                                                                                               |
+    | go         | golang | src/go/fabcar.go src/go/go.mod src/go/go.sum src/go/vendor/google.golang.org/grpc/backoff.go                                                                                               |

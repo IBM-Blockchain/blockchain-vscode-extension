@@ -61,7 +61,7 @@ export abstract class BasePackager {
      * @param {string} [goPath] Optional. Must be provided or environment "GOPATH" must be set
      *        when packaging goLang smart contract.
      */
-    abstract async package(smartContractPath: string, metadataPath?: string, goPath?: string): Promise<Buffer>
+    abstract async package(smartContractPath: string, metadataPath?: string, goPath?: string, isV1?: boolean): Promise<Buffer>
 
     /**
      * Package the final smart contract package for installation on a

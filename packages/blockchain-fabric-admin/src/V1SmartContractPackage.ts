@@ -84,7 +84,7 @@ export class V1SmartContractPackage extends SmartContractPackageBase {
 
         const handler: LifecyclePackager = this.getHandler(smartContractType);
 
-        return handler.package(smartContractPath, metadataPath, goPath);
+        return handler.package(smartContractPath, metadataPath, goPath, true);
     }
 
     private static getHandler(chaincodeType: string): LifecyclePackager {

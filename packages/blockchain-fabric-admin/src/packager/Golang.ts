@@ -35,14 +35,14 @@ export class GolangPackager extends LifecyclePackager {
      *        default to the environment setting "GOPATH".
      * @returns {Promise<Buffer>}
      */
-    public async package(smartContractPath: string, metadataPath?: string, goPath?: string): Promise<Buffer> {
+    public async package(smartContractPath: string, metadataPath?: string, goPath?: string, isV1?: boolean): Promise<Buffer> {
         // Determine the user's $GOPATH
         if (!goPath) {
             goPath = process.env.GOPATH;
         }
 
         // Compose the path to the go.mod candidate
-        const isModule: boolean = await fs.pathExists(path.join(smartContractPath, 'go.mod'));
+        const isModule: boolean = !isV1 &&  await fs.pathExists(path.join(smartContractPath, 'go.mod'));
 
         // Compose the path to the smart contract project directory
         const projDir: string = isModule ? smartContractPath : path.join(goPath!, 'src', smartContractPath);

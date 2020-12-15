@@ -71,24 +71,31 @@ describe('SmartContractPackage', () => {
 
                 for (const contractType of contractTypes) {
                     it(`should package the contract ${contractType}`, async () => {
-                        const contractPath: string = path.join(__dirname, 'data', contractType);
-                        const result: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
-                            smartContractPath: contractPath,
-                            name: `test-${contractType}`,
-                            version: '0.0.1',
-                            smartContractType: contractType as SmartContractType
-                        });
-                        should.exist(result.smartContractPackage);
-                    });
-
-                    it(`should package the ${contractType} contract with metadata`, async () => {
-                        const contractPath: string = path.join(__dirname, 'data', contractType);
+                        const isGolangV1: boolean = SmartContractPackage === V1SmartContractPackage && contractType === 'golang';
+                        const goPath: string = isGolangV1 ? path.join(__dirname, 'data', 'golang-gopath') : undefined;
+                        const contractPath: string = isGolangV1 ? path.join('fab-car-mod') : path.join(__dirname, 'data', contractType);
                         const result: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
                             smartContractPath: contractPath,
                             name: `test-${contractType}`,
                             version: '0.0.1',
                             smartContractType: contractType as SmartContractType,
-                            metaDataPath: path.join(contractPath, 'META-INF')
+                            golangPath: goPath
+                        });
+                        should.exist(result.smartContractPackage);
+                    });
+
+                    it(`should package the ${contractType} contract with metadata`, async () => {
+                        const isGolangV1: boolean = SmartContractPackage === V1SmartContractPackage && contractType === 'golang';
+                        const goPath: string = isGolangV1 ? path.join(__dirname, 'data', 'golang-gopath') : undefined;
+                        const contractPath: string = isGolangV1 ? path.join('fab-car-mod') : path.join(__dirname, 'data', contractType);
+                        const metaPath: string = isGolangV1 ? path.join(goPath, 'src', 'fab-car-mod') : path.join(contractPath, 'META-INF');
+                        const result: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
+                            smartContractPath: contractPath,
+                            name: `test-${contractType}`,
+                            version: '0.0.1',
+                            smartContractType: contractType as SmartContractType,
+                            metaDataPath: metaPath,
+                            golangPath: goPath
                         });
                         should.exist(result.smartContractPackage);
                     });
@@ -185,7 +192,7 @@ describe('SmartContractPackage', () => {
                 }
 
                 it('should package go without a mod file', async () => {
-                    const goPath: string = path.join(__dirname, 'data', 'golang-no-mod');
+                    const goPath: string = path.join(__dirname, 'data', 'golang-gopath');
                     const contractPath: string = path.join('fab-car');
                     const packagedContract: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
                         name: 'test-go',
@@ -199,14 +206,16 @@ describe('SmartContractPackage', () => {
                 });
 
                 it('should package go with a mod file', async () => {
-                    const contractPath: string = path.join(__dirname, 'data', 'golang');
+                    const isGolangV1: boolean = SmartContractPackage === V1SmartContractPackage;
+                    const goPath: string = isGolangV1 ? path.join(__dirname, 'data', 'golang-gopath') : undefined;
+                    const contractPath: string = isGolangV1 ? path.join('fab-car-mod') : path.join(__dirname, 'data', 'golang');
                     mysandbox.stub(fs, 'pathExists').resolves(true);
                     const packagedContract: SmartContractPackageBase = await SmartContractPackage.createSmartContractPackage({
                         name: 'test-go',
                         version: '0.0.1',
                         smartContractPath: contractPath,
                         smartContractType: SmartContractType.GO,
-                        golangPath: undefined
+                        golangPath: goPath
                     });
 
                     should.exist(packagedContract.smartContractPackage);

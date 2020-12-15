@@ -23,6 +23,7 @@ import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
+const should: Chai.Should = chai.should();
 
 module.exports = function(): any {
     /**
@@ -61,4 +62,10 @@ module.exports = function(): any {
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(packageName, packageVersion);
         _package.should.exist;
     });
+
+    this.Then('no package should be created with the name {string} and version {string}', this.timeout, async (packageName: string, packageVersion: string) => {
+        const _package: PackageRegistryEntry = await PackageRegistry.instance().get(packageName, packageVersion);
+        should.equal(undefined, _package);
+    });
+
 };

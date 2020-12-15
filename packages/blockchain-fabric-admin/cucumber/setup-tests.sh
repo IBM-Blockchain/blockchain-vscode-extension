@@ -29,4 +29,8 @@ export FABRIC_DIR="$(pwd)"
 ./network.sh down
 ./network.sh up createChannel -ca -s couchdb
 popd
+if [ -d ./fabric-samples/chaincode/fabcar/go ]; then
+  mkdir -p ./fabric-samples/chaincode/fabcar/src
+  cp -r ./fabric-samples/chaincode/fabcar/go ./fabric-samples/chaincode/fabcar/src/
+fi
 popd

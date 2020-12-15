@@ -143,16 +143,17 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
             // Determine the path argument.
             let contractPath: string = workspace.uri.fsPath; // Workspace path
+            const contractPathToVendor: string = contractPath;
             if (language === 'golang') {
                 const isModule: boolean = await fs.pathExists(path.join(contractPath, 'go.mod'));
 
-                if (!isModule) {
+                if (fabricVersion === 1 || !isModule) {
                     if (!process.env.GOPATH) {
                         // The path is relative to $GOPATH/src for Go smart contracts.
                         const indexSrc: number = contractPath.indexOf(path.sep + 'src' + path.sep);
                         if (indexSrc === -1) {
                             // Project path is not under GOPATH.
-                            throw new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+                            throw new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package this Go smart contract without setting the environment variable GOPATH.');
                         } else {
                             const srcPath: string = contractPath.substring(0, indexSrc + 4);
                             contractPath = path.relative(srcPath, contractPath);
@@ -183,8 +184,9 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
                             throw new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
                         }
                     }
-                } else {
-                    await CommandUtil.sendCommandWithOutput('go', ['mod', 'vendor'], contractPath);
+                }
+                if (isModule) {
+                    await CommandUtil.sendCommandWithOutput('go', ['mod', 'vendor'], contractPathToVendor);
                 }
             }
 

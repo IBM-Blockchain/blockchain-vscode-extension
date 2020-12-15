@@ -32,7 +32,14 @@ export class PackageHelper {
             await this.runCommand('./gradlew', ['installDist'], projectPath);
             projectPath = path.join(projectPath, 'build', 'install', 'fabcar');
         } else if (language === 'go') {
-            await this.runCommand('go', ['mod', 'vendor'], projectPath);
+            if (packageFormat === 'cds') {
+                process.env.GOPATH = projectPath.replace(/go$/, '');
+                projectPath = 'go';
+                await this.runCommand('go', ['mod', 'vendor'], path.join(process.env.GOPATH, 'src', projectPath));
+            } else {
+                await this.runCommand('go', ['mod', 'vendor'], projectPath);
+            }
+
         }
 
         let contractPackage: SmartContractPackageBase;
@@ -42,6 +49,7 @@ export class PackageHelper {
                 smartContractType: type,
                 name,
                 version,
+                golangPath: process.env.GOPATH
             });
         } else {
             contractPackage = await V2SmartContractPackage.createSmartContractPackage({
@@ -57,6 +65,7 @@ export class PackageHelper {
         const label: string = SmartContractPackageBase.getLabel(name, version);
         const packagePath: string = path.join(Helper.PACKAGE_DIR, `${label}.tar.gz`);
         await fs.writeFile(packagePath, contractPackage.smartContractPackage);
+        delete process.env.GOPATH;
         return packagePath;
     }
 
