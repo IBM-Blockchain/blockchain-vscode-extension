@@ -1,30 +1,40 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-beta.10
-_Release date: November 13th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0
+_Release date: December 17th 2020_
 
 Announcements
 ---
 
-* We welcome all feedback on this beta version so far. Please see the notes section for known issues.
+* **VS Code v1.40 or greater is now the minimum version required for using the v2.0.0 version of the extension.**
 
-* To install the extension, download the vsix file named `ibm-blockchain-platform-<VERSION>.vsix` from the [GitHub releases](https://github.com/IBM-Blockchain/blockchain-vscode-extension/releases) page.
-  In VS Code, switch to the Extensions view, click the hamburger menu and and select 'Install from VSIX'. Finally, select the downloaded vsix file. The extension should then install successfully.
- 
-* **VS Code v1.40 or greater is now the minimum version required for using the 'v2' version of the extension.**
-
-Features & Enhancements
+Features & Enhancements
 ---
-* Added support for connecting to IBM Blockchain Platform 2.5.1 [#2791](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2791).
-* Updated local environment implementation [#2629](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2629)
- > Local environments now use [Microfab](https://github.com/IBM-Blockchain/microfab), making them much faster to start!
-* Added a new transaction view, replacing the old submit/evaluate commands [#2639](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2639)
- > Left-click on a transaction or run the `Transact with Smart Contract` command to submit/evaluate transactions!
+* Support for Fabric v2.0 lifecycle.
+ > This extension now support all operations required to deploy smart contracts to a Fabric V2 channel.
+ >
+ > When creating a new local environment, you now have the option to specify the capabilities of the channel to be created.
+ >
+ > To use the new Fabric v2.0 lifecycle you need to create a local environment which has V2 capabilities.
+ >
+ > Be sure to check out the updated 'Basic tutorials' to find out how to use the new lifecycle.
+* New 'Deploy Smart Contract' command
+ > We've included a new 'Deploy Smart Contract' command which is callable from the command palette.
+ >
+ > This command allows you to easily install and instantiate a smart contract (if using a V1 channel), or install, approve and commit a smart contract (if using a V2 channel) - using a single action.
+* New 'Transact with Smart Contract' command
+ > We've included a new 'Transact with Smart Contract' command which makes it easier to submit/evaluate transactions.
 
 Fixes
 ---
-* Reverted packaging metadata path change made in v1.0.39 [#2797](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/2797).
- > We have reverted to look for the 'META-INF' directory again - sorry for the inconvenience!
+* No longer need to rebuild gRPC [#1621](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621)
+
+Be sure to take a look at our previous 2.0.0-beta.x releases in the changelog to see the full list of changes made.
 
 Notes
 ---
-* If you already have v1.4 local environment's running, you'll need to tear them down and start them again to use them as v2 local environments.
-* Debug doesn't work at moment
+* Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
+
+This release's Conga Comic:	
+---	
+<img src="https://congacomic.github.io/assets/img/blockheight-82.jpg" width="800">	
+
+For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
