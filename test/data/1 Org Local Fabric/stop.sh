@@ -6,7 +6,7 @@
 #
 # Exit on first error, print all commands.
 set -ev
-for CONTAINER in $(docker ps -f label=fabric-environment-name="1 Org Local Fabric" -q); do
+for CONTAINER in $(docker ps -f label=fabric-environment-name="1 Org Local FabricMicrofab" -q); do
     docker stop ${CONTAINER}
 done
 sleep 2
