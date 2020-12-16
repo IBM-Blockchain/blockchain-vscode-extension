@@ -98,7 +98,7 @@ export class PackageRegistry {
                     continue;
                 }
             } else {
-                const packageRegex: RegExp = new RegExp(/(.+?)(@(.*?)){0,1}(\.tar\.gz|\.tgz){1}/gm);
+                const packageRegex: RegExp = new RegExp(/(.+?)(@(.*?)){0,1}(\.tar\.gz|\.tgz){1}$/gm);
 
                 const result: RegExpMatchArray = packageRegex.exec(pkgFileName);
 
