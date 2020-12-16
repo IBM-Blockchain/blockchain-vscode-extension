@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "2.0.0",
+    "version": "2.0.0-rc.1",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -770,7 +770,7 @@
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
                     "when": "false"
-                }, 
+                },
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",
                     "when": "false"
@@ -1556,12 +1556,12 @@
         "generator-fabric": "0.2.18",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
-        "ibm-blockchain-platform-common": "^2.0.0",
-        "ibm-blockchain-platform-environment-v1": "^2.0.0",
-        "ibm-blockchain-platform-fabric-admin": "^2.0.0",
-        "ibm-blockchain-platform-gateway-v1": "^2.0.0",
-        "ibm-blockchain-platform-ui": "^2.0.0",
-        "ibm-blockchain-platform-wallet": "^2.0.0",
+        "ibm-blockchain-platform-common": "^2.0.0-rc.1",
+        "ibm-blockchain-platform-environment-v1": "^2.0.0-rc.1",
+        "ibm-blockchain-platform-fabric-admin": "^2.0.0-rc.1",
+        "ibm-blockchain-platform-gateway-v1": "^2.0.0-rc.1",
+        "ibm-blockchain-platform-ui": "^2.0.0-rc.1",
+        "ibm-blockchain-platform-wallet": "^2.0.0-rc.1",
         "request": "^2.88.0",
         "semver": "^6.3.0",
         "shelljs": "^0.8.3",

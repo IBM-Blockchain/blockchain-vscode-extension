@@ -1,4 +1,4 @@
-# IBM Blockchain Platform Extension updated to v2.0.0
+# IBM Blockchain Platform Extension updated to v2.0.0-rc.1
 _Release date: December 17th 2020_
 
 Announcements
