@@ -3,7 +3,7 @@
     "author": "IBMBlockchain",
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "2.0.0",
+    "version": "2.0.0-rc.1",
     "publisher": "IBMBlockchain",
     "repository": {
         "type": "git",
@@ -52,7 +52,7 @@
     },
     "dependencies": {
         "fs-extra": "^7.0.1",
-        "ibm-blockchain-platform-common": "^2.0.0",
+        "ibm-blockchain-platform-common": "^2.0.0-rc.1",
         "url": "0.11.0"
     },
     "optionalDependencies": {
