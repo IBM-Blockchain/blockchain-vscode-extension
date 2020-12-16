@@ -127,15 +127,12 @@ The following dependencies are optional:
 
 ### 1 Org Local Fabric functionality
 
-This extension can use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network on your machine. By default this feature is enabled as we highly recommend using it, however you may disable this feature if required.
+This extension can use Docker to run a simple pre-configured local Hyperledger Fabric network on your machine. By default this feature is enabled as we highly recommend using it, however you may disable this feature if required.
 
 You will need the following:
 
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 > Docker version can be found by running: `docker --version`
-
-- [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/) 
-> Docker Compose version can be found by running: `docker-compose --version`
 
 #### Additional requirements for Windows
 

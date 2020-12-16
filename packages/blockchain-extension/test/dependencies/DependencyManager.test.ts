@@ -37,10 +37,6 @@ const validDependencies: Dependencies = {
         ...defaultDependencies.required.docker,
         version: '18.1.2',
     },
-    dockerCompose: {
-        ...defaultDependencies.required.dockerCompose,
-        version: '1.21.1',
-    },
     systemRequirements: {
         ...defaultDependencies.required.systemRequirements,
         complete: true
@@ -199,44 +195,6 @@ describe('DependencyManager Tests', () => {
 
         });
 
-        it(`should return false if there's no Docker Compose version`, async () => {
-            const dependencies: Dependencies = {
-                ...validDependencies,
-                dockerCompose: {
-                    ...defaultDependencies.required.dockerCompose,
-                    version: undefined,
-                }
-            };
-
-            getPreReqVersionsStub.resolves(dependencies);
-
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-            result.should.equal(false);
-            getPreReqVersionsStub.should.have.been.calledOnce;
-
-        });
-
-        it(`should return false if Docker Compose version is less than required version`, async () => {
-            const dependencies: Dependencies = {
-                ...validDependencies,
-                dockerCompose: {
-                    ...defaultDependencies.required.dockerCompose,
-                    version: '1.1.2',
-                }
-            };
-
-            getPreReqVersionsStub.resolves(dependencies);
-
-            const dependencyManager: DependencyManager = DependencyManager.instance();
-            const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-            result.should.equal(false);
-            getPreReqVersionsStub.should.have.been.calledOnce;
-
-        });
-
         it(`should return false if they haven't confirmed to have system requirements`, async () => {
             const dependencies: Dependencies = {
                 ...validDependencies,
@@ -263,10 +221,6 @@ describe('DependencyManager Tests', () => {
                 docker: {
                     ...defaultDependencies.required.docker,
                     version: '18.1.2',
-                },
-                dockerCompose: {
-                    ...defaultDependencies.required.dockerCompose,
-                    version: '1.21.1',
                 },
                 systemRequirements: {
                     ...defaultDependencies.required.systemRequirements,
@@ -390,10 +344,6 @@ describe('DependencyManager Tests', () => {
                         ...defaultDependencies.required.docker,
                         version: '18.1.2',
                     },
-                    dockerCompose: {
-                        ...defaultDependencies.required.dockerCompose,
-                        version: '1.21.1',
-                    },
                     systemRequirements: {
                         ...defaultDependencies.required.systemRequirements,
                         complete: true
@@ -445,10 +395,6 @@ describe('DependencyManager Tests', () => {
                     docker: {
                         ...defaultDependencies.required.docker,
                         version: '18.1.2',
-                    },
-                    dockerCompose: {
-                        ...defaultDependencies.required.dockerCompose,
-                        version: '1.21.1',
                     },
                     systemRequirements: {
                         ...defaultDependencies.required.systemRequirements,
@@ -897,36 +843,6 @@ describe('DependencyManager Tests', () => {
             totalmemStub.should.have.been.calledOnce;
         });
 
-        it('should get version of Docker Compose', async () => {
-            mySandBox.stub(process, 'platform').value('some_other_platform');
-
-            sendCommandStub.withArgs('docker-compose -v').resolves('docker-compose version 1.22.0, build f46880f');
-
-            const result: Dependencies = await dependencyManager.getPreReqVersions();
-            result.dockerCompose.version.should.equal('1.22.0');
-            totalmemStub.should.have.been.calledOnce;
-        });
-
-        it('should not get version of Docker Compose if command not found', async () => {
-            mySandBox.stub(process, 'platform').value('some_other_platform');
-
-            sendCommandStub.withArgs('docker-compose -v').resolves('-bash: docker-compose: command not found');
-
-            const result: Dependencies = await dependencyManager.getPreReqVersions();
-            should.not.exist(result.dockerCompose.version);
-            totalmemStub.should.have.been.calledOnce;
-        });
-
-        it('should not get version of Docker Compose if unexpected format is returned', async () => {
-            mySandBox.stub(process, 'platform').value('some_other_platform');
-
-            sendCommandStub.withArgs('docker-compose -v').resolves('version 1-2-3, something');
-
-            const result: Dependencies = await dependencyManager.getPreReqVersions();
-            should.not.exist(result.dockerCompose.version);
-            totalmemStub.should.have.been.calledOnce;
-        });
-
         it('should get version of Go', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
@@ -1175,7 +1091,6 @@ describe('DependencyManager Tests', () => {
             await dependencyManager.getPreReqVersions();
 
             sendCommandStub.should.not.have.been.calledWith('docker -v');
-            sendCommandStub.should.not.have.been.calledWith('docker-compose -v');
         });
 
         describe('Windows', () => {
@@ -1241,7 +1156,6 @@ describe('DependencyManager Tests', () => {
                 await dependencyManager.getPreReqVersions();
 
                 sendCommandStub.should.not.have.been.calledWith('docker -v');
-                sendCommandStub.should.not.have.been.calledWith('docker-compose -v');
                 sendCommandStub.should.not.have.been.calledWith('openssl version -v');
             });
 
