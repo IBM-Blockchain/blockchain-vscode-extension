@@ -37,7 +37,6 @@ chai.use(sinonChai);
 
 interface VersionOverrides {
     docker?: string;
-    dockerCompose?: string;
     node?: string;
     npm?: string;
     go?: string;
@@ -62,7 +61,6 @@ const generateDependencies: any = (versions: VersionOverrides = {}, completes: C
     dependencies.node.version = versions.hasOwnProperty('node') ? versions.node : '10.15.3';
     dependencies.npm.version = versions.hasOwnProperty('npm') ? versions.npm : '6.4.1';
     dependencies.docker.version = versions.hasOwnProperty('docker') ? versions.docker : '17.7.0';
-    dependencies.dockerCompose.version = versions.hasOwnProperty('dockerCompose') ? versions.dockerCompose : '1.15.0';
     dependencies.go.version = versions.hasOwnProperty('go') ? versions.go : '1.13.0';
     dependencies.goExtension.version = versions.hasOwnProperty('goExtension') ? versions.goExtension : '1.0.0';
     dependencies.java.version = versions.hasOwnProperty('java') ? versions.java : '1.7.1';
@@ -165,7 +163,6 @@ describe('PreReqView', () => {
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
-            html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.go, version: '1.13.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.goExtension, version: '1.0.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.javaLanguageExtension, version: '1.0.0' }));
@@ -196,7 +193,6 @@ describe('PreReqView', () => {
             html.should.not.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.not.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '' }));
-            html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.go, version: '1.13.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.goExtension, version: '1.0.0' }));
             html.should.not.contain(JSON.stringify({ ...defaultDependencies.optional.javaLanguageExtension, version: '' }));
@@ -225,7 +221,6 @@ describe('PreReqView', () => {
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
-            html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.go, version: '1.13.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.goExtension, version: '1.0.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.javaLanguageExtension, version: '1.0.0' }));
@@ -263,7 +258,6 @@ describe('PreReqView', () => {
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
-            html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.go, version: '1.13.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.goExtension, version: '1.0.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.javaLanguageExtension, version: '1.0.0' }));
@@ -302,7 +296,6 @@ describe('PreReqView', () => {
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.required.docker, version: '17.7.0' }));
-            html.should.contain(JSON.stringify({ ...defaultDependencies.required.dockerCompose, version: '1.15.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.go, version: '1.13.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.goExtension, version: '1.0.0' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.javaLanguageExtension, version: '1.0.0' }));

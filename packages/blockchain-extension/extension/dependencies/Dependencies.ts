@@ -15,7 +15,6 @@
 
 export class DependencyProperties {
     static readonly DOCKER_REQUIRED_VERSION: string = '>=17.6.2';
-    static readonly DOCKER_COMPOSE_REQUIRED_VERSION: string = '>=1.14.0';
     static readonly NODEJS_REQUIRED_VERSION: string =  '>=10.15.3 < 11.0.0|| >=12.13.1 < 13.0.0';
     static readonly NPM_REQUIRED_VERSION: string = '>=6.0.0';
     static readonly OPENSSL_REQUIRED_VERSION: string = '1.0.2';
@@ -54,7 +53,6 @@ export interface DependencyWithComplete extends Dependency {
 
 export interface RequiredDependencies {
     docker?: DependencyWithVersion;
-    dockerCompose?: DependencyWithVersion;
     systemRequirements?: DependencyWithComplete;
     openssl?: DependencyWithVersion;
     dockerForWindows?: DependencyWithComplete;
@@ -85,15 +83,6 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             requiredVersion: DependencyProperties.DOCKER_REQUIRED_VERSION,
             requiredLabel: '',
             tooltip: `Used to download Hyperledger Fabric images and manage containers for local environments.`,
-        },
-        dockerCompose: {
-            name: 'Docker Compose',
-            required: true,
-            version: undefined,
-            url: 'https://docs.docker.com/compose/install/',
-            requiredVersion: DependencyProperties.DOCKER_COMPOSE_REQUIRED_VERSION,
-            requiredLabel: '',
-            tooltip: `Used for managing and operating the individual local environment components.`
         },
         systemRequirements: {
             name: 'System Requirements',

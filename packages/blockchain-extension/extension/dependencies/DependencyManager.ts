@@ -43,7 +43,6 @@ export class DependencyManager {
             defaultDependencies.optional.java.name,
             defaultDependencies.optional.npm.name,
             defaultDependencies.required.docker.name,
-            defaultDependencies.required.dockerCompose.name,
             defaultDependencies.optional.go.name,
             defaultDependencies.required.openssl.name,
         ];
@@ -94,7 +93,7 @@ export class DependencyManager {
 
         const localFabricEnabled: boolean = ExtensionUtil.getExtensionLocalFabricSetting();
         if (localFabricEnabled) {
-            const localFabricProperties: Array<string> = ['docker', 'dockerCompose', 'systemRequirements'];
+            const localFabricProperties: Array<string> = ['docker', 'systemRequirements'];
             if (!this.areAllValidDependencies(localFabricProperties, dependencies)) {
                 return false;
             }
@@ -187,18 +186,13 @@ export class DependencyManager {
         const dependencies: RequiredDependencies = {};
 
         if (localFabricEnabled) {
-            const getDockerVersions: Array<Promise<string>> = [this.getDockerVersion(), this.getDockerComposeVersion()];
-            const [dockerVersion, dockerComposeVersion] = await Promise.all(getDockerVersions);
+            const getDockerVersions: Array<Promise<string>> = [this.getDockerVersion()];
+            const [dockerVersion] = await Promise.all(getDockerVersions);
             const systemRequirementsVersion: number = OS.totalmem() / 1073741824;
 
             dependencies.docker = {
                 ...defaultDependencies.required.docker,
                 version: dockerVersion,
-            };
-
-            dependencies.dockerCompose = {
-                ...defaultDependencies.required.dockerCompose,
-                version: dockerComposeVersion,
             };
 
             dependencies.systemRequirements = {
@@ -275,22 +269,6 @@ export class DependencyManager {
                 const dockerVersionCoerced: semver.SemVer = semver.coerce(dockerCleaned); // Format: X.Y.Z
                 const dockerVersion: string = semver.valid(dockerVersionCoerced); // Returns version
                 return dockerVersion;
-            }
-        } catch (error) {
-            // Ignore
-            return;
-        }
-    }
-
-    private async getDockerComposeVersion(): Promise<string> {
-        try {
-            const composeResult: string = await CommandUtil.sendCommand('docker-compose -v'); // Format: docker-compose version 1.22.0, build f46880f
-            if (this.isCommandFound(composeResult)) {
-                const composeMatchedVersion: string = composeResult.match(/version (.*),/)[1]; // Format: X.Y.Z
-                const composeCleaned: string = semver.clean(composeMatchedVersion, { loose: true });
-                const composeVersionCoerced: semver.SemVer = semver.coerce(composeCleaned); // Format: X.Y.Z
-                const composeVersion: string = semver.valid(composeVersionCoerced); // Returns version
-                return composeVersion;
             }
         } catch (error) {
             // Ignore

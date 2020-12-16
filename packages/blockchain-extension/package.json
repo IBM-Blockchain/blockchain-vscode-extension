@@ -269,7 +269,7 @@
                 "ibm-blockchain-platform.ext.enableLocalFabric": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Allow this extension to use Docker and Docker Compose to run a simple pre-configured local Hyperledger Fabric network.\n\nIf you change this setting whilst the Prerequistes page is open, you may need to close it and re-open it for the changes to take effect."
+                    "description": "Allow this extension to use Docker to run a simple pre-configured local Hyperledger Fabric network.\n\nIf you change this setting whilst the Prerequistes page is open, you may need to close it and re-open it for the changes to take effect."
                 },
                 "ibm-blockchain-platform.ext.PollForConfigUpdatesWhenConnectedToIBM BlockchainPlatformOnIBM CloudEnvironments": {
                     "type": "boolean",
