@@ -53,7 +53,7 @@ export class SmartContractHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createSmartContract(language: string, assetType: string, contractName: string, mspid?: string): Promise<string> {
+    public async createSmartContract(language: string, assetType: string, contractName: string, mspid?: string, capability?: string): Promise<string> {
 
         let type: LanguageType;
         if (language === 'JavaScript' || language === 'TypeScript' || language === 'Java' || language === 'Go') {
@@ -83,7 +83,7 @@ export class SmartContractHelper {
 
         this.userInputUtilHelper.showFolderOptionsStub.withArgs('Choose how to open your new project').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-        const contractDirectory: string = this.getContractDirectory(contractName);
+        const contractDirectory: string = this.getContractDirectory(contractName, language, capability);
 
         const uri: vscode.Uri = vscode.Uri.file(contractDirectory);
 
@@ -108,8 +108,14 @@ export class SmartContractHelper {
         return contractDirectory;
     }
 
-    public getContractDirectory(name: string): string {
-        const contractDirectory: string = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'contracts', name);
+    public getContractDirectory(name: string, language?: string, capability?: string): string {
+        let contractDirectory: string;
+        if (language === 'Go' && capability === UserInputUtil.V1_4_2) {
+            process.env.GOPATH = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'contracts');
+            contractDirectory = path.join(process.env.GOPATH, 'src', name);
+        } else {
+            contractDirectory = path.join(this.userInputUtilHelper.cucumberDir, 'tmp', 'contracts', name);
+        }
 
         return contractDirectory;
     }
@@ -205,5 +211,51 @@ export class SmartContractHelper {
             data: _package
         });
         await vscode.commands.executeCommand(ExtensionCommands.VIEW_PACKAGE_INFORMATION);
+    }
+
+    public async installSmartContract(name: string, version: string): Promise<void> {
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        const channelMap: Map<string, string[]> = await connection.createChannelMap();
+        const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
+
+        await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, channelMap, _package);
+    }
+
+    public async instantiateSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean, channel: string): Promise<void> {
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        const channelMap: Map<string, string[]> = await connection.createChannelMap();
+        const peerNames: string[] = channelMap.get(channel);
+
+        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+
+        const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
+            return packageEntry.name === name && packageEntry.version === version;
+        });
+
+        let collectionConfigPath: string;
+        if (privateData) {
+            collectionConfigPath = path.join(__dirname, '../../../cucumber/data/collection.json');
+        }
+
+        await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfigPath);
+    }
+
+    public async upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean, channel: string): Promise<void> {
+        const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+        const channelMap: Map<string, string[]> = await connection.createChannelMap();
+        const peerNames: string[] = channelMap.get(channel);
+
+        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+
+        const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
+            return packageEntry.name === name && packageEntry.version === version;
+        });
+
+        let collectionConfigPath: string;
+        if (privateData) {
+            collectionConfigPath = path.join(__dirname, '../../../cucumber/data/collection.json');
+        }
+
+        await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfigPath);
     }
 }

@@ -61,13 +61,13 @@ module.exports = function(): any {
     });
 
     this.Given(/the( private)? contract has been created/, this.timeout, async (_privateOrNot: string) => {
-        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractDefinitionName, this.contractLanguage);
+        const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractDefinitionName, this.contractLanguage, this.capability);
         const exists: boolean = await fs.pathExists(contractDirectory);
         if (!exists) {
             if (_privateOrNot === ' private') {
-                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, this.mspid);
+                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, this.mspid, this.capability);
             } else {
-                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName);
+                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, undefined, this.capability);
             }
         } else {
             this.contractDirectory = contractDirectory;
@@ -96,6 +96,16 @@ module.exports = function(): any {
         }
     });
 
+    this.Given(/the contract has been installed and instantiated with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {
+        let privateData: boolean;
+        if (usingPrivateData === 'not ') {
+            privateData = false;
+        } else {
+            privateData = true;
+        }
+        await this.smartContractHelper.instantiateSmartContract(this.contractDefinitionName, this.contractDefinitionVersion, transaction, args, privateData, channel);
+    });
+
     /**
      * When
      */
@@ -106,6 +116,27 @@ module.exports = function(): any {
         } else {
             this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName);
         }
+    });
+
+    this.When(/I install and instantiate the package with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {
+        let privateData: boolean;
+        if (usingPrivateData === 'not ') {
+            privateData = false;
+        } else {
+            privateData = true;
+        }
+        await this.smartContractHelper.instantiateSmartContract(this.contractDefinitionName, this.contractDefinitionVersion, transaction, args, privateData, channel);
+    });
+
+    this.When(/I upgrade the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {
+        let privateData: boolean;
+        if (usingPrivateData === 'not ') {
+            privateData = false;
+        } else {
+            privateData = true;
+        }
+
+        await this.smartContractHelper.upgradeSmartContract(this.contractDefinitionName, this.contractDefinitionVersion, transaction, args, privateData, channel);
     });
 
     /**
