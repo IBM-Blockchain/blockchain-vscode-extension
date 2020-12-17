@@ -11,17 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-import ITransaction from './ITransaction';
+import ITxDataFile from './ITxDataFile';
 
-interface ISmartContract {
-    name: string;
-    version: string;
-    channel: string;
-    label: string;
-    transactions: ITransaction[];
-    namespace: string;
-    peerNames: string[];
-    contractName: string;
+interface IAssociatedTxData {
+    [chaincodeName: string]: {
+        channelName: string,
+        transactionDataPath: string,
+        transactions: ITxDataFile[]
+    }
 }
 
-export default ISmartContract;
+export default IAssociatedTxData;

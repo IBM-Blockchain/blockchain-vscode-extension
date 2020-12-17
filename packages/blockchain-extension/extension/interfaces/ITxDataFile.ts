@@ -11,17 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-import ITransaction from './ITransaction';
-
-interface ISmartContract {
-    name: string;
-    version: string;
-    channel: string;
-    label: string;
-    transactions: ITransaction[];
-    namespace: string;
-    peerNames: string[];
-    contractName: string;
+interface ITxDataFile {
+    transactionName: string,
+    transactionLabel: string,
+    txDataFile: string,
+    arguments: string[],
+    transientData: {
+        [key: string]: Buffer
+    }
 }
 
-export default ISmartContract;
+export default ITxDataFile;

@@ -23,22 +23,20 @@ import { IFabricGatewayConnection, FabricSmartContractDefinition, LogType, Fabri
 import { GlobalState } from '../util/GlobalState';
 import ITransaction from '../interfaces/ITransaction';
 import ISmartContract from '../interfaces/ISmartContract';
+import IAssociatedTxData from '../interfaces/IAssociatedTxData';
 
 interface IAppState {
     gatewayName: string;
-    smartContract: ISmartContract;
-    associatedTxdata: {
-        chaincodeName: string,
-        channelName: string,
-        transactionDataPath: string
-    };
+    smartContracts: ISmartContract[];
+    associatedTxdata: IAssociatedTxData;
+    preselectedSmartContract: ISmartContract;
     preselectedTransaction: ITransaction;
 }
 
-export async function getSmartContract(connection: IFabricGatewayConnection, smartContractName: string, smartContractVersion?: string): Promise<ISmartContract> {
+export async function getSmartContracts(connection: IFabricGatewayConnection, smartContractName: string, smartContractVersion?: string): Promise<ISmartContract[]> {
     let contract: { name: string, contractInstance: {}, transactions: ITransaction[], info: {} };
     let data: ISmartContract;
-    let selectedSmartContract: ISmartContract;
+    let smartContracts: ISmartContract[] = [];
 
     const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
@@ -62,9 +60,10 @@ export async function getSmartContract(connection: IFabricGatewayConnection, sma
                         label: chaincode.name + '@' + chaincode.version,
                         transactions: [],
                         namespace: undefined,
+                        contractName: undefined,
                         peerNames
                     };
-                    selectedSmartContract = data;
+                    smartContracts.push(data);
                 }
                 continue;
             }
@@ -80,17 +79,35 @@ export async function getSmartContract(connection: IFabricGatewayConnection, sma
                             channel: thisChannelName,
                             label: chaincode.name + '@' + chaincode.version,
                             transactions: contract.transactions,
+                            contractName: contract.name,
                             namespace: contract.name,
-                            peerNames
+                            peerNames,
                         };
-                        selectedSmartContract = data;
-                        return;
+                        smartContracts.push(data);
                     }
                 }
             });
         }
     }
-    return selectedSmartContract;
+    return smartContracts;
+}
+
+function getPreselectedSmartContract(smartContracts: ISmartContract[], selectedSmartContract: string): ISmartContract {
+    if (smartContracts.length === 0 || !selectedSmartContract) {
+        return undefined;
+    } else if (smartContracts.length === 1) {
+        return smartContracts[0];
+    }
+    return smartContracts.find(({ contractName }) => contractName && contractName === selectedSmartContract);
+}
+
+function getPreselectedTransaction(smartContracts: ISmartContract[], selectedTransactionName: string): ITransaction {
+    for (const contract of smartContracts) {
+        const foundTransaction: ITransaction | undefined = contract.transactions.find(({ name }: { name: string }) => name === selectedTransactionName);
+        if (foundTransaction) {
+            return foundTransaction;
+        }
+    }
 }
 
 export async function openTransactionView(treeItem?: InstantiatedTreeItem, selectedTransactionName?: string): Promise<IAppState> {
@@ -113,8 +130,8 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem, selec
     const gatewayName: string = gatewayRegistryEntry.name;
 
     if (treeItem) {
-        smartContractName = treeItem.name;
-        smartContractVersion = treeItem.version;
+        smartContractName = treeItem.instantiatedChaincode ? treeItem.instantiatedChaincode.name : treeItem.name;
+        smartContractVersion = treeItem.instantiatedChaincode ? treeItem.instantiatedChaincode.version : treeItem.version;
     } else {
         const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract`, null);
         if (!chosenSmartContract) {
@@ -124,22 +141,30 @@ export async function openTransactionView(treeItem?: InstantiatedTreeItem, selec
         smartContractVersion = chosenSmartContract.data.version;
     }
 
-    const selectedSmartContract: ISmartContract = await getSmartContract(connection, smartContractName, smartContractVersion);
+    const smartContracts: ISmartContract[] = await getSmartContracts(connection, smartContractName, smartContractVersion);
 
-    const preselectedTransaction: ITransaction = selectedSmartContract && selectedSmartContract.transactions.find(({ name }: { name: string }) => name === selectedTransactionName);
+    // If multiple smartContracts use the treeItem.name to set the user selected one
+    const preselectedSmartContract: ISmartContract = getPreselectedSmartContract(smartContracts, treeItem && treeItem.name);
+    const preselectedTransaction: ITransaction = selectedTransactionName && getPreselectedTransaction(smartContracts, selectedTransactionName);
 
-    let associatedTxdata: {chaincodeName: string, channelName: string, transactionDataPath: string};
-    if (gatewayRegistryEntry.transactionDataDirectories) {
-        associatedTxdata = gatewayRegistryEntry.transactionDataDirectories.find((item: {chaincodeName: string, channelName: string, transactionDataPath: string}) => {
-            return item.chaincodeName === selectedSmartContract.name && item.channelName === selectedSmartContract.channel;
-        });
+    const associatedTxdata: IAssociatedTxData = {};
+    if (gatewayRegistryEntry && gatewayRegistryEntry.transactionDataDirectories && gatewayRegistryEntry.transactionDataDirectories.length > 0) {
+        await Promise.all(gatewayRegistryEntry.transactionDataDirectories.map(async ({ chaincodeName, channelName, transactionDataPath }: { chaincodeName: string, channelName: string, transactionDataPath: string }) => {
+            const transactions = await TransactionView.readTxdataFiles(transactionDataPath);
+            associatedTxdata[chaincodeName] = {
+                channelName,
+                transactionDataPath,
+                transactions,
+            }
+        }));
     }
 
     const appState: IAppState = {
         gatewayName,
-        smartContract: selectedSmartContract,
-        associatedTxdata,
+        smartContracts,
+        preselectedSmartContract,
         preselectedTransaction,
+        associatedTxdata,
     };
 
     const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
