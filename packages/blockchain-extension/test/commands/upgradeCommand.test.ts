@@ -103,7 +103,7 @@ describe('UpgradeCommand', () => {
         });
 
         it('should install and upgrade a smart contract', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves([undefined, 'none']);
             const installedContract: FabricInstalledSmartContract = new FabricInstalledSmartContract('myContract@0.0.1', 'myContract');
             fabricRuntimeMock.getInstalledSmartContracts.onCall(1).resolves([installedContract]);
 
@@ -169,7 +169,7 @@ describe('UpgradeCommand', () => {
         });
 
         it('should handle error if smart contract is not installed properly', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves([undefined, 'other']);
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channelName, peerNames, selectedPackage, '', [], undefined, undefined);
 
@@ -181,6 +181,41 @@ describe('UpgradeCommand', () => {
             const error: Error = new Error('failed to get contract from peer after install');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error upgrading smart contract: ${error.message}`, `Error upgrading smart contract: ${error.toString()}`);
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).should.not.have.been.called;
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle timeout error and contract not installed', async () => {
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves([undefined, 'timeout']);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channelName, peerNames, selectedPackage, '', [], undefined, undefined);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, map, selectedPackage);
+            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'upgradeSmartContract');
+            const error: Error = new Error('failed to get contract from peer after install');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error upgrading smart contract: ${error.message}`, `Error upgrading smart contract: ${error.toString()}`);
+            executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).should.not.have.been.called;
+            fabricRuntimeMock.getInstalledSmartContracts.should.have.been.calledTwice;
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle timeout error but contract installed (image still building)', async () => {
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves([undefined, 'timeout']);
+            const installedContract: FabricInstalledSmartContract = new FabricInstalledSmartContract('myContract@0.0.1', 'myContract');
+            fabricRuntimeMock.getInstalledSmartContracts.onCall(1).resolves([installedContract]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channelName, peerNames, selectedPackage, '', [], undefined, undefined);
+
+            executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, map, selectedPackage);
+            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'upgradeSmartContract');
+            const error: Error = new Error('Chaincode installed but timed out waiting for the chaincode image to build. Please redeploy your chaincode package to attempt upgrade');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error upgrading smart contract: ${error.message}`, `Error upgrading smart contract: ${error.toString()}`);
+            executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).should.not.have.been.called;
+            fabricRuntimeMock.getInstalledSmartContracts.should.have.been.calledTwice;
             sendTelemetryEventStub.should.not.have.been.called;
         });
 

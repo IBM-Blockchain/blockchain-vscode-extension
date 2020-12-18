@@ -43,7 +43,8 @@ export async function deploySmartContract(requireCommit: boolean, fabricEnvironm
             }
 
             progress.report({ message: `Installing Smart Contract on peer(s)` });
-            packageId = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, installApproveMap, chosenPackage);
+            const installResult: string[] = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, installApproveMap, chosenPackage);
+            packageId = installResult[0];
             if (!packageId) {
                 throw new Error('Package was not installed. No packageId was returned');
             }
