@@ -57,7 +57,7 @@ describe('deployCommand', () => {
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves('myPackageId');
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves(['myPackageId', undefined]);
             executeCommandStub.withArgs(ExtensionCommands.APPROVE_SMART_CONTRACT).resolves();
             executeCommandStub.withArgs(ExtensionCommands.COMMIT_SMART_CONTRACT).resolves();
             executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
@@ -191,7 +191,7 @@ describe('deployCommand', () => {
         it('should handle error from install', async () => {
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves([undefined, 'other']);
             const error: Error = new Error('Package was not installed. No packageId was returned');
 
             await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
