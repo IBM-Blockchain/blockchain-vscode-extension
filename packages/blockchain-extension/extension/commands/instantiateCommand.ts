@@ -41,11 +41,16 @@ export async function instantiateSmartContract(channelName: string, peerNames: A
         if (!isPackageInstalled) {
             // Install smart contract package
             const channelMap: Map<string, string[]> = await connection.createChannelMap();
-            await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, channelMap, selectedPackage);
+            const installResult: string[] = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, channelMap, selectedPackage);
 
-            // check install was successful:
-            const didInstallWork: boolean = await checkPackageInstalled(connection, peerNames, selectedPackage);
-            if (!didInstallWork) {
+            // If there was a timeout but the package was marked as installed, inform the user and exit. Also exit if it failed for other reasons.
+            if(installResult[1] && installResult[1] !== 'none') {
+                if (installResult[1] === 'timeout') {
+                    const didInstallWork: boolean = await checkPackageInstalled(connection, peerNames, selectedPackage);
+                    if (didInstallWork) {
+                        throw new Error('Chaincode installed but timed out waiting for the chaincode image to build. Please redeploy your chaincode package to attempt instantiation');
+                    }
+                }
                 throw new Error('failed to get contract from peer after install');
             }
         }
