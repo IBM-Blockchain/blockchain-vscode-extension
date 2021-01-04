@@ -22,7 +22,7 @@ import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { SettingConfigurations } from '../configurations';
 
-export async function installSmartContract(orgMap?: Map<string, string[]>, chosenPackage?: PackageRegistryEntry): Promise<string> {
+export async function installSmartContract(orgMap?: Map<string, string[]>, chosenPackage?: PackageRegistryEntry): Promise<string[]> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
@@ -34,11 +34,16 @@ export async function installSmartContract(orgMap?: Map<string, string[]>, chose
         connection = FabricEnvironmentManager.instance().getConnection();
         if (!connection) {
             // something went wrong with connecting so return
-            return;
+            return [];
         }
     }
 
-    let successfulInstall: boolean = true; // Have all packages been installed successfully
+    const enum InstallError {
+        NONE = 'none',
+        TIMEOUT = 'timeout',
+        OTHER = 'other',
+    }
+    let successfulInstall: string = InstallError.NONE; // Have all packages been installed successfully
     let peerCount: number = 0;
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -71,7 +76,11 @@ export async function installSmartContract(orgMap?: Map<string, string[]>, chose
                 outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
-                successfulInstall = false;
+                if (error.message.includes('REQUEST TIMEOUT')){
+                    successfulInstall = InstallError.TIMEOUT;
+                } else {
+                    successfulInstall = InstallError.OTHER;
+                }
             }
         }
 
@@ -79,7 +88,7 @@ export async function installSmartContract(orgMap?: Map<string, string[]>, chose
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
     });
 
-    if (successfulInstall) {
+    if (successfulInstall === InstallError.NONE) {
         // Package was installed on all peers successfully
         if (peerCount > 1) {
             // If the package has only been installed on one peer, we disregard this success message
@@ -87,9 +96,9 @@ export async function installSmartContract(orgMap?: Map<string, string[]>, chose
         }
 
         Reporter.instance().sendTelemetryEvent('installCommand');
-        return packageId;
+        return [packageId, undefined];
     } else {
         // Failed to install package on all peers
-        return;
+        return [undefined, successfulInstall];
     }
 }
