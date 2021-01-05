@@ -19,7 +19,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeUtil, FabricNode, FabricEnvironmentRegistryEntry, FabricEnvironmentRegistry, EnvironmentType } from 'ibm-blockchain-platform-common';
-import { IBlockchainQuickPickItem } from '../../extension/commands/UserInputUtil';
+import { IBlockchainQuickPickItem, UserInputUtil } from '../../extension/commands/UserInputUtil';
 import { TimerUtil } from '../../extension/util/TimerUtil';
 import { LocalMicroEnvironmentManager } from '../../extension/fabric/environments/LocalMicroEnvironmentManager';
 import { LocalMicroEnvironment } from '../../extension/fabric/environments/LocalMicroEnvironment';
@@ -62,6 +62,8 @@ module.exports = function(): any {
         await runtime.waitFor();
 
         isRunning.should.equal(true);
+
+        this.capability = (capability === UserInputUtil.V1_4_2 ? UserInputUtil.V1_4_2 : UserInputUtil.V2_0);
     });
 
     this.Given(`a 2 org local environment called '{string}' has been created with {string} capabilities`, this.timeout, async (environmentName: string, capability: string) => {
@@ -79,15 +81,29 @@ module.exports = function(): any {
         await TimerUtil.sleep(3000);
     });
 
-    this.Given(/an environment '(.*?)' ?(?:of type '(.*?)')? exists/, this.timeout, async (environmentName: string, opsType: string) => {
-        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(environmentName, opsType);
+    // this one
+    this.Given(/(a local environment|an environment) '(.*?)' ?(?:of type '(.*?)')? ?(?:with (.*?) capabilities)? exists/, this.timeout, async (localString: string, environmentName: string, opsType: string, capability?: string) => {
+        const args: any[] = [environmentName, opsType];
+        const isLocal: boolean = localString === 'a local environment';
+        args.push(isLocal);
+        if (capability) {
+            args.push(capability);
+        }
+        opsToolsAllNodesQuickPick = await this.fabricEnvironmentHelper.createEnvironment(...args);
         this.environmentName = environmentName;
+        this.capability = (capability === UserInputUtil.V1_4_2 ? UserInputUtil.V1_4_2 : UserInputUtil.V2_0);
         await TimerUtil.sleep(3000);
     });
 
     this.Given('the environment is setup', this.timeout, async () => {
         const nodes: string[] = ['ca.example.com', 'orderer.example.com', 'peer0.org1.example.com'];
-        const wallet: string = this.environmentName === 'myFabric2' ? 'myWallet2' : 'myWallet';
+        let wallet: string;
+        if (this.environmentName === 'v1Fabric') {
+            wallet = 'v1Wallet';
+        } else {
+            wallet = this.environmentName === 'myFabric2' ? 'myWallet2' : 'myWallet';
+        }
+
         let identity: string;
         for (const node of nodes) {
             if (node === 'ca.example.com') {

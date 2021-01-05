@@ -436,7 +436,6 @@ describe('V1 Deploy Page', () => {
         backButton.click();
     });
 
-    // this one
     it('should be able to select a workspace', () => {
         const _package: string = `workspaceOne (open project)`;
 
