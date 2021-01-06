@@ -130,7 +130,7 @@ export class PreReqView extends View {
                     // Are all the required dependencies installed?
                     const isComplete: boolean = await dependencyManager.hasPreReqsInstalled(dependencies);
 
-                    panel.webview.html = await this.getHTMLString(dependencies, isComplete, localFabricFunctionality);
+                    panel.webview.html = await this.getHTMLString(panel.webview, dependencies, isComplete, localFabricFunctionality);
 
                     outputAdapter = VSCodeBlockchainOutputAdapter.instance();
                     outputAdapter.log(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
@@ -174,13 +174,13 @@ export class PreReqView extends View {
         return;
     }
 
-    async getHTMLString(d?: Dependencies, isComplete?: boolean, localFabricFunctionality?: boolean): Promise<any> {
+    async getHTMLString(webview: vscode.Webview, _dependencies?: Dependencies, isComplete?: boolean, localFabricFunctionality?: boolean): Promise<any> {
         const packageJson: any = await ExtensionUtil.getPackageJSON();
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const extensionVersion: string = packageJson.version;
         const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        const dependencies: Dependencies = d || this.dependencies || await dependencyManager.getPreReqVersions();
+        const dependencies: Dependencies = _dependencies || this.dependencies || await dependencyManager.getPreReqVersions();
 
         if (isComplete === undefined) {
             isComplete = await dependencyManager.hasPreReqsInstalled(dependencies);
@@ -214,13 +214,13 @@ export class PreReqView extends View {
             }
         }
 
-        const launchDark: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'light', 'launch.svg')).with({ scheme: 'vscode-resource' });
-        const launchLight: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'dark', 'launch.svg')).with({ scheme: 'vscode-resource' });
-        const chevronDark: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'dark', 'chevron.svg')).with({ scheme: 'vscode-resource' });
-        const chevronLight: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'light', 'chevron.svg')).with({ scheme: 'vscode-resource' });
-        const infoIconDark: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'dark', 'info.svg')).with({ scheme: 'vscode-resource' });
-        const infoIconLight: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'light', 'info.svg')).with({ scheme: 'vscode-resource' });
-        const celebrateImage: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'celebrate.svg')).with({ scheme: 'vscode-resource' });
+        const launchDark: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'light', 'launch.svg')));
+        const launchLight: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'dark', 'launch.svg')));
+        const chevronDark: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'dark', 'chevron.svg')));
+        const chevronLight: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'light', 'chevron.svg')));
+        const infoIconDark: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'dark', 'info.svg')));
+        const infoIconLight: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'light', 'info.svg')));
+        const celebrateImage: vscode.Uri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, 'resources', 'celebrate.svg')));
 
         const images: any = {
             launchDark,

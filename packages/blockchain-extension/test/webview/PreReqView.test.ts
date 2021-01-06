@@ -106,7 +106,8 @@ describe('PreReqView', () => {
         createWebviewPanelStub.returns({
             title: 'Prerequisites',
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -150,8 +151,9 @@ describe('PreReqView', () => {
             const hasPreReqsInstalledStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'hasPreReqsInstalled').resolves(true);
 
             const preReqView: PreReqView = new PreReqView(context);
+            const webview: any = { asWebviewUri: mySandBox.stub() };
 
-            const html: string = await preReqView.getHTMLString();
+            const html: string = await preReqView.getHTMLString(webview);
 
             getPreReqVersionsStub.should.have.been.calledOnce;
             hasPreReqsInstalledStub.should.have.been.calledOnceWith(dependencies);
@@ -180,8 +182,9 @@ describe('PreReqView', () => {
             const hasPreReqsInstalledStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'hasPreReqsInstalled').resolves(false);
 
             const preReqView: PreReqView = new PreReqView(context);
+            const webview: any = { asWebviewUri: mySandBox.stub() };
 
-            const html: string = await preReqView.getHTMLString();
+            const html: string = await preReqView.getHTMLString(webview);
 
             getPreReqVersionsStub.should.have.been.calledOnce;
             hasPreReqsInstalledStub.should.have.been.calledOnceWith(dependencies);
@@ -207,10 +210,11 @@ describe('PreReqView', () => {
             mySandBox.stub(DependencyManager.instance(), 'hasPreReqsInstalled').resolves(true);
 
             const preReqView: PreReqView = new PreReqView(context);
+            const webview: any = { asWebviewUri: mySandBox.stub() };
 
             const dependencies: Dependencies = generateDependencies();
 
-            const html: string = await preReqView.getHTMLString(dependencies, true);
+            const html: string = await preReqView.getHTMLString(webview, dependencies, true);
 
             getPreReqVersionsSpy.should.not.have.been.called;
 
@@ -243,10 +247,11 @@ describe('PreReqView', () => {
             });
 
             const preReqView: PreReqView = new PreReqView(context);
+            const webview: any = { asWebviewUri: mySandBox.stub() };
 
             const dependencies: Dependencies = generateDependencies();
 
-            const html: string = await preReqView.getHTMLString(dependencies, true, false);
+            const html: string = await preReqView.getHTMLString(webview, dependencies, true, false);
 
             getPreReqVersionsSpy.should.not.have.been.called;
             getSettingsStub.should.not.have.been.calledWith(SettingConfigurations.EXTENSION_LOCAL_FABRIC);
@@ -278,8 +283,9 @@ describe('PreReqView', () => {
             mySandBox.stub(ejs, 'renderFile').yields(error);
 
             const preReqView: PreReqView = new PreReqView(context);
+            const webview: any = { asWebviewUri: mySandBox.stub() };
 
-            await preReqView.getHTMLString().should.be.rejectedWith(error);
+            await preReqView.getHTMLString(webview).should.be.rejectedWith(error);
 
             getPreReqVersionsStub.should.have.been.calledOnce;
 
@@ -290,8 +296,9 @@ describe('PreReqView', () => {
             const hasPreReqsInstalledStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'hasPreReqsInstalled');
             const dependencies: Dependencies = generateDependencies();
             const preReqView: PreReqView = new PreReqView(context, dependencies);
+            const webview: any = { asWebviewUri: mySandBox.stub() };
 
-            const html: string = await preReqView.getHTMLString();
+            const html: string = await preReqView.getHTMLString(webview);
 
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.node, version: '10.15.3' }));
             html.should.contain(JSON.stringify({ ...defaultDependencies.optional.npm, version: '6.4.1' }));
@@ -341,7 +348,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -394,7 +402,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -455,7 +464,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -515,7 +525,8 @@ describe('PreReqView', () => {
             createWebviewPanelStub.returns({
                 title: 'Prerequisites',
                 webview: {
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -568,7 +579,8 @@ describe('PreReqView', () => {
                                 localFabricFunctionality: true
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -632,7 +644,8 @@ describe('PreReqView', () => {
                                 toggle: undefined
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -669,7 +682,7 @@ describe('PreReqView', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledWith(expectedMockDependencies);
 
-            getHTMLStringStub.should.have.been.calledWith(expectedMockDependencies, true, true);
+            getHTMLStringStub.should.have.been.calledWith(sinon.match({ asWebviewUri: sinon.match.any }), expectedMockDependencies, true, true);
 
             logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
             logSpy.should.not.have.been.calledWith(LogType.INFO, `Local Fabric functionality set to 'true'.`);
@@ -708,7 +721,8 @@ describe('PreReqView', () => {
                                 toggle: 'true'
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -745,7 +759,7 @@ describe('PreReqView', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledWith(expectedMockDependencies);
 
-            getHTMLStringStub.should.have.been.calledWith(expectedMockDependencies, true, false);
+            getHTMLStringStub.should.have.been.calledWith(sinon.match({ asWebviewUri: sinon.match.any }), expectedMockDependencies, true, false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, `Local Fabric functionality set to 'false'.`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
@@ -781,7 +795,8 @@ describe('PreReqView', () => {
                                 toggle: 'true'
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -818,7 +833,7 @@ describe('PreReqView', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledWith(expectedMockDependencies);
 
-            getHTMLStringStub.should.have.been.calledWith(expectedMockDependencies, true, false);
+            getHTMLStringStub.should.have.been.calledWith(sinon.match({ asWebviewUri: sinon.match.any }), expectedMockDependencies, true, false);
 
             logSpy.should.have.been.calledWith(LogType.INFO, `Local Fabric functionality set to 'false'.`);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Finished checking installed dependencies');
@@ -848,7 +863,8 @@ describe('PreReqView', () => {
                                 localFabricFunctionality: true
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -911,7 +927,8 @@ describe('PreReqView', () => {
                                 localFabricFunctionality: false
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -969,7 +986,8 @@ describe('PreReqView', () => {
                                 command: 'unknown-command'
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;

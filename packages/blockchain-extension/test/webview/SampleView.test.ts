@@ -66,7 +66,8 @@ describe('SampleView', () => {
         createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
         createWebviewPanelStub.returns({
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => {
                 return;
@@ -108,7 +109,8 @@ describe('SampleView', () => {
                         await callback({ command: 'unknown-command' });
                         resolve();
                     },
-                    postMessage: postMessageStub
+                    postMessage: postMessageStub,
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -157,7 +159,8 @@ describe('SampleView', () => {
                         await callback({ command: 'unknown-command' });
                         resolve();
                     },
-                    postMessage: mySandBox.stub().resolves()
+                    postMessage: mySandBox.stub().resolves(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -203,7 +206,8 @@ describe('SampleView', () => {
                             sampleName: 'FabCar'
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 title: 'FabCar Sample',
                 reveal: (): void => {
@@ -236,7 +240,8 @@ describe('SampleView', () => {
             const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({ data: readme });
 
             const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
-            const samplePageHtml: string = await sampleView.getHTMLString();
+            const webview: any = { asWebviewUri: mySandBox.stub() };
+            const samplePageHtml: string = await sampleView.getHTMLString(webview);
             AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/master/README.md');
 
             samplePageHtml.should.contain(`<h1 id="sample-title">FabCar Sample</h1>`);
@@ -258,8 +263,9 @@ describe('SampleView', () => {
             mySandBox.stub(ejs, 'renderFile').callThrough();
 
             const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
+            const webview: any = { asWebviewUri: mySandBox.stub() };
 
-            const samplePageHtml: string = await sampleView.getHTMLString();
+            const samplePageHtml: string = await sampleView.getHTMLString(webview);
             samplePageHtml.should.contain(`<div id='readme' class="showMore showMore-theme">No internet connection - unable to retrieve the README.</div>`);
             outputAdapterSpy.should.have.been.calledWith(LogType.WARNING, 'Unable to retrieve README');
         });
@@ -275,7 +281,8 @@ describe('SampleView', () => {
             mySandBox.stub(ejs, 'renderFile').yields(error);
 
             const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
-            await sampleView.getHTMLString().should.be.rejectedWith(error);
+            const webview: any = { asWebviewUri: mySandBox.stub() };
+            await sampleView.getHTMLString(webview).should.be.rejectedWith(error);
         });
 
         it('should get correct html when cloned', async () => {
@@ -288,7 +295,8 @@ describe('SampleView', () => {
             const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({ data: readme });
 
             const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
-            const samplePageHtml: string = await sampleView.getHTMLString();
+            const webview: any = { asWebviewUri: mySandBox.stub() };
+            const samplePageHtml: string = await sampleView.getHTMLString(webview);
 
             AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/master/README.md');
 
@@ -313,7 +321,8 @@ describe('SampleView', () => {
             const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves('README read here');
 
             const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
-            const samplePageHtml: string = await sampleView.getHTMLString();
+            const webview: any = { asWebviewUri: mySandBox.stub() };
+            const samplePageHtml: string = await sampleView.getHTMLString(webview);
             readFileStub.should.have.been.calledOnce;
 
             samplePageHtml.should.contain(`<h1 id="sample-title">FabCar Sample</h1>`);
@@ -346,7 +355,9 @@ describe('SampleView', () => {
                             });
                             resolve();
                         },
-                        postMessage: postMessageStub
+                        postMessage: postMessageStub,
+                        asWebviewUri: mySandBox.stub()
+
                     },
                     reveal: (): void => {
                         return;
@@ -384,7 +395,8 @@ describe('SampleView', () => {
                                 recloning: reclone
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -502,7 +514,8 @@ describe('SampleView', () => {
                             } catch (error) {
                                 reject(error);
                             }
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
