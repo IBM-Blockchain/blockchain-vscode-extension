@@ -378,7 +378,7 @@ export async function addEnvironment(): Promise<void> {
             if (ibpResources.length === 1) {
                 chosenIbp = ibpResourceItems[0];
             } else {
-                chosenIbp = await UserInputUtil.showQuickPickItem('Select an IBM Blockchain Platform service instance', ibpResources) as IBlockchainQuickPickItem<any>;
+                chosenIbp = await UserInputUtil.showQuickPickItem('Select an IBM Blockchain Platform service instance', ibpResourceItems) as IBlockchainQuickPickItem<any>;
                 if (!chosenIbp) {
                     return;
                 }

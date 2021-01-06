@@ -1215,7 +1215,9 @@ describe('AddEnvironmentCommand', () => {
                         name: 'myBlockchainPlatform',
                         guid: 'someGUID1',
                         dashboard_url: 'https://some.dashboard.url1/some/path'
-                    }
+                    },
+                    label: 'myBlockchainPlatform',
+                    description: 'someGUID1'
                 }
             );
             axiosGetStub.onSecondCall().resolves(consoleStatusMock);
