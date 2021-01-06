@@ -78,6 +78,16 @@ export class EnvironmentHelper {
                     this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API key or the User ID of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_KEY);
                     this.userInputUtilHelper.inputBoxStub.withArgs('Enter the API secret or the password of the IBM Blockchain Platform Console you want to connect to').resolves(process.env.MAP_OPSTOOLS_SECRET);
                     this.userInputUtilHelper.showQuickPickItemStub.withArgs('Unable to perform certificate verification. Please choose how to proceed', [{ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN }, { label: UserInputUtil.CANCEL_NO_CERT_CHAIN, data: UserInputUtil.CANCEL_NO_CERT_CHAIN, description: UserInputUtil.CANCEL_NO_CERT_CHAIN_DESCRIPTION }]).resolves({ label: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN, data: UserInputUtil.CONNECT_NO_CA_CERT_CHAIN });
+                    const instances: any[] = await this.extensionsInteractionUtilHelper.cloudAccountGetIbpResourcesStub.getCall(this.extensionsInteractionUtilHelper.cloudAccountGetIbpResourcesStub.callCount - 1).returnValue;
+                    const instance: any = instances.find((_instance: any) => _instance.name === 'vscode');
+                    if (!instance) {
+                        throw new Error('Could not find "vscode" software instance.');
+                    }
+                    this.userInputUtilHelper.showQuickPickItemStub.withArgs('Select an IBM Blockchain Platform service instance').resolves({
+                        label: instance.name,
+                        description: instance.guid,
+                        data: instance
+                    });
                 }
                 this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves([]);
             } else if (process.env.TWO_ORG_FABRIC) {
