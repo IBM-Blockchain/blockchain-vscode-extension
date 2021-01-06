@@ -64,6 +64,7 @@ describe('EnvironmentFactory', () => {
         environment.should.be.an.instanceOf(LocalEnvironment);
 
     });
+
     it(`should return a local microfab environment`, async () => {
         await TestUtil.startLocalFabric();
 
@@ -108,6 +109,17 @@ describe('EnvironmentFactory', () => {
         registryEntry.url = 'http://someurl:9001';
         const environment: LocalMicroEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
         environment.should.be.an.instanceOf(MicrofabEnvironment);
+    });
+
+    it(`should return a local environment when old v1 ansible environment`, async () => {
+        const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        registryEntry.name = 'oldlocal';
+        registryEntry.managedRuntime = true;
+        registryEntry.environmentType = EnvironmentType.MANAGED;
+        registryEntry.environmentDirectory = '/some/path';
+
+        const environment: LocalMicroEnvironment | LocalEnvironment | FabricEnvironment = EnvironmentFactory.getEnvironment(registryEntry);
+        environment.should.be.an.instanceOf(LocalEnvironment);
     });
 
 });

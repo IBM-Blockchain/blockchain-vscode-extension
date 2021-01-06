@@ -33,9 +33,11 @@ export class EnvironmentFactory {
         }
 
         const type: EnvironmentType = environmentRegistryEntry.environmentType;
+        const v2Path: string = path.join('v2', 'environments');
+        const isV1LocalAnsible: boolean = type === EnvironmentType.MANAGED && environmentRegistryEntry.environmentDirectory && environmentRegistryEntry.environmentDirectory.indexOf(v2Path) === -1;
 
-        if (managedRuntime && type === EnvironmentType.LOCAL_ENVIRONMENT) {
-            const extDir: string = SettingConfigurations.getExtensionDir();
+        if (managedRuntime && (type === EnvironmentType.LOCAL_ENVIRONMENT || isV1LocalAnsible)) {
+            const extDir: string = isV1LocalAnsible ? SettingConfigurations.getExtensionDir().replace(`${path.sep}v2`, '') : SettingConfigurations.getExtensionDir();
             const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
             const envPath: string = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, name);
 
