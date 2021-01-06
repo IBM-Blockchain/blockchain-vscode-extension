@@ -215,6 +215,11 @@ export async function addEnvironment(): Promise<void> {
         } else {
             outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
         }
+
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+
         Reporter.instance().sendTelemetryEvent('addEnvironmentCommand');
     } catch (error) {
 
