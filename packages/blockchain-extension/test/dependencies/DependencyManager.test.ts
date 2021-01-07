@@ -273,47 +273,6 @@ describe('DependencyManager Tests', () => {
         });
 
         describe('Windows', () => {
-            it(`should return false if there's no OpenSSL version (Windows)`, async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                const dependencies: Dependencies = {
-                    ...validDependencies,
-                    openssl: {
-                        ...defaultDependencies.required.openssl,
-                        version: undefined,
-                    }
-                };
-
-                getPreReqVersionsStub.resolves(dependencies);
-
-                const dependencyManager: DependencyManager = DependencyManager.instance();
-                const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-                result.should.equal(false);
-                getPreReqVersionsStub.should.have.been.calledOnce;
-
-            });
-
-            it(`should return false if version of OpenSSL is not equal to the required version (Windows)`, async () => {
-                mySandBox.stub(process, 'platform').value('win32');
-
-                const dependencies: Dependencies = {
-                    ...validDependencies,
-                    openssl: {
-                        ...defaultDependencies.required.openssl,
-                        version: '1.0.6',
-                    }
-                };
-
-                getPreReqVersionsStub.resolves(dependencies);
-
-                const dependencyManager: DependencyManager = DependencyManager.instance();
-                const result: boolean = await dependencyManager.hasPreReqsInstalled();
-
-                result.should.equal(false);
-                getPreReqVersionsStub.should.have.been.calledOnce;
-
-            });
 
             it(`should return false if the user hasn't confirmed the Docker for Windows setup (Windows)`, async () => {
                 mySandBox.stub(process, 'platform').value('win32');
@@ -347,10 +306,6 @@ describe('DependencyManager Tests', () => {
                     systemRequirements: {
                         ...defaultDependencies.required.systemRequirements,
                         complete: true
-                    },
-                    openssl: {
-                        ...defaultDependencies.required.openssl,
-                        version: '1.0.2',
                     },
                     dockerForWindows: {
                         ...defaultDependencies.required.dockerForWindows,
@@ -503,6 +458,48 @@ describe('DependencyManager Tests', () => {
                 const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
 
                 result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should return false if openssl not detected (on Windows)`, async () => {
+                mySandBox.stub(process, 'platform').value('win32');
+
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+                    openssl: {
+                        ...defaultDependencies.optional.openssl,
+                        version: undefined,
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(false);
+                getPreReqVersionsStub.should.have.been.calledOnce;
+
+            });
+
+            it(`should ignore openssl if not using Windows`, async () => {
+                mySandBox.stub(process, 'platform').value('linux');
+
+                const dependencies: Dependencies = {
+                    ...validDependencies,
+                    openssl: {
+                        ...defaultDependencies.optional.openssl,
+                        version: undefined,
+                    }
+                };
+
+                getPreReqVersionsStub.resolves(dependencies);
+
+                const dependencyManager: DependencyManager = DependencyManager.instance();
+                const result: boolean = await dependencyManager.hasPreReqsInstalled(undefined, true);
+
+                result.should.equal(true);
                 getPreReqVersionsStub.should.have.been.calledOnce;
 
             });
