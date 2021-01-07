@@ -227,7 +227,8 @@ describe('deployCommand', () => {
                 title: 'Transaction Page',
                 webview: {
                     postMessage: postMessageStub,
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: mySandBox.stub(),
                 dispose: mySandBox.stub(),
@@ -278,7 +279,8 @@ describe('deployCommand', () => {
                 title: 'Transaction Page',
                 webview: {
                     postMessage: mySandBox.stub().resolves(),
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: mySandBox.stub(),
                 dispose: mySandBox.stub(),
@@ -300,7 +302,8 @@ describe('deployCommand', () => {
                 title: 'Transaction Page',
                 webview: {
                     postMessage: mySandBox.stub().resolves(),
-                    onDidReceiveMessage: mySandBox.stub()
+                    onDidReceiveMessage: mySandBox.stub(),
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: mySandBox.stub(),
                 dispose: mySandBox.stub(),

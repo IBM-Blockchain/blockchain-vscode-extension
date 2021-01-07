@@ -60,7 +60,8 @@ describe('View', () => {
         createWebviewPanelStub.returns({
             title: 'my panel',
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => { return; },
             onDidDispose: mySandBox.stub(),
@@ -89,7 +90,8 @@ describe('View', () => {
         createWebviewPanelStub.onCall(0).returns({
             title: 'my panel',
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => { return; },
             onDidDispose: disposeStub,
@@ -131,7 +133,8 @@ describe('View', () => {
         createWebviewPanelStub.returns({
             title: 'my panel',
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => { return; },
             onDidDispose: mySandBox.stub(),
@@ -156,7 +159,8 @@ describe('View', () => {
         createWebviewPanelStub.onCall(0).returns({
             title: 'my panel',
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => { return; },
             onDidDispose: mySandBox.stub(),
@@ -186,7 +190,8 @@ describe('View', () => {
         createWebviewPanelStub.onCall(0).returns({
             title: 'my panel',
             webview: {
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => { return; },
             onDidDispose: mySandBox.stub(),

@@ -147,7 +147,8 @@ describe('DeployView', () => {
             title: 'Deploy Smart Contract',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -176,7 +177,8 @@ describe('DeployView', () => {
                             command: 'unknownMessage'
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -204,7 +206,8 @@ describe('DeployView', () => {
             title: 'Deploy Smart Contract',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => {
                 return;
@@ -248,7 +251,8 @@ describe('DeployView', () => {
                                 }
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -674,7 +678,8 @@ describe('DeployView', () => {
                                 }
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -767,7 +772,8 @@ describe('DeployView', () => {
                                 }
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -810,7 +816,8 @@ describe('DeployView', () => {
 
             const webviewPanel: vscode.WebviewPanel = {
                 webview: {
-                    postMessage: postMessageStub
+                    postMessage: postMessageStub,
+                    asWebviewUri: mySandBox.stub()
                 }
             } as unknown as vscode.WebviewPanel;
 
@@ -1159,7 +1166,8 @@ describe('DeployView', () => {
                                 }
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -1197,7 +1205,8 @@ describe('DeployView', () => {
                                 }
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;
@@ -1388,7 +1397,8 @@ describe('DeployView', () => {
                                 }
                             });
                             resolve();
-                        }
+                        },
+                        asWebviewUri: mySandBox.stub()
                     },
                     reveal: (): void => {
                         return;

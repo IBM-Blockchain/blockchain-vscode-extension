@@ -58,7 +58,8 @@ describe('ReactView', () => {
             title: 'Transaction Page',
             webview: {
                 postMessage: mySandBox.stub(),
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -74,7 +75,8 @@ describe('ReactView', () => {
 
     it('getHTMLString', async () => {
         const testView: TestView = new TestView(context, 'reactView', 'React View');
-        const html: string = await testView.getHTMLString();
+        const webview: any = { asWebviewUri: mySandBox.stub() };
+        const html: string = await testView.getHTMLString(webview);
         html.should.contain(`<div id="root"></div>`);
     });
 
