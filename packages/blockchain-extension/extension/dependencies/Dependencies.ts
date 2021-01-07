@@ -40,6 +40,7 @@ export interface DependencyWithVersion extends Dependency {
     requiredVersion: string;
     requiredLabel: string;
     tooltip: string;
+    windowsOnly?: boolean;
 }
 
 export interface DependencyWithComplete extends Dependency {
@@ -49,12 +50,12 @@ export interface DependencyWithComplete extends Dependency {
     text: string;
     // System properties uses a version for amount of memory
     version?: any;
+    isWindows?: boolean;
 }
 
 export interface RequiredDependencies {
     docker?: DependencyWithVersion;
     systemRequirements?: DependencyWithComplete;
-    openssl?: DependencyWithVersion;
     dockerForWindows?: DependencyWithComplete;
 }
 
@@ -62,6 +63,7 @@ export interface OptionalDependencies {
     node: DependencyWithVersion;
     nodeTestRunnerExtension: DependencyWithVersion;
     npm: DependencyWithVersion;
+    openssl?: DependencyWithVersion;
     go: DependencyWithVersion;
     goExtension: DependencyWithVersion;
     java: DependencyWithVersion;
@@ -92,22 +94,14 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             checkbox: false,
             text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM'
         },
-        openssl: {
-            name: 'OpenSSL',
-            required: false,
-            version: undefined,
-            url: 'https://www.openssl.org/community/binaries.html',
-            requiredVersion: DependencyProperties.OPENSSL_REQUIRED_VERSION,
-            requiredLabel: 'only',
-            tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`. Required for smart contract and applications using v1.x of the Fabric contract API and SDK.'
-        },
         dockerForWindows: {
             name: 'Docker for Windows',
             required: true,
             id: 'dockerForWindows',
             complete: undefined,
             checkbox: true,
-            text: 'Docker for Windows must be configured to use Linux containers (this is the default)'
+            text: 'Docker for Windows must be configured to use Linux containers (this is the default)',
+            isWindows: true
         },
     },
     optional: {
@@ -137,6 +131,16 @@ export const defaultDependencies: { required: RequiredDependencies, optional: Op
             requiredVersion: DependencyProperties.NPM_REQUIRED_VERSION,
             requiredLabel: '',
             tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.'
+        },
+        openssl: {
+            name: 'OpenSSL',
+            required: false,
+            version: undefined,
+            url: 'https://www.openssl.org/community/binaries.html',
+            requiredVersion: DependencyProperties.OPENSSL_REQUIRED_VERSION,
+            requiredLabel: 'only',
+            tooltip: 'Install the Win64 version into `C:\\OpenSSL-Win64` on 64-bit systems`. Required for smart contract and applications using v1.x of the Fabric contract API and SDK.',
+            windowsOnly: true
         },
         go: {
             name: 'Go',

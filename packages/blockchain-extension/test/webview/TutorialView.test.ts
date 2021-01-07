@@ -116,7 +116,8 @@ describe('TutorialView', () => {
             title: 'Tutorial',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -147,7 +148,8 @@ describe('TutorialView', () => {
                             ]
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;

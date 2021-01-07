@@ -330,7 +330,8 @@ describe('SampleGalleryView', () => {
             title: 'Sample Gallery',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -361,7 +362,8 @@ describe('SampleGalleryView', () => {
                             ]
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;

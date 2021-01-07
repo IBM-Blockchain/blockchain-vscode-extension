@@ -76,7 +76,8 @@ describe('HomeView', () => {
             title: 'IBM Blockchain Platform Home',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -96,6 +97,7 @@ describe('HomeView', () => {
             webview: {
                 postMessage: mySandBox.stub(),
                 onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             title: 'IBM Blockchain Platform Home',
             onDidDispose: mySandBox.stub(),
@@ -124,7 +126,8 @@ describe('HomeView', () => {
                             command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -160,7 +163,8 @@ describe('HomeView', () => {
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback(message);
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -191,7 +195,8 @@ describe('HomeView', () => {
                             data: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691'
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -216,6 +221,7 @@ describe('HomeView', () => {
             webview: {
                 postMessage: mySandBox.stub(),
                 onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             }
         } as any;
 
