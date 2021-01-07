@@ -9,7 +9,7 @@
     "url": "https://github.com/IBM-Blockchain/blockchain-vscode-extension"
   },
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "bootstrap": "^4.4.1",
     "bootstrap-scss": "^4.4.1",
     "carbon-components": "^10.7.2",
