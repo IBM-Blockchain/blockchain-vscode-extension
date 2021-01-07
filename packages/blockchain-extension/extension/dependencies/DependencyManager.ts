@@ -44,7 +44,7 @@ export class DependencyManager {
             defaultDependencies.optional.npm.name,
             defaultDependencies.required.docker.name,
             defaultDependencies.optional.go.name,
-            defaultDependencies.required.openssl.name,
+            defaultDependencies.optional.openssl.name
         ];
 
         const needsToBeInstalled: Array<string> = [
@@ -83,7 +83,19 @@ export class DependencyManager {
     }
 
     public areAllValidDependencies(properties: Array<string>, dependencies: any): boolean {
-        return properties.every((property) => dependencies.hasOwnProperty(property) && this.isValidDependency(dependencies[property]));
+        const isWindows: boolean = (process.platform === 'win32');
+        for (const property of properties) {
+            if (dependencies.hasOwnProperty(property)) {
+                if (!isWindows && dependencies[property].windowsOnly) {
+                    continue;
+                }
+                const isValid: boolean = this.isValidDependency(dependencies[property]);
+                if (!isValid) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public async hasPreReqsInstalled(dependencies?: any, optionalInstalled: boolean = false): Promise<boolean> {
@@ -102,7 +114,7 @@ export class DependencyManager {
         if (process.platform === 'win32') {
             // Windows
             if (localFabricEnabled) {
-                const windowsProperties: Array<string> = ['openssl', 'dockerForWindows'];
+                const windowsProperties: Array<string> = ['dockerForWindows'];
                 if (!this.areAllValidDependencies(windowsProperties, dependencies)) {
                     return false;
                 }
@@ -117,6 +129,7 @@ export class DependencyManager {
             if (!this.areAllValidDependencies(optionalInstallProperties, dependencies)) {
                 return false;
             }
+
         }
 
         return true;
@@ -202,13 +215,6 @@ export class DependencyManager {
             };
 
             if (isWindows) {
-                const opensslVersion: string = await this.getOpensslVersion();
-
-                dependencies.openssl = {
-                    ...defaultDependencies.required.openssl,
-                    version: opensslVersion,
-                };
-
                 dependencies.dockerForWindows = {
                     ...defaultDependencies.required.dockerForWindows,
                     complete: !!dockerForWindows,
@@ -241,9 +247,22 @@ export class DependencyManager {
         const nodeTestRunnerExtensionVersion: string = this.getExtensionVersion(DependencyProperties.NODEJS_TEST_RUNNER_EXTENSION);
         const ibmCloudAccountExtensionVersion: string = this.getExtensionVersion(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION);
 
+        const isWindows: boolean = process.platform === 'win32';
+
         const optionalDependencies: OptionalDependencies = {
-            ...defaultDependencies.optional,
+            ...defaultDependencies.optional
         };
+
+        // todo update
+        if (isWindows) {
+            optionalDependencies.openssl.version = await this.getOpensslVersion();
+        } else {
+            for (const [property, value] of Object.entries(optionalDependencies)) {
+                if (value.windowsOnly) {
+                    delete optionalDependencies[property];
+                }
+            }
+        }
 
         // Update versions
         optionalDependencies.node.version = nodeVersion;
