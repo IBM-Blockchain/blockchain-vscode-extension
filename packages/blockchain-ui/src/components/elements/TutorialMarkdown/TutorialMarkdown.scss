@@ -31,9 +31,16 @@
       margin: 10px 0;
     }
 
+    ul, ol, .indent {
+      margin: 10px 0 10px 30px;
+    }
+
     ul {
       list-style-type: disc;
-      margin: 10px 0 10px 30px;
+    }
+
+    ol {
+      list-style-type: decimal;
     }
 
     li {

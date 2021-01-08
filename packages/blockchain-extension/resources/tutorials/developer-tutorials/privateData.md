@@ -210,6 +210,7 @@ This shows that when the transaction is submitted, it is going to be looking for
 Once submitted, the output will either return true or false. True if the arguments match the original values for the asset, false if the arguments do not match the original values for the asset.
 
 1. Left click `verifyMyPrivateAsset` from the list of transactions to open the Transaction view. For the arguments enter, you'll want the Transaction argument object to look like the following:
+
 ```json
 {
   "mspid": "Org1MSP",
@@ -217,9 +218,12 @@ Once submitted, the output will either return true or false. True if the argumen
   "objectToVerify": {"privateValue": "125"}
 }
 ```
-*Note: if you're using another language and have arguments such as keys such as `arg0` and `arg1` enter the values as above in the same order but leave the keys the same.*
+<div class='indent'>
+<em>Note: if you're using another language and have arguments such as keys such as `arg0` and `arg1` enter the values as above in the same order but leave the keys the same.</em>
 
 The object includes the MSPID, asset ID and the private value of 125. Do not enter any transient data here and clear the input box if it is prefilled. Finally select "Evaluate transaction". The Transaction output will display `Returned value from verifyMyPrivateAsset: true`. The `true` part of that expression confirms that the information provided by Org1 to Org2 was in fact correct.
+</div>
+
 2. Feel free to have a go at submitting a verify transaction with incorrect arguments to prove that the transaction would provide a different outcome across the output. For example, submit a `verifyMyPrivateAsset` transaction with the original arguments as above but change the `"objectToVerify"` to have the value `{"privateValue": "150"}`  because Org1 may have forgotten they previously updated the value! Obviously 150 is not the same as 125 so the Transaction output would display `Returned value from verifyMyPrivateAsset: false`.
 
 </details>
