@@ -25,6 +25,8 @@
     });
 
     let failBuild = false;
+    let vulnerabilitiesFound = false;
+
     for(const _package of packages){
 
         /* 
@@ -52,25 +54,33 @@
             child_process.execSync('npm audit --production', {cwd: packagePath});
             console.log('No dependencies need updating for',packagePath);
         } catch(err){
-            // It caught some audit problems.
+            // It caught some audit problems. If high severity, throw error.
+            const vulnebRegexp = new RegExp(/\nfound .+ scanned packages\n/);
+            const result = vulnebRegexp.exec(err.stdout.toString());
+            if (!result || result[0].toLowerCase().includes('high') || result[0].toLowerCase().includes('critical')) {
+                // Throw error in these cases:
+                // No match: another type of error or audit stdout changed
+                // High/Critical severity vulnerability
+                failBuild = true;
+            }
             console.log('Dependencies need fixing for',packagePath, err.stdout.toString())
-            failBuild = true;
+            vulnerabilitiesFound = true;
             // Give a chance for Azure to log out the stdout (it will close prematurely otherwise).
             await new Promise((resolve) => setTimeout(resolve, 10000));
         } finally {
             // Write the package.json back to it's original state
             fs.writeFileSync(packageJsonPath, originalPackageJson);
         }
-
-
     }
 
-    if(failBuild){
-        // Cause Azure to fail
-        // throw new Error('Vulnerabilities found - please update dependencies!')
-        //
+    if(vulnerabilitiesFound){
+        if(failBuild) {
+            // Cause Azure to fail
+            console.log('High and/or critical severity vulnerabilities found - please update dependencies!')
+            process.exit(1);
+        }
 
         // Don't cause Azure to fail
-        console.log('Vulnerabilities found - please update dependencies!')
+        console.log('Low and/or moderate vulnerabilities found - please update dependencies!')
     }
 })()

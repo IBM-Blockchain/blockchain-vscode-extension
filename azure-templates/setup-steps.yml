@@ -46,4 +46,7 @@ steps:
   - script: |
       set -ev
       node ./.azure/audit.js
+      if [ $? != 0 ]; then
+        exit 1
+      fi
     displayName: run npm audit
