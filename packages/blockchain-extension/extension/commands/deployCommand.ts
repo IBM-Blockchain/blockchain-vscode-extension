@@ -19,7 +19,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { TransactionView } from '../webview/TransactionView';
-import { getSmartContract } from './openTransactionViewCommand';
+import { getSmartContracts } from './openTransactionViewCommand';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import ISmartContract from '../interfaces/ISmartContract';
 
@@ -77,8 +77,8 @@ export async function deploySmartContract(requireCommit: boolean, fabricEnvironm
                     }
                 }
 
-                const smartContract: ISmartContract = await getSmartContract(gatewayConnection, smartContractDefinition.name);
-                await TransactionView.updateSmartContract(smartContract);
+                const smartContracts: ISmartContract[] = await getSmartContracts(gatewayConnection, smartContractDefinition.name);
+                await TransactionView.updateSmartContracts(smartContracts);
             }
         });
 
