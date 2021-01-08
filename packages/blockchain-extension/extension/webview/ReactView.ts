@@ -32,7 +32,7 @@ export abstract class ReactView extends View {
         this._extensionPath = path.join(ExtensionUtil.getExtensionPath(), 'node_modules', 'ibm-blockchain-platform-ui');
     }
 
-    async getHTMLString(): Promise<string> {
+    async getHTMLString(webview: vscode.Webview): Promise<string> {
         const mainScript: string = manifest.files['main.js'];
         const mainStyle: string = manifest.files['main.css'];
 
@@ -52,12 +52,15 @@ export abstract class ReactView extends View {
                   <html lang="en">
                   <head>
                       <meta charset="utf-8">
+                      <meta
+                        http-equiv="Content-Security-Policy"
+                        content="img-src ${webview.cspSource} https:; style-src ${webview.cspSource} 'unsafe-inline' http: https: data:;"
+                      />
                       <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 
                       <title>React</title>
                       <style>${styleContents.toString()}</style>
-                      <meta img-src vscode-resource: https: ;style-src vscode-resource: 'unsafe-inline' http: https: data:;">
-                      <base href="${vscode.Uri.file(path.join(actualExtensionPath, 'build')).with({ scheme: 'vscode-resource' })}/">
+                      <base href="${webview.asWebviewUri(vscode.Uri.file(path.join(actualExtensionPath, 'build')))}/">
               <script>
                 const vscode = acquireVsCodeApi();
               </script>

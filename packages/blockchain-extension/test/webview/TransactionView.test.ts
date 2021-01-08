@@ -61,7 +61,8 @@ async function createTransactionViewAndSendMessage({ mySandBox, createWebviewPan
                         data,
                     });
                     resolve();
-                }
+                },
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => {
                 return;
@@ -202,7 +203,8 @@ describe('TransactionView', () => {
             title: 'Transaction Page',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -345,6 +347,7 @@ describe('TransactionView', () => {
             webview: {
                 postMessage: postMessageStub,
                 onDidReceiveMessage: mySandBox.stub().resolves(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => {
                 return;
@@ -385,7 +388,8 @@ describe('TransactionView', () => {
             title: 'Transaction Page',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -415,7 +419,8 @@ describe('TransactionView', () => {
             title: 'Transaction Page',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: disposeStub,
@@ -436,7 +441,8 @@ describe('TransactionView', () => {
             title: 'Deploy Smart Contract',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: (): void => {
                 return;
@@ -458,7 +464,8 @@ describe('TransactionView', () => {
             title: 'Transaction Page',
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),

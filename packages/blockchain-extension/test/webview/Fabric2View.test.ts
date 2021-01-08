@@ -66,7 +66,8 @@ describe('Fabric2View', () => {
             title: `What's new with Fabric v2.0`,
             webview: {
                 postMessage: postMessageStub,
-                onDidReceiveMessage: mySandBox.stub()
+                onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             reveal: mySandBox.stub(),
             dispose: mySandBox.stub(),
@@ -86,6 +87,7 @@ describe('Fabric2View', () => {
             webview: {
                 postMessage: mySandBox.stub(),
                 onDidReceiveMessage: mySandBox.stub(),
+                asWebviewUri: mySandBox.stub()
             },
             title: `What's new with Fabric v2.0`,
             onDidDispose: mySandBox.stub(),
@@ -114,7 +116,8 @@ describe('Fabric2View', () => {
                             command: ExtensionCommands.OPEN_TUTORIAL_GALLERY
                         });
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
                 },
                 reveal: (): void => {
                     return;
@@ -150,7 +153,9 @@ describe('Fabric2View', () => {
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback(message);
                         resolve();
-                    }
+                    },
+                    asWebviewUri: mySandBox.stub()
+
                 },
                 reveal: (): void => {
                     return;
