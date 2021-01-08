@@ -114,7 +114,7 @@ class TransactionPage extends Component<IProps, IState> {
     setTransactionSubmitted(transactionSubmitted: boolean): void {
         this.setState({
             transactionSubmitted,
-        })
+        });
     }
 
     render(): JSX.Element {
