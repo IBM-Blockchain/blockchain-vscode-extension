@@ -30,8 +30,45 @@ import { FabricGatewayConnection } from 'ibm-blockchain-platform-gateway-v1';
 import { TransactionView } from '../../extension/webview/TransactionView';
 import { GlobalState } from '../../extension/util/GlobalState';
 import * as openTransactionViewCommand from '../../extension/commands/openTransactionViewCommand';
+import ISmartContract from '../../extension/interfaces/ISmartContract';
+import ITransaction from '../../extension/interfaces/ITransaction';
+import IAssociatedTxData from '../../extension/interfaces/IAssociatedTxData';
 
 chai.use(sinonChai);
+
+const mockTransactionViewParams: { gatewayName: string, smartContracts: ISmartContract[], preselectedSmartContract: ISmartContract, preselectedTransaction: ITransaction, associatedTxdata: IAssociatedTxData} = {
+    gatewayName: 'my gateway',
+    smartContracts: [],
+    preselectedSmartContract: undefined,
+    preselectedTransaction: undefined,
+    associatedTxdata: {},
+};
+
+const transactionOne: ITransaction = {
+    name: 'transactionOne',
+    parameters: [{
+        description: '',
+        name: 'name',
+        schema: {}
+    }],
+    returns: {
+        type: ''
+    },
+    tag: ['submit']
+};
+
+const transactionTwo: ITransaction = {
+    name: 'transactionTwo',
+    parameters: [{
+        description: '',
+        name: 'size',
+        schema: {}
+    }],
+    returns: {
+        type: ''
+    },
+    tag: ['submit']
+};
 
 describe('deployCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
@@ -112,12 +149,8 @@ describe('deployCommand', () => {
                         'my-contract': {
                             name: 'my-contract',
                             transactions: [
-                                {
-                                    name: 'transaction1'
-                                },
-                                {
-                                    name: 'transaction2'
-                                }
+                                transactionOne,
+                                transactionTwo,
                             ],
                         },
                         'org.hyperledger.fabric': {
@@ -235,11 +268,11 @@ describe('deployCommand', () => {
                 onDidDispose: mySandBox.stub(),
                 onDidChangeViewState: mySandBox.stub()
             });
-            const transactionView: TransactionView = new TransactionView(context, { smartContract: undefined });
+            const transactionView: TransactionView = new TransactionView(context, mockTransactionViewParams);
             await transactionView.openView(false);
             postMessageStub.should.have.been.calledWith({
                 path: '/transaction',
-                transactionViewData: { smartContract: undefined },
+                transactionViewData: mockTransactionViewParams,
             });
 
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
@@ -255,20 +288,23 @@ describe('deployCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
             getConnectionStub.should.have.been.called;
 
+            const smartContract: ISmartContract = {
+                name: 'mySmartContract',
+                version: '0.0.1',
+                channel: 'myChannel',
+                label: 'mySmartContract@0.0.1',
+                transactions: [
+                    transactionOne,
+                    transactionTwo,
+                ],
+                contractName: 'my-contract',
+                namespace: 'my-contract',
+                peerNames: ['peerOne', 'peerTwo'],
+            };
+
             postMessageStub.should.have.been.calledWith({
                 path: '/transaction',
-                transactionViewData: { smartContract: {
-                    name: 'mySmartContract',
-                    version: '0.0.1',
-                    channel: 'myChannel',
-                    label: 'mySmartContract@0.0.1',
-                    transactions: [
-                        { name: 'transaction1' },
-                        { name: 'transaction2' },
-                    ],
-                    namespace: 'my-contract',
-                    peerNames: ['peerOne', 'peerTwo'],
-                } },
+                transactionViewData: { ...mockTransactionViewParams, smartContracts: [smartContract] },
             });
         });
 
@@ -287,7 +323,7 @@ describe('deployCommand', () => {
                 onDidDispose: mySandBox.stub(),
                 onDidChangeViewState: mySandBox.stub()
             });
-            const transactionView: TransactionView = new TransactionView(context, { smartContract: undefined });
+            const transactionView: TransactionView = new TransactionView(context, mockTransactionViewParams);
             await transactionView.openView(false);
             getConnectionStub.returns(undefined);
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
@@ -310,11 +346,11 @@ describe('deployCommand', () => {
                 onDidDispose: mySandBox.stub(),
                 onDidChangeViewState: mySandBox.stub()
             });
-            const transactionView: TransactionView = new TransactionView(context, { smartContract: undefined });
+            const transactionView: TransactionView = new TransactionView(context, mockTransactionViewParams);
             await transactionView.openView(false);
             getConnectionStub.returns(undefined);
             getConnectionStub.onSecondCall().returns('anotherGateway');
-            const getSmartContractStub: sinon.SinonStub = mySandBox.stub(openTransactionViewCommand, 'getSmartContract').resolves();
+            const getSmartContractStub: sinon.SinonStub = mySandBox.stub(openTransactionViewCommand, 'getSmartContracts').resolves();
 
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);

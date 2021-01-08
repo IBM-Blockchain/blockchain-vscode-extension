@@ -20,7 +20,8 @@ interface ISmartContract {
     label: string;
     transactions: ITransaction[];
     namespace: string;
-    peerNames: string[]; // change this to not any
+    peerNames: string[];
+    contractName: string;
 }
 
 export default ISmartContract;

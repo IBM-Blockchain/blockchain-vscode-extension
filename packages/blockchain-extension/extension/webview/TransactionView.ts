@@ -22,25 +22,28 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from 'ibm-blockchain-platform-common';
 import ITransaction from '../interfaces/ITransaction';
 import ISmartContract from '../interfaces/ISmartContract';
+import IAssociatedTxData from '../interfaces/IAssociatedTxData';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import ITxDataFile from '../interfaces/ITxDataFile';
 
 interface IAppState {
     gatewayName: string;
-    smartContract: ISmartContract;
-    associatedTxdata: undefined | { chaincodeName: string, channelName: string, transactionDataPath: string };
-    txdataTransactions?: string[];
-    preselectedTransaction?: ITransaction;
+    smartContracts: ISmartContract[];
+    associatedTxdata: IAssociatedTxData;
+    preselectedSmartContract: ISmartContract;
+    preselectedTransaction: ITransaction;
 }
+
 export class TransactionView extends ReactView {
     public static panel: vscode.WebviewPanel;
-    public static appState: any;
+    public static appState: IAppState;
 
-    static async updateSmartContract(smartContract: ISmartContract): Promise<void> {
-        TransactionView.appState.smartContract = smartContract;
+    static async updateSmartContracts(smartContracts: ISmartContract[]): Promise<void> {
+        TransactionView.appState.smartContracts = smartContracts;
         TransactionView.panel.webview.postMessage({
             transactionViewData: {
                 ...TransactionView.appState,
-                smartContract,
+                smartContracts,
             }
         });
     }
@@ -49,47 +52,8 @@ export class TransactionView extends ReactView {
         TransactionView.panel.dispose();
     }
 
-    protected appState: any;
-
-    constructor(context: vscode.ExtensionContext, appState: any) {
-        super(context, 'transactionView', 'Transaction View');
-        TransactionView.appState = appState;
-    }
-
-    public async openView(keepContext: boolean, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): Promise<void> {
-        if (TransactionView.panel) {
-            TransactionView.panel.webview.postMessage({
-                transactionViewData: TransactionView.appState,
-            });
-        }
-
-        return super.openView(keepContext, viewColumn);
-    }
-
-    async handleTransactionMessage(message: {command: string, data: any}, panel: vscode.WebviewPanel): Promise<void> {
-        const response: string = await vscode.commands.executeCommand(message.command, undefined, undefined, undefined, message.data);
-        panel.webview.postMessage({
-            transactionOutput: response
-        });
-    }
-
-    async handleTxdataMessage(message: {command: string, data: any}, panel: vscode.WebviewPanel): Promise<void> {
-        const response: {chaincodeName: string, channelName: string, transactionDataPath: string} = await vscode.commands.executeCommand(message.command, undefined, message.data);
-        const txdataTransactions: string[] = response !== undefined ? await this.readTxdataFiles(response.transactionDataPath) : [];
-        const newAppState: IAppState = {
-            gatewayName: TransactionView.appState.gatewayName,
-            smartContract: TransactionView.appState.smartContract,
-            associatedTxdata: response,
-            txdataTransactions
-        };
-
-        panel.webview.postMessage({
-            transactionViewData: newAppState
-        });
-    }
-
-    async readTxdataFiles(txdataDirectoryPath: string): Promise<any> {
-        const transactionsInFiles: { transactionName: string, transactionLabel: string, txDataFile: string, arguments: [], transientData: { [key: string]: Buffer } }[] = [];
+    static async readTxdataFiles(txdataDirectoryPath: string): Promise<any> {
+        const transactionsInFiles: ITxDataFile[] = [];
 
         const allFiles: string[] = await fs.readdir(txdataDirectoryPath);
         const txDataFiles: string[] = allFiles.filter((file: string) => file.endsWith('.txdata'));
@@ -117,6 +81,62 @@ export class TransactionView extends ReactView {
         return transactionsInFiles;
     }
 
+    protected appState: any;
+
+    constructor(context: vscode.ExtensionContext, appState: IAppState) {
+        super(context, 'transactionView', 'Transaction View');
+        TransactionView.appState = appState;
+    }
+
+    public async openView(keepContext: boolean, viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): Promise<void> {
+        if (TransactionView.panel) {
+            TransactionView.panel.webview.postMessage({
+                transactionViewData: TransactionView.appState,
+            });
+        }
+
+        return super.openView(keepContext, viewColumn);
+    }
+
+    async handleTransactionMessage(message: {command: string, data: any}, panel: vscode.WebviewPanel): Promise<void> {
+        const response: string = await vscode.commands.executeCommand(message.command, undefined, undefined, undefined, message.data);
+        panel.webview.postMessage({
+            transactionOutput: response
+        });
+    }
+
+    async handleTxdataMessage(message: {command: string, data: any}, panel: vscode.WebviewPanel): Promise<void> {
+        const response: {chaincodeName: string, channelName: string, transactionDataPath: string} = await vscode.commands.executeCommand(message.command, undefined, message.data);
+
+        // If txData added, add it to the object, if removed, delete it
+        let updatedAssociatedTxdata: IAssociatedTxData;
+        if (response) {
+            updatedAssociatedTxdata = {
+                ...TransactionView.appState.associatedTxdata,
+                [response.chaincodeName]: {
+                    channelName: response.channelName,
+                    transactionDataPath: response.transactionDataPath,
+                    transactions: await TransactionView.readTxdataFiles(response.transactionDataPath),
+                }
+            }
+        } else {
+            updatedAssociatedTxdata = TransactionView.appState.associatedTxdata;
+            delete updatedAssociatedTxdata[message.data.name];
+        }
+
+        const newAppState: IAppState = {
+            gatewayName: TransactionView.appState.gatewayName,
+            smartContracts: TransactionView.appState.smartContracts,
+            preselectedSmartContract: TransactionView.appState.preselectedSmartContract,
+            preselectedTransaction: TransactionView.appState.preselectedTransaction,
+            associatedTxdata: updatedAssociatedTxdata,
+        };
+
+        panel.webview.postMessage({
+            transactionViewData: newAppState
+        });
+    }
+
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
         TransactionView.panel = panel;
         panel.onDidDispose(() => {
@@ -141,10 +161,6 @@ export class TransactionView extends ReactView {
     }
 
     async loadComponent(panel: vscode.WebviewPanel): Promise<void> {
-        if (TransactionView.appState.associatedTxdata !== undefined) {
-            TransactionView.appState.txdataTransactions = await this.readTxdataFiles(TransactionView.appState.associatedTxdata.transactionDataPath);
-        }
-
         panel.webview.postMessage({
             path: '/transaction',
             transactionViewData: TransactionView.appState

@@ -6,7 +6,7 @@ import ISmartContract from '../../../interfaces/ISmartContract';
 import ITransactionManualInput from '../../../interfaces/ITransactionManualInput';
 
 interface IProps {
-    smartContract: ISmartContract;
+    smartContract: ISmartContract | undefined;
     manualInputState: ITransactionManualInput;
     setManualInput: Dispatch<SetStateAction<ITransactionManualInput>>;
     setActiveTransaction: Dispatch<SetStateAction<ITransaction>>;
@@ -15,11 +15,10 @@ interface IProps {
 
 const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manualInputState, setManualInput, setActiveTransaction, transactionArgumentsAreValid }: IProps) => {
     const { activeTransaction, transactionArguments, transientData } = manualInputState;
-    const hasMetadata: boolean = smartContract.namespace !== undefined;
+    const hasMetadata: boolean = !!smartContract && smartContract.namespace !== undefined;
 
     function setActiveTransactionWrapper(data: any): void {
-        const { transactions } = smartContract;
-        const transaction: ITransaction | undefined = transactions.find((txn: ITransaction) => txn.name === data.selectedItem);
+        const transaction: ITransaction | undefined = smartContract && smartContract.transactions.find((txn: ITransaction) => txn.name === data.selectedItem);
         if (transaction) {
             setActiveTransaction(transaction);
         }
@@ -35,10 +34,11 @@ const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manu
     }
 
     const transactionHasBeenChosen: boolean = activeTransaction && activeTransaction.name !== '';
+    const disableAll: boolean = !smartContract;
 
     return (
         <>
-            {hasMetadata
+            {smartContract && hasMetadata
                 ? (
                     <Dropdown
                         ariaLabel='dropdown'
@@ -50,12 +50,14 @@ const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manu
                         type='default'
                         selectedItem={transactionHasBeenChosen ? activeTransaction.name : 'Select the transaction name'}
                         onChange={setActiveTransactionWrapper}
+                        disabled={disableAll}
                     />
                 ) : (
                     <TextInput
                         id='transaction-name'
                         labelText='Transaction name'
                         onChange={(e) => setManualInput({ ...manualInputState, activeTransaction: {...activeTransaction, name: e.currentTarget.value}})}
+                        disabled={disableAll}
                     >
                     </TextInput>
                 )
@@ -65,7 +67,7 @@ const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manu
                 id='arguments-text-area'
                 onChange={updateTransactionArguments}
                 value={transactionArguments}
-                disabled={!transactionHasBeenChosen}
+                disabled={!transactionHasBeenChosen || disableAll}
                 invalidText='The transaction arguments should be valid JSON'
                 invalid={transactionHasBeenChosen && !transactionArgumentsAreValid}
             />
@@ -75,6 +77,7 @@ const TransactionManualInput: FunctionComponent<IProps> = ({ smartContract, manu
                 hideLabel={false}
                 onChange={(e) => setManualInput({ ...manualInputState, transientData: e.currentTarget.value })}
                 value={transientData}
+                disabled={disableAll}
             />
         </>
     );

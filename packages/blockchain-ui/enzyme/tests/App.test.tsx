@@ -449,17 +449,18 @@ describe('App', () => {
     });
 
     it('should redirect to the transaction page', async () => {
-        const transactionViewData: {gatewayName: string, smartContract: ISmartContract} = {
+        const transactionViewData: {gatewayName: string, smartContracts: ISmartContract[]} = {
             gatewayName: 'myGateway',
-            smartContract: {
+            smartContracts: [{
                 name: 'mySmartContract',
                 version: '0.0.1',
                 channel: 'myChannel',
                 label: 'mySmartContract@0.0.1',
                 transactions: [],
                 namespace: 'My Smart Contract',
+                contractName: 'My Smart Contract',
                 peerNames: ['peer1', 'peer2']
-            }
+            }],
         };
 
         const component: any = mount(<App/>);
