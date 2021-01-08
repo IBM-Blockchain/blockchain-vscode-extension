@@ -197,6 +197,37 @@ exports[`TutorialPage component should render the component when no tutorialData
             single line codeblock
           </code>
         </p>
+        <table
+          style={
+            Object {
+              "border": "1px solid white",
+              "borderCollapse": "collapse",
+            }
+          }
+        >
+          <tr>
+            <td
+              style={
+                Object {
+                  "border": "1px solid white",
+                  "padding": "4px",
+                }
+              }
+            >
+              Hello
+            </td>
+            <td
+              style={
+                Object {
+                  "border": "1px solid white",
+                  "padding": "4px",
+                }
+              }
+            >
+              World
+            </td>
+          </tr>
+        </table>
       </div>
       <hr />
     </div>
@@ -416,6 +447,37 @@ exports[`TutorialPage component should render the expected snapshot (when the st
             single line codeblock
           </code>
         </p>
+        <table
+          style={
+            Object {
+              "border": "1px solid white",
+              "borderCollapse": "collapse",
+            }
+          }
+        >
+          <tr>
+            <td
+              style={
+                Object {
+                  "border": "1px solid white",
+                  "padding": "4px",
+                }
+              }
+            >
+              Hello
+            </td>
+            <td
+              style={
+                Object {
+                  "border": "1px solid white",
+                  "padding": "4px",
+                }
+              }
+            >
+              World
+            </td>
+          </tr>
+        </table>
       </div>
       <hr />
       <div
@@ -646,6 +708,37 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
             single line codeblock
           </code>
         </p>
+        <table
+          style={
+            Object {
+              "border": "1px solid white",
+              "borderCollapse": "collapse",
+            }
+          }
+        >
+          <tr>
+            <td
+              style={
+                Object {
+                  "border": "1px solid white",
+                  "padding": "4px",
+                }
+              }
+            >
+              Hello
+            </td>
+            <td
+              style={
+                Object {
+                  "border": "1px solid white",
+                  "padding": "4px",
+                }
+              }
+            >
+              World
+            </td>
+          </tr>
+        </table>
       </div>
       <hr />
       <div

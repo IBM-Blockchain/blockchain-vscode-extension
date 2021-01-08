@@ -130,6 +130,126 @@
         ]
     },
     {
+      "name": "Joining a network",
+      "tutorialFolder": "joining-a-network",
+      "tutorialDescription": "The 'Joining a network' tutorials teach you how to connect and transact with an existing Hyperledger Fabric network using the IBM Blockchain Platform tools.",
+      "tutorials": [
+          {
+              "title": "B1: Getting Started",
+              "series": "Joining a network",
+              "length": "10 minutes",
+              "firstInSeries": true,
+              "objectives": 
+              [
+                "Learn about the concepts that are relevant to joining a Hyperledger Fabric network",
+                "Learn about the scenario upon which this set of tutorials is based, and the range of tools for interacting with and exploring the network",
+                "Prepare your machine with the tools required to join the network"
+              ],
+              "file": "new-tutorials/joining-a-network/b1.md"
+          },
+          {
+              "title": "B2: Discovering the network",
+              "series": "Joining a network",
+              "length": "10 minutes",
+              "objectives": 
+              [
+                "Look at what is needed to register with DriveNet",
+                "Use the available tools to discover DriveNet and obtain your login details",
+                "Log in to the IBM Blockchain Platform web console"
+              ],
+              "file": "new-tutorials/joining-a-network/b2.md"
+          },
+          {
+              "title": "B3: Enrolling with the network",
+              "series": "Joining a network",
+              "length": "10 minutes",
+              "objectives": 
+              [
+                "Complete the enrollment of your user with the Community Org CA",
+                "Associate that user with the Community Org peer",
+                "Browse the consortium of member organizations that comprise DriveNet"
+              ],
+              "file": "new-tutorials/joining-a-network/b3.md"
+          },
+          {
+              "title": "B4: Acquiring network connection details",
+              "series": "Joining a network",
+              "length": "10 minutes",
+              "objectives": 
+              [
+                "Use the IBM Blockchain Platform web console to download your connection profile",
+                "Use the IBM Blockchain Platform web console to download your identity",
+                "Create a wallet from your identity"
+
+              ],
+              "file": "new-tutorials/joining-a-network/b4.md"
+          },
+          {
+              "title": "B5: Invoking transactions on the network",
+              "series": "Joining a network",
+              "length": "15 minutes",
+              "objectives": 
+              [
+                "Connect to the DriveNet network from the IBM Blockchain Platform VS Code extension",
+                "Use the IBM Blockchain Platform VS Code extension to run our first transactions",
+                "See how the IBM Blockchain Platform web console allows us to view transactions on the blockchain"
+              ],
+              "file": "new-tutorials/joining-a-network/b5.md"
+          },
+          {
+              "title": "B6: Exercising network policies",
+              "series": "Joining a network",
+              "length": "20 minutes",
+              "objectives": 
+              [
+                "Learn about the importance and different kinds of policies",
+                "Exercise the active endorsement policy on DriveNet",
+                "See how smart contracts can implement their own policies"
+
+              ],
+              "file": "new-tutorials/joining-a-network/b6.md"
+          },
+          {
+              "title": "B7: Connecting applications to the network",
+              "series": "Joining a network",
+              "length": "30 minutes",
+              "objectives": 
+              [
+                "Assemble the required network details that will allow our client applications to connect",
+                "Build and run an application that displays the history of DriveNet assets",
+                "Learn about immutability in the blockchain and how transactions are persisted"
+
+              ],
+              "file": "new-tutorials/joining-a-network/b7.md"
+          },
+          {
+              "title": "B8: Listening for network events",
+              "series": "Joining a network",
+              "length": "30 minutes",
+              "objectives": 
+              [
+                "Extend the history application to receive custom events from the fabcar smart contract",
+                "Write an application to receive transaction events, giving us more information on the transactions we submit.",
+                "Write an application to explore the blocks as they get added to the DriveNet blockchain"
+
+              ],
+              "file": "new-tutorials/joining-a-network/b8.md"
+          },
+          {
+              "title": "B9: Leaving a network",
+              "series": "Joining a network",
+              "length": "10 minutes",
+              "objectives": 
+              [
+                "Understand how a user can remove themselves from a community organization-based network",
+                "Follow the process for leaving DriveNet",
+                "Introduce the next set of tutorials"
+              ],
+              "file": "new-tutorials/joining-a-network/b9.md"
+          }
+      ]
+    },
+    {
         "name": "Other tutorials",
         "tutorialFolder": "other-tutorials",
         "tutorials": [
