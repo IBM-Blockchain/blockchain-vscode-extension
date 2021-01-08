@@ -1,7 +1,11 @@
-interface IAssociatedTxdata {
-    chaincodeName: string;
-    channelName: string;
-    transactionDataPath: string;
+import IDataFileTransaction from './IDataFileTransaction';
+
+interface IAssociatedTxData {
+    [chaincodeName: string]: {
+        channelName: string,
+        transactionDataPath: string,
+        transactions: IDataFileTransaction[]
+    };
 }
 
-export default IAssociatedTxdata;
+export default IAssociatedTxData;

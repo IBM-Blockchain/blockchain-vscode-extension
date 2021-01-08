@@ -2,6 +2,7 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import { mount } from 'enzyme';
+import {act} from 'react-dom/test-utils';
 import TransactionPage from '../../src/components/pages/TransactionPage/TransactionPage';
 import chai from 'chai';
 import sinon from 'sinon';
@@ -9,6 +10,7 @@ import sinonChai from 'sinon-chai';
 import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 import IDataFileTransaction from '../../src/interfaces/IDataFileTransaction';
+import IAssociatedTxData from '../../src/interfaces/IAssociatedTxdata';
 chai.should();
 chai.use(sinonChai);
 
@@ -45,14 +47,16 @@ describe('TransactionPage component', () => {
         label: 'greenContract@0.0.1',
         transactions: [transactionOne, transactionTwo],
         namespace: 'GreenContract',
-        peerNames: ['peer1', 'peer2']
+        peerNames: ['peer1', 'peer2'],
+        contractName: 'GreenContract',
     };
 
-    const transactionViewData: {gatewayName: string, smartContract: ISmartContract, associatedTxdata: undefined, txdataTransactions: IDataFileTransaction[], preselectedTransaction: ITransaction } = {
+    const transactionViewData: {gatewayName: string, smartContracts: ISmartContract[], associatedTxdata: IAssociatedTxData, txdataTransactions: IDataFileTransaction[], preselectedSmartContract: ISmartContract | undefined, preselectedTransaction: ITransaction } = {
         gatewayName: 'myGateway',
-        smartContract: greenContract,
-        associatedTxdata: undefined,
+        smartContracts: [greenContract],
+        associatedTxdata: {},
         txdataTransactions: [],
+        preselectedSmartContract: greenContract,
         preselectedTransaction: { name: '', parameters: [], returns: { type: '' }, tag: [] },
     };
 
@@ -75,30 +79,147 @@ describe('TransactionPage component', () => {
         expect(component).toMatchSnapshot();
     });
 
+    it('should not show the contract selection dropdown when a single smartContract is passed, and it should be made active as it is the only one', () => {
+        const multipleContractsTransactionData = { ...transactionViewData };
+        multipleContractsTransactionData.smartContracts = [
+            greenContract,
+        ];
+        multipleContractsTransactionData.preselectedSmartContract = undefined;
+        const component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        expect(component.state()).toHaveProperty('smartContracts', multipleContractsTransactionData.smartContracts);
+        expect(component.state()).toHaveProperty('activeSmartContract', multipleContractsTransactionData.smartContracts[0]);
+
+        const contractDropdown: any = component.find('#contract-select');
+        expect(contractDropdown.exists()).toBeFalsy();
+    });
+
+    it('should show the contract selection dropdown when multiple smartContracts are passed', () => {
+        const multipleContractsTransactionData = { ...transactionViewData };
+        multipleContractsTransactionData.smartContracts = [
+            greenContract,
+            { ...greenContract, contractName: 'other contract' },
+        ];
+        const component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        expect(component.state()).toHaveProperty('smartContracts', multipleContractsTransactionData.smartContracts);
+
+        const contractDropdown: any = component.find('#contract-select');
+        expect(contractDropdown.exists()).toBeTruthy();
+    });
+
+    it('should show the contract selection dropdown and an active contract when multiple smartContracts are passed and one is chosen', () => {
+        const multipleContractsTransactionData = { ...transactionViewData };
+        multipleContractsTransactionData.smartContracts = [
+            greenContract,
+            { ...greenContract, contractName: 'other contract' },
+        ];
+        multipleContractsTransactionData.preselectedSmartContract = undefined;
+
+        let component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        expect(component.state()).toHaveProperty('smartContracts', multipleContractsTransactionData.smartContracts);
+        expect(component.state()).toHaveProperty('activeSmartContract', undefined);
+
+        let contractDropdown: any = component.find('#contract-select').at(0);
+        act(() => {
+            contractDropdown.prop('onChange')({ selectedItem: 'other contract' });
+        });
+
+        component.update();
+        expect(component.state()).toHaveProperty('activeSmartContract', multipleContractsTransactionData.smartContracts[1]);
+    });
+
+    it('should update the preselectedContract when multiple smartContracts are sent', () => {
+        const multipleContractsTransactionData = { ...transactionViewData };
+        multipleContractsTransactionData.smartContracts = [
+            greenContract,
+            { ...greenContract, contractName: 'other contract' },
+        ];
+        multipleContractsTransactionData.preselectedSmartContract = undefined;
+
+        let component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        expect(component.state()).toHaveProperty('preselectedSmartContract', undefined);
+
+        component.setProps({ transactionViewData: { ...multipleContractsTransactionData, preselectedSmartContract: multipleContractsTransactionData.smartContracts[1] } });
+        expect(component.state()).toHaveProperty('preselectedSmartContract', multipleContractsTransactionData.smartContracts[1]);
+    });
+
     it('should update the smartContract when a new one is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
         const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
-        expect(component.state()).toHaveProperty('smartContract', greenContract);
+        expect(component.state()).toHaveProperty('smartContracts', [greenContract]);
 
         const newContract: ISmartContract =  { ...greenContract, name: 'updatedContract' };
         component.setProps({
             transactionViewData: {
-                smartContract: newContract,
+                smartContracts: [newContract],
             }
         });
 
         componentDidUpdateSpy.should.have.been.called;
-        component.state().smartContract.should.equal(newContract);
+        component.state().smartContracts.should.deep.equal([newContract]);
+    });
+
+    it('should clear the activeSmartContract when no smartContracts are sent', () => {
+        let component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+
+        component.setProps({ transactionViewData: { ...transactionViewData, smartContracts: [] } });
+        expect(component.state()).toHaveProperty('smartContracts', []);
+        expect(component.state()).toHaveProperty('activeSmartContract', undefined);
+    });
+
+    it('should persist the activeSmartContract as it still exists when smartContracts are updated', () => {
+        const twoContractsTransactionData = { ...transactionViewData };
+        twoContractsTransactionData.smartContracts = [
+            greenContract,
+            { ...greenContract, contractName: 'other contract' },
+        ];
+        twoContractsTransactionData.preselectedSmartContract = twoContractsTransactionData.smartContracts[1];
+
+        let component: any = mount(<TransactionPage transactionViewData={twoContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        expect(component.state()).toHaveProperty('activeSmartContract', twoContractsTransactionData.smartContracts[1]);
+
+
+        const threeContractsTransactionData = { ...twoContractsTransactionData };
+        threeContractsTransactionData.smartContracts = [
+            greenContract,
+            { ...greenContract, contractName: 'other contract' },
+            { ...greenContract, contractName: 'another contract' },
+        ];
+        component.setProps({ transactionViewData: { ...threeContractsTransactionData } });
+        expect(component.state()).toHaveProperty('smartContracts', threeContractsTransactionData.smartContracts);
+        expect(component.state()).toHaveProperty('activeSmartContract', threeContractsTransactionData.smartContracts[1]);
+    });
+
+    it('should leave the activeSmartContract as undefined when it is already undefined and the smartContracts are updated', () => {
+        const twoContractsTransactionData = { ...transactionViewData };
+        twoContractsTransactionData.smartContracts = [
+            greenContract,
+            { ...greenContract, contractName: 'other contract' },
+        ];
+        twoContractsTransactionData.preselectedSmartContract = undefined;
+
+        let component: any = mount(<TransactionPage transactionViewData={twoContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        expect(component.state()).toHaveProperty('activeSmartContract', undefined);
+
+
+        const threeContractsTransactionData = { ...twoContractsTransactionData };
+        threeContractsTransactionData.smartContracts = [
+            greenContract,
+            { ...greenContract, contractName: 'other contract' },
+            { ...greenContract, contractName: 'another contract' },
+        ];
+        component.setProps({ transactionViewData: { ...threeContractsTransactionData } });
+        expect(component.state()).toHaveProperty('smartContracts', threeContractsTransactionData.smartContracts);
+        expect(component.state()).toHaveProperty('activeSmartContract', undefined);
     });
 
     it('should update the associatedTxdata when something new is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
         const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
-        expect(component.state()).toHaveProperty('associatedTxdata', undefined);
+        expect(component.state()).toHaveProperty('associatedTxdata', {});
 
         component.setProps({
             transactionViewData: {
-                smartContract: greenContract,
+                smartContracts: [greenContract],
                 associatedTxdata: 'new data',
             }
         });

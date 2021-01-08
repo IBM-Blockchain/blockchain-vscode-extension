@@ -3,20 +3,25 @@ import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 import IAssociatedTxdata from '../../src/interfaces/IAssociatedTxdata';
 import IDataFileTransaction from '../../src/interfaces/IDataFileTransaction';
+import { ITransactionViewData } from '../../src/interfaces/IAppState';
 
 chai.should();
 
 interface IMessage {
     path: string;
-    transactionViewData: {
-        gatewayName: string,
-        smartContract: ISmartContract,
-        associatedTxdata?: IAssociatedTxdata,
-        txdataTransactions?: IDataFileTransaction[]
-    };
+    transactionViewData: ITransactionViewData;
 }
 
 describe('Transaction page', () => {
+    const emptyTransaction: ITransaction = {
+        name: '',
+        parameters: [],
+        returns: {
+            type: '',
+        },
+        tag: [],
+    };
+
     const transactionOne: ITransaction = {
         name: 'transactionOne',
         parameters: [{
@@ -50,6 +55,7 @@ describe('Transaction page', () => {
         label: 'greenContract@0.0.1',
         transactions: [transactionOne, transactionTwo],
         namespace: 'GreenContract',
+        contractName: 'GreenContract',
         peerNames: ['peer1', 'peer2']
     };
 
@@ -57,7 +63,10 @@ describe('Transaction page', () => {
         path: 'transaction',
         transactionViewData: {
             gatewayName: 'myGateway',
-            smartContract: greenContract
+            smartContracts: [greenContract],
+            preselectedSmartContract: greenContract,
+            preselectedTransaction: emptyTransaction,
+            associatedTxdata: {},
         }
     };
 
@@ -65,13 +74,16 @@ describe('Transaction page', () => {
         transactionOutput: 'some transaction output'
     };
 
+    const txdataTransactions: IDataFileTransaction[] = [{ transactionName: transactionOne.name, transactionLabel: transactionOne.name, txDataFile: '', arguments: [], transientData: {} }];
+
     const associatedTxdata: IAssociatedTxdata = {
-        chaincodeName: 'chaincodeName',
-        channelName: 'channelName',
-        transactionDataPath: 'transactionDataPath',
+        [greenContract.name]: {
+            channelName: 'channelName',
+            transactionDataPath: 'transactionDataPath',
+            transactions: txdataTransactions,
+        }
     };
 
-    const txdataTransactions: IDataFileTransaction[] = [{ transactionName: transactionOne.name, transactionLabel: transactionOne.name, txDataFile: '', arguments: [], transientData: {} }];
 
     beforeEach(() => {
         cy.visit('build/index.html').then((window: Window) => {
@@ -239,7 +251,6 @@ describe('Transaction page', () => {
                 transactionViewData: {
                     ...mockMessage.transactionViewData,
                     associatedTxdata,
-                    txdataTransactions,
                 }
             };
             cy.window().then((window: Window) => {
@@ -272,7 +283,6 @@ describe('Transaction page', () => {
                 transactionViewData: {
                     ...mockMessage.transactionViewData,
                     associatedTxdata,
-                    txdataTransactions,
                 }
             };
             cy.window().then((window: Window) => {

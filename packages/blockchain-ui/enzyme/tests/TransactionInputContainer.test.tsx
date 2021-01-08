@@ -133,6 +133,7 @@ describe('TransactionInputContainer component', () => {
         label: 'greenContract@0.0.1',
         transactions: [transactionOne, transactionTwo, transactionThree],
         namespace: 'GreenContract',
+        contractName: 'GreenContract',
         peerNames: ['peer1', 'peer2']
     };
 
@@ -143,13 +144,8 @@ describe('TransactionInputContainer component', () => {
         label: 'purpleContract@0.0.1',
         transactions: [],
         namespace: undefined,
+        contractName: undefined,
         peerNames: ['peer1', 'peer2']
-    };
-
-    const associatedTxdata: IAssociatedTxdata = {
-        chaincodeName: 'chaincodeName',
-        channelName: 'channelName',
-        transactionDataPath: 'transactionDataPath',
     };
 
     const txdataTransactions: IDataFileTransaction[] = [{
@@ -159,6 +155,14 @@ describe('TransactionInputContainer component', () => {
         arguments: ['arg1', 'arg2'],
         transientData: { key: 'value' }
     }];
+
+    const associatedTxdata: IAssociatedTxdata = {
+        [greenContract.name]: {
+            channelName: 'channelName',
+            transactionDataPath: 'transactionDataPath',
+            transactions: txdataTransactions,
+        }
+    };
 
     const preselectedTransaction: ITransaction = {
         name: '',
@@ -178,21 +182,21 @@ describe('TransactionInputContainer component', () => {
 
     it('should render the expected snapshot', () => {
         const snapshotComponent: any = renderer
-            .create(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction} />)
+            .create(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />)
             .toJSON();
         expect(snapshotComponent).toMatchSnapshot();
     });
 
     it('should render the expected snapshot - contract with no Metadata', () => {
         const snapshotComponent: any = renderer
-            .create(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction} />)
+            .create(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />)
             .toJSON();
         expect(snapshotComponent).toMatchSnapshot();
     });
 
     describe('Content switcher', () => {
         beforeEach(() => {
-            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction} />);
+            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />);
         });
 
         it('shows the manual input by default', () => {
@@ -218,14 +222,14 @@ describe('TransactionInputContainer component', () => {
                 switchComponent = component.find(`[data-testid="${dataId}"]`).at(1);
                 switchComponent.prop('onKeyDown')({ key: 'Enter' });
                 component = component.update();
-                expect(component.matchesElement(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction} />)).toEqual(true);
+                expect(component.matchesElement(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />)).toEqual(true);
             });
         });
     });
 
     describe('Manual input', () => {
         beforeEach(() => {
-            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction}/>);
+            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction}/>);
         });
 
         it('updates the dropdown when the transaction is chosen', () => {
@@ -304,7 +308,7 @@ describe('TransactionInputContainer component', () => {
         it('sets the activeTransaction to the preselectedTransaction prop when it is passed in', () => {
             const selectedTransaction: ITransaction = greenContract.transactions[0];
             // Use a different component as we need to pass in the preselectedTransaction
-            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={selectedTransaction} />);
+            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={selectedTransaction} />);
             const dropdown: any = component.find(transactionNameSelector);
             const manualInput: any = component.find(TransactionManualInput);
             const manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
@@ -680,7 +684,7 @@ describe('TransactionInputContainer component', () => {
 
         describe('Without associatedTxdata', () => {
             beforeEach(() => {
-                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={undefined} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction}/>);
+                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={{}} preselectedTransaction={preselectedTransaction}/>);
                 component = toggleContentSwitcher(component);
             });
 
@@ -721,7 +725,7 @@ describe('TransactionInputContainer component', () => {
 
         describe('With associatedTxdata', () => {
             beforeEach(() => {
-                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction} />);
+                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />);
                 component = toggleContentSwitcher(component);
             });
 
@@ -875,7 +879,7 @@ describe('TransactionInputContainer component', () => {
 
     describe('Manual input for contracts with no metadata', () => {
         beforeEach(() => {
-            component = mount(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} txdataTransactions={txdataTransactions} preselectedTransaction={preselectedTransaction}/>);
+            component = mount(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction}/>);
         });
 
         it('updates when the user types a transaction name in the inputText', () => {

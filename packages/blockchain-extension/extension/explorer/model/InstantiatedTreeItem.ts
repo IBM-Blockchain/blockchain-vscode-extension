@@ -26,6 +26,7 @@ export abstract class InstantiatedTreeItem extends BlockchainTreeItem {
         light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'smart-contract.svg'),
         dark: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'dark', 'smart-contract.svg')
     };
+    instantiatedChaincode: { name: string, version: string };
 
     constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly channels: ChannelTreeItem[], public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly contracts?: string[], public readonly showIcon?: boolean) {
         super(provider, `${name}@${version}`, collapsibleState);

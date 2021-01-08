@@ -322,7 +322,12 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     private async createTransactionsChaincodeTree(contractTreeElement: ContractTreeItem): Promise<Array<TransactionTreeItem>> {
         const tree: Array<TransactionTreeItem> = [];
         contractTreeElement.transactions.forEach((transaction: string) => {
-            tree.push(new TransactionTreeItem(this, transaction, contractTreeElement.instantiatedChaincode.name, contractTreeElement.instantiatedChaincode.channels[0].label, contractTreeElement.name));
+            const command: vscode.Command = {
+                command: ExtensionCommands.OPEN_TRANSACTION_PAGE,
+                title: '',
+                arguments: [contractTreeElement, transaction]
+            };
+            tree.push(new TransactionTreeItem(this, transaction, contractTreeElement.instantiatedChaincode.name, contractTreeElement.instantiatedChaincode.channels[0].label, contractTreeElement.name, command));
         });
 
         return tree;

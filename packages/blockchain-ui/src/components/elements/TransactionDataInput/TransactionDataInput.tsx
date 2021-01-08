@@ -9,9 +9,8 @@ import IAssociatedTxdata from '../../../interfaces/IAssociatedTxdata';
 import IDataFileTransaction from '../../../interfaces/IDataFileTransaction';
 
 interface IProps {
-    smartContract: ISmartContract;
-    associatedTxdata: IAssociatedTxdata | undefined;
-    txdataTransactions: IDataFileTransaction[];
+    smartContract: ISmartContract | undefined;
+    associatedTxdata: IAssociatedTxdata;
     selectedTransaction: IDataFileTransaction;
     updateTransaction: Dispatch<SetStateAction<IDataFileTransaction>>;
 }
@@ -25,10 +24,11 @@ const displayTransactionInDropdown: any = ({ transactionName, transactionLabel, 
     return `${transactionName} ${filename}`;
 };
 
-const TransactionDataInput: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, txdataTransactions, selectedTransaction, updateTransaction }) => {
+const TransactionDataInput: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, selectedTransaction, updateTransaction }) => {
 
     const addOrRemoveTransactionDirectory: any = (associate: boolean): void => {
-        const { label, name, channel } = smartContract;
+        // The inputs should be disabled so the smartContract should not be undefined
+        const { label, name, channel } = smartContract as ISmartContract;
         const command: string = associate ? ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY : ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY;
         const data: { label: string, name: string, channel: string } = { label, name, channel };
         Utils.postToVSCode({ command, data });
@@ -38,20 +38,17 @@ const TransactionDataInput: FunctionComponent<IProps> = ({ smartContract, associ
         }
     };
 
-    const updateSelectedTransaction: any = ({ selectedItem }: { selectedItem: IDataFileTransaction }): void => {
-        updateTransaction(selectedItem);
-    };
-
     const displayChooseOption: IDataFileTransaction = { transactionName: 'Select the transaction name', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} };
+    const activeAssociatedTxData: { channelName: string, transactionDataPath: string, transactions: IDataFileTransaction[] } | undefined = smartContract && associatedTxdata && associatedTxdata[smartContract.name];
     return (
         <>
             <div className='associate-tx-data'>
                 <h6>Select transaction directory</h6>
                 <p>Not sure how to get started? Find out more information <a href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/wiki/Common-tasks-and-how-to-complete-them#using-transaction-data-files-to-submit-a-transaction'>here</a></p>
-                {associatedTxdata
+                {smartContract && activeAssociatedTxData
                     ? (
                         <FileUploaderItem
-                            name={associatedTxdata.transactionDataPath}
+                            name={activeAssociatedTxData.transactionDataPath}
                             status='edit'
                             onDelete={() => addOrRemoveTransactionDirectory(false)}
                         />
@@ -60,6 +57,7 @@ const TransactionDataInput: FunctionComponent<IProps> = ({ smartContract, associ
                             size='default'
                             data-testid='select-tx-data-dir'
                             onClick={() => addOrRemoveTransactionDirectory(true)}
+                            disabled={!smartContract}
                         >
                             Add directory
                         </Button>
@@ -70,14 +68,14 @@ const TransactionDataInput: FunctionComponent<IProps> = ({ smartContract, associ
                 ariaLabel='dropdown'
                 id='transaction-data-select'
                 invalidText='A valid value is required'
-                items={associatedTxdata ? txdataTransactions : []}
+                items={activeAssociatedTxData ? activeAssociatedTxData.transactions : []}
                 itemToString={displayTransactionInDropdown}
                 label='Select the transaction name'
                 titleText='Transaction label'
                 type='default'
                 selectedItem={associatedTxdata && selectedTransaction.transactionName ? selectedTransaction : displayChooseOption}
-                onChange={updateSelectedTransaction}
-                disabled={!associatedTxdata}
+                onChange={({ selectedItem }) => updateTransaction(selectedItem as IDataFileTransaction)}
+                disabled={!activeAssociatedTxData || !activeAssociatedTxData.transactions || !smartContract}
             />
         </>
     );

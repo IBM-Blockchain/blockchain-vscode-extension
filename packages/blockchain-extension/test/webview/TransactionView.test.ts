@@ -25,27 +25,30 @@ import { View } from '../../extension/webview/View';
 import { TestUtil } from '../TestUtil';
 import { GlobalState } from '../../extension/util/GlobalState';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import IAssociatedTxData from '../../extension/interfaces/IAssociatedTxData';
+import ITxDataFile from '../../extension/interfaces/ITxDataFile';
 type ITransaction = any;
 type ISmartContract = any;
 chai.use(sinonChai);
 
 const should: Chai.Should = chai.should();
 
+interface IAppState {
+    gatewayName: string;
+    smartContracts: ISmartContract[];
+    associatedTxdata: IAssociatedTxData;
+    preselectedSmartContract: ISmartContract;
+    preselectedTransaction: ITransaction;
+}
+
 interface ICreateTransactionViewAndSendMessageParams {
     mySandBox: sinon.SinonSandbox;
     createWebviewPanelStub: sinon.SinonStub;
     postMessageStub: sinon.SinonStub;
     context: vscode.ExtensionContext;
-    mockAppState: { gatewayName: string, smartContract: ISmartContract, associatedTxdata?: {chaincodeName: string, channelName: string, transactionDataPath: string} };
+    mockAppState: IAppState;
     command: string | undefined;
     data: object | undefined;
-}
-
-interface ITransactionData {
-    transactionName: string;
-    transactionLabel?: string;
-    arguments: string[];
-    transientData: any;
 }
 
 async function createTransactionViewAndSendMessage({ mySandBox, createWebviewPanelStub, postMessageStub, context, mockAppState, command, data }: ICreateTransactionViewAndSendMessageParams): Promise<any> {
@@ -122,9 +125,12 @@ describe('TransactionView', () => {
         namespace: 'GreenContract'
     };
 
-    const mockAppState: {gatewayName: string, smartContract: ISmartContract} = {
+    const mockAppState: IAppState = {
         gatewayName: 'my gateway',
-        smartContract: greenContract
+        smartContracts: [greenContract],
+        preselectedSmartContract: greenContract,
+        preselectedTransaction: undefined,
+        associatedTxdata: {},
     };
 
     const transactionObject: any = {
@@ -153,9 +159,9 @@ describe('TransactionView', () => {
         transactionDataPath: dummyPath,
     };
 
-    const dummyTxdataFileContents: ITransactionData[] = [
-        {transactionName: 'myTransaction', transactionLabel: 'This is my transaction', arguments: ['arg1', 'arg2'], transientData: {} },
-        {transactionName: 'anotherTransaction', transactionLabel: 'This is another transaction', arguments: [JSON.stringify({ key: 'value' })], transientData: undefined },
+    const dummyTxdataFileContents: ITxDataFile[] = [
+        {transactionName: 'myTransaction', transactionLabel: 'This is my transaction', arguments: ['arg1', 'arg2'], transientData: {}, txDataFile: '' },
+        {transactionName: 'anotherTransaction', transactionLabel: 'This is another transaction', arguments: [JSON.stringify({ key: 'value' })], transientData: undefined, txDataFile: '' },
     ];
 
     before(async () => {
@@ -252,21 +258,26 @@ describe('TransactionView', () => {
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
         const txDataFile: string = path.join(dummyPath, dummyTxdataFile);
-        const expectedParameters: any = {
+        const expectedParameters: { transactionViewData: IAppState } = {
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: mockAppState.smartContract,
-                associatedTxdata: associateTransactionDataDirectoryResponse,
-                txdataTransactions: [
-                    {
-                        ...dummyTxdataFileContents[0],
-                        txDataFile,
-                    },
-                    {
-                        ...dummyTxdataFileContents[1],
-                        txDataFile,
+                smartContracts: mockAppState.smartContracts,
+                preselectedSmartContract: mockAppState.preselectedSmartContract,
+                preselectedTransaction: undefined,
+                associatedTxdata: {
+                    [associateTransactionDataDirectoryResponse.chaincodeName]: {
+                        channelName: associateTransactionDataDirectoryResponse.channelName,
+                        transactionDataPath: associateTransactionDataDirectoryResponse.transactionDataPath,
+                        transactions: [{
+                            ...dummyTxdataFileContents[0],
+                            txDataFile,
+                        },
+                        {
+                            ...dummyTxdataFileContents[1],
+                            txDataFile,
+                        }],
                     }
-                ],
+                },
             },
         };
         postMessageStub.should.have.been.calledWith(expectedParameters);
@@ -281,14 +292,22 @@ describe('TransactionView', () => {
         });
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
-        postMessageStub.should.have.been.calledWith({
+        const expectedParameters: { transactionViewData: IAppState } = {
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: mockAppState.smartContract,
-                associatedTxdata: associateTransactionDataDirectoryResponse,
-                txdataTransactions: [],
+                smartContracts: mockAppState.smartContracts,
+                preselectedSmartContract: mockAppState.preselectedSmartContract,
+                preselectedTransaction: undefined,
+                associatedTxdata: {
+                    [associateTransactionDataDirectoryResponse.chaincodeName]: {
+                        channelName: associateTransactionDataDirectoryResponse.channelName,
+                        transactionDataPath: associateTransactionDataDirectoryResponse.transactionDataPath,
+                        transactions: [],
+                    }
+                },
             },
-        });
+        };
+        postMessageStub.should.have.been.calledWith(expectedParameters);
     });
 
     it(`should handle an 'ASSOCIATE_TRANSACTION_DATA_DIRECTORY' message when no .txdata files are found in the transaction directory`, async () => {
@@ -300,14 +319,22 @@ describe('TransactionView', () => {
         });
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.ASSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
-        postMessageStub.should.have.been.calledWith({
+        const expectedParameters: { transactionViewData: IAppState } = {
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: mockAppState.smartContract,
-                associatedTxdata: associateTransactionDataDirectoryResponse,
-                txdataTransactions: [],
+                smartContracts: mockAppState.smartContracts,
+                preselectedSmartContract: mockAppState.preselectedSmartContract,
+                preselectedTransaction: undefined,
+                associatedTxdata: {
+                    [associateTransactionDataDirectoryResponse.chaincodeName]: {
+                        channelName: associateTransactionDataDirectoryResponse.channelName,
+                        transactionDataPath: associateTransactionDataDirectoryResponse.transactionDataPath,
+                        transactions: [],
+                    }
+                },
             },
-        });
+        };
+        postMessageStub.should.have.been.calledWith(expectedParameters);
     });
 
     it(`should handle an 'DISSOCIATE_TRANSACTION_DATA_DIRECTORY' message and calls postMessage with no associatedTxData`, async () => {
@@ -318,14 +345,16 @@ describe('TransactionView', () => {
         });
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISSOCIATE_TRANSACTION_DATA_DIRECTORY, undefined, chaincodeDetails);
-        postMessageStub.should.have.been.calledWith({
+        const expectedParameters: { transactionViewData: IAppState } = {
             transactionViewData: {
                 gatewayName: mockAppState.gatewayName,
-                smartContract: mockAppState.smartContract,
-                associatedTxdata: undefined,
-                txdataTransactions: [],
+                smartContracts: mockAppState.smartContracts,
+                preselectedSmartContract: mockAppState.preselectedSmartContract,
+                preselectedTransaction: undefined,
+                associatedTxdata: {},
             },
-        });
+        };
+        postMessageStub.should.have.been.calledWith(expectedParameters);
     });
 
     it(`should handle an unexpected command and pass through the parameters`, async () => {
@@ -355,31 +384,49 @@ describe('TransactionView', () => {
             onDidDispose: mySandBox.stub(),
             onDidChangeViewState: mySandBox.stub()
         });
+        const txDataFile: string = path.join(dummyPath, dummyTxdataFile);
         const transactionCreateView: TransactionView = new TransactionView(context, {
             ...mockAppState,
-            associatedTxdata: associateTransactionDataDirectoryResponse,
-        });
-        await transactionCreateView.openView(false);
-        const txDataFile: string = path.join(dummyPath, dummyTxdataFile);
-        const expectedParameters: any = {
-            path: '/transaction',
-            transactionViewData: {
-                associatedTxdata: associateTransactionDataDirectoryResponse,
-                gatewayName: mockAppState.gatewayName,
-                smartContract: greenContract,
-                txdataTransactions: [
-                    {
+            associatedTxdata: {
+                [associateTransactionDataDirectoryResponse.chaincodeName]: {
+                    channelName: associateTransactionDataDirectoryResponse.channelName,
+                    transactionDataPath: associateTransactionDataDirectoryResponse.transactionDataPath,
+                    transactions: [{
                         ...dummyTxdataFileContents[0],
                         txDataFile,
                     },
                     {
                         ...dummyTxdataFileContents[1],
                         txDataFile,
+                    }],
+                }
+            },
+        });
+        await transactionCreateView.openView(false);
+
+        const expectedParameters: { path: string, transactionViewData: IAppState } = {
+            path: '/transaction',
+            transactionViewData: {
+                gatewayName: mockAppState.gatewayName,
+                smartContracts: mockAppState.smartContracts,
+                preselectedSmartContract: mockAppState.preselectedSmartContract,
+                preselectedTransaction: undefined,
+                associatedTxdata: {
+                    [associateTransactionDataDirectoryResponse.chaincodeName]: {
+                        channelName: associateTransactionDataDirectoryResponse.channelName,
+                        transactionDataPath: associateTransactionDataDirectoryResponse.transactionDataPath,
+                        transactions: [{
+                            ...dummyTxdataFileContents[0],
+                            txDataFile,
+                        },
+                        {
+                            ...dummyTxdataFileContents[1],
+                            txDataFile,
+                        }],
                     }
-                ],
+                },
             },
         };
-
         postMessageStub.should.have.been.calledWith(expectedParameters);
     });
 
@@ -406,10 +453,10 @@ describe('TransactionView', () => {
         });
 
         const updatedContract: ISmartContract = { ...greenContract, name: 'updatedContract' };
-        await TransactionView.updateSmartContract(updatedContract);
+        await TransactionView.updateSmartContracts([updatedContract]);
         postMessageStub.should.have.been.calledWith({
             path: '/transaction',
-            transactionViewData: { ...mockAppState, smartContract: updatedContract },
+            transactionViewData: { ...mockAppState, smartContracts: [updatedContract] },
         });
     });
 
@@ -482,12 +529,12 @@ describe('TransactionView', () => {
         });
 
         const updatedContract: ISmartContract = { ...greenContract, name: 'updatedContract' };
-        const newTransactionView: TransactionView = new TransactionView(context, { ...mockAppState, smartContract: updatedContract });
+        const newTransactionView: TransactionView = new TransactionView(context, { ...mockAppState, smartContracts: [updatedContract] });
         await newTransactionView.openView(false);
         createWebviewPanelStub.should.have.been.called;
         postMessageStub.should.have.been.calledWith({
             path: '/transaction',
-            transactionViewData: { ...mockAppState, smartContract: updatedContract },
+            transactionViewData: { ...mockAppState, smartContracts: [updatedContract] },
         });
     });
 });

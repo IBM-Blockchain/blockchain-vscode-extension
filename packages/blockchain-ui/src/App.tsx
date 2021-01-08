@@ -4,30 +4,13 @@ import { HashRouter as Router, Route, Redirect } from 'react-router-dom';
 import HomePage from './components/pages/HomePage/HomePage';
 import TutorialGalleryPage from './components/pages/TutorialGalleryPage/TutorialGalleryPage';
 import TutorialPage from './components/pages/TutorialSinglePage/TutorialSinglePage';
-import ITutorialObject from './interfaces/ITutorialObject';
 import DeployPage from './components/pages/DeployPage/DeployPage';
-import IPackageRegistryEntry from './interfaces/IPackageRegistryEntry';
 import Fabric2Page from './components/pages/Fabric2Page/Fabric2Page';
 import TransactionPage from './components/pages/TransactionPage/TransactionPage';
-import ISmartContract from './interfaces/ISmartContract';
-import IAssociatedTxdata from './interfaces/IAssociatedTxdata';
-import IDataFileTransaction from './interfaces/IDataFileTransaction';
-import ITransaction from './interfaces/ITransaction';
-import IRepositoryObject from './interfaces/IRepositoryObject';
 import SampleGalleryPage from './components/pages/SampleGalleryPage/SampleGalleryPage';
+import IAppState from './interfaces/IAppState';
 
-interface AppState {
-    redirectPath: string;
-    extensionVersion: string;
-    deployData: { channelName: string, hasV1Capabilities: boolean, environmentName: string, packageEntries: IPackageRegistryEntry[], workspaceNames: string[], selectedPackage: IPackageRegistryEntry | undefined, selectedWorkspace: string | undefined, chosenWorkspaceData: { language: string, name: string, version: string }, committedDefinitions: string[], environmentPeers: string[], discoveredPeers: string[], orgMap: any, orgApprovals: any };
-    tutorialData: Array<{ name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string }>;
-    repositoryData: {repositories: IRepositoryObject[]};
-    activeTutorial: ITutorialObject;
-    transactionViewData: {gatewayName: string, smartContract: ISmartContract, associatedTxdata: IAssociatedTxdata | undefined, txdataTransactions: IDataFileTransaction[], preselectedTransaction: ITransaction };
-    transactionOutput: string;
-}
-
-class App extends Component<{}, AppState> {
+class App extends Component<{}, IAppState> {
     constructor(props: {}) {
         super(props);
         this.state = {
@@ -37,7 +20,12 @@ class App extends Component<{}, AppState> {
             repositoryData: {repositories: []},
             activeTutorial: { title: '', series: '', length: '', file: '', objectives: [] },
             deployData: { channelName: '', hasV1Capabilities: false, environmentName: '', packageEntries: [], workspaceNames: [], selectedPackage: undefined, selectedWorkspace: undefined, chosenWorkspaceData: { language: '', name: '', version: '' }, committedDefinitions: [], environmentPeers: [], discoveredPeers: [], orgMap: {}, orgApprovals: {} },
-            transactionViewData: {gatewayName: '', smartContract: {name: '', version: '', channel: '', label: '', transactions: [], namespace: '', peerNames: [] }, associatedTxdata: undefined, txdataTransactions: [], preselectedTransaction: { name: '', parameters: [], tag: [], returns: { type: '' } } },
+            transactionViewData: {
+                gatewayName: '',
+                smartContracts: [],
+                preselectedSmartContract: { name: '', version: '', channel: '', label: '', transactions: [], namespace: '', contractName: '', peerNames: [] },
+                associatedTxdata: {},
+                preselectedTransaction: { name: '', parameters: [], tag: [], returns: { type: '' } } },
             transactionOutput: ''
         };
     }

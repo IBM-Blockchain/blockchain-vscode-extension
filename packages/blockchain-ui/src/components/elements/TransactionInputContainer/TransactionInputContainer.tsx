@@ -13,9 +13,8 @@ import ITransaction from '../../../interfaces/ITransaction';
 import './TransactionInputContainer.scss';
 
 interface IProps {
-    smartContract: ISmartContract;
-    associatedTxdata: IAssociatedTxdata | undefined;
-    txdataTransactions: IDataFileTransaction[];
+    smartContract: ISmartContract | undefined;
+    associatedTxdata: IAssociatedTxdata;
     preselectedTransaction: ITransaction;
 }
 
@@ -66,13 +65,12 @@ const getArgsFromTransactionAndConvertToJSON: any = (transaction: ITransaction, 
     return '[]';
 };
 
-const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, txdataTransactions, preselectedTransaction }) => {
-    const { peerNames } = smartContract;
-    const [smartContractName, setNewSmartContractName] = useState(smartContract.name);
+const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, associatedTxdata, preselectedTransaction }) => {
+    const [smartContractName, setNewSmartContractName] = useState(smartContract ? smartContract.name : '');
     const [currentPreselectedTransaction, setCurrentPreselectedTransaction] = useState(preselectedTransaction);
 
     const [isManual, setIsManual] = useState(true);
-    const [peerTargetNames, setPeerTargetNames] = useState(peerNames);
+    const [peerTargetNames, setPeerTargetNames] = useState(smartContract ? smartContract.peerNames : []);
 
     const [manualInputState, updateManualInputState] = useState<ITransactionManualInput>({
         activeTransaction: preselectedTransaction || emptyTransaction,
@@ -96,18 +94,21 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
 
     useEffect(() => {
         const { activeTransaction } = manualInputState;
-        if (smartContract.namespace !== undefined && activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
+        if (smartContract && smartContract.namespace !== undefined && activeTransaction && activeTransaction.name !== '' && !activeTransactionExists(smartContract, activeTransaction)) {
             // if the smartContract is changed/updated, only persist the activeTransaction if it still exists
             setManualActiveTransaction(emptyTransaction);
         }
     }, [smartContract, manualInputState, setManualActiveTransaction]);
 
     useEffect(() => {
-        const smartContractChanged: boolean = smartContract.name !== smartContractName;
+        const smartContractChanged: boolean = !smartContract || smartContract.name !== smartContractName;
         if (smartContractChanged) {
-            setNewSmartContractName(smartContract.name);
+            setNewSmartContractName(smartContract ? smartContract.name : '');
+
+            // If smart contract is changed, clear the data input transaction no matter if it exists or not
+            updateDataInputTransaction({ transactionName: '', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} });
         }
-    }, [smartContract, smartContractName]);
+    }, [smartContract, smartContractName, updateDataInputTransaction]);
 
     useEffect(() => {
         // If the preselectedTransaction is changed, update the activeTransaction
@@ -123,9 +124,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     }, [preselectedTransaction, currentPreselectedTransaction, setManualActiveTransaction]);
 
     const submitTransaction: any = (evaluate: boolean): void => {
-
         const command: string = evaluate ? ExtensionCommands.EVALUATE_TRANSACTION : ExtensionCommands.SUBMIT_TRANSACTION;
-        const { channel: channelName, namespace } = smartContract;
 
         const args: Array<string> = isManual ? convertJSONToArgs(manualInputState.transactionArguments) : dataInputTransaction.arguments;
 
@@ -133,8 +132,8 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
             evaluate,
             peerTargetNames,
             smartContract: smartContractName,
-            channelName,
-            namespace,
+            channelName: smartContract && smartContract.channel,
+            namespace: smartContract && smartContract.namespace,
             transactionName: isManual ? manualInputState.activeTransaction.name : dataInputTransaction.transactionName,
             args,
             transientData: isManual ? manualInputState.transientData : dataInputTransaction.transientData,
@@ -159,7 +158,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
 
     const shouldDisableManual: boolean = !manualInputState.activeTransaction.name || !transactionArgumentsAreValid;
     const shouldDisableDataFile: boolean = dataInputTransaction.transactionName === '';
-    const shouldDisableButtons: boolean = (isManual ? shouldDisableManual : shouldDisableDataFile) || peerTargetNames.length === 0;
+    const shouldDisableButtons: boolean = (isManual && shouldDisableManual) || (!isManual && shouldDisableDataFile) || (peerTargetNames && peerTargetNames.length === 0);
 
     // tslint:disable-next-line: no-console
     const ignoreEvent: any = (e: any) => console.log('event ignored', e);
@@ -184,7 +183,6 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
                         <TransactionDataInput
                             smartContract={smartContract}
                             associatedTxdata={associatedTxdata}
-                            txdataTransactions={txdataTransactions}
                             selectedTransaction={dataInputTransaction}
                             updateTransaction={updateDataInputTransaction}
                         />
@@ -193,10 +191,11 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
                 <MultiSelect
                     id='peer-select'
                     initialSelectedItems={formatPeersForMultiSelect(peerTargetNames)}
-                    items={formatPeersForMultiSelect(smartContract.peerNames)}
+                    items={smartContract && formatPeersForMultiSelect(smartContract.peerNames)}
                     label='Select peers'
                     onChange={updateCustomPeers}
                     titleText={'Target specific peer (optional)'}
+                    disabled={!smartContract}
                 />
                 <TransactionSubmitButtons
                     shouldDisableButtons={shouldDisableButtons}
