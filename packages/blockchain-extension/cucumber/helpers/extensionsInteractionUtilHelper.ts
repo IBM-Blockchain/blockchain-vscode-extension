@@ -24,6 +24,7 @@ export class ExtensionsInteractionUtilHelper {
     cloudAccountGetAccessTokenStub: sinon.SinonStub;
     cloudAccountIsLoggedInStub: sinon.SinonStub;
     cloudAccountHasSelectedAccountStub: sinon.SinonStub;
+    cloudAccountGetIbpResourcesStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -31,6 +32,7 @@ export class ExtensionsInteractionUtilHelper {
         this.cloudAccountGetAccessTokenStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetAccessToken').callsFake(this.getTokenDirectly);
         this.cloudAccountIsLoggedInStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').callsFake(this.resolveFalse);
         this.cloudAccountHasSelectedAccountStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').callsFake(this.resolveFalse);
+        this.cloudAccountGetIbpResourcesStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetIbpResources').callThrough();
     }
 
     private async resolveFalse(): Promise<boolean> {
