@@ -171,9 +171,12 @@ describe('TransactionInputContainer component', () => {
         tag: [],
     };
 
+    let setTransactionSubmittedStub: (setSubmitted: boolean) => void;
+
     beforeEach(async () => {
         mySandbox = sinon.createSandbox();
         postToVSCodeStub = mySandbox.stub(Utils, 'postToVSCode');
+        setTransactionSubmittedStub = sinon.stub();
     });
 
     afterEach(async () => {
@@ -182,21 +185,21 @@ describe('TransactionInputContainer component', () => {
 
     it('should render the expected snapshot', () => {
         const snapshotComponent: any = renderer
-            .create(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />)
+            .create(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub} />)
             .toJSON();
         expect(snapshotComponent).toMatchSnapshot();
     });
 
     it('should render the expected snapshot - contract with no Metadata', () => {
         const snapshotComponent: any = renderer
-            .create(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />)
+            .create(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub} />)
             .toJSON();
         expect(snapshotComponent).toMatchSnapshot();
     });
 
     describe('Content switcher', () => {
         beforeEach(() => {
-            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />);
+            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub} />);
         });
 
         it('shows the manual input by default', () => {
@@ -222,14 +225,14 @@ describe('TransactionInputContainer component', () => {
                 switchComponent = component.find(`[data-testid="${dataId}"]`).at(1);
                 switchComponent.prop('onKeyDown')({ key: 'Enter' });
                 component = component.update();
-                expect(component.matchesElement(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />)).toEqual(true);
+                expect(component.matchesElement(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub}/>)).toEqual(true);
             });
         });
     });
 
     describe('Manual input', () => {
         beforeEach(() => {
-            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction}/>);
+            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub}/>);
         });
 
         it('updates the dropdown when the transaction is chosen', () => {
@@ -308,7 +311,7 @@ describe('TransactionInputContainer component', () => {
         it('sets the activeTransaction to the preselectedTransaction prop when it is passed in', () => {
             const selectedTransaction: ITransaction = greenContract.transactions[0];
             // Use a different component as we need to pass in the preselectedTransaction
-            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={selectedTransaction} />);
+            component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={selectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub}/>);
             const dropdown: any = component.find(transactionNameSelector);
             const manualInput: any = component.find(TransactionManualInput);
             const manualInputState: ITransactionManualInput = manualInput.prop('manualInputState');
@@ -416,6 +419,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to evaluate a transaction when the evaluate button is clicked', () => {
@@ -436,6 +440,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to submit a transaction with no parameters', () => {
@@ -457,6 +462,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to submit a transaction with transient data when the submit button is clicked ', () => {
@@ -477,6 +483,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to evaluate a transaction with transient data when the evaluate button is clicked', () => {
@@ -497,6 +504,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to submit a transaction with custom peers when the submit button is clicked', () => {
@@ -522,6 +530,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to evaluate a transaction with custom peers when the evaluate button is clicked', () => {
@@ -547,18 +556,23 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should not submit if no transaction has been selected as the submit button is disabled', () => {
             component = updateManualInputValues(component, undefined, '{"key": "Green"}', '{"some": "data"}');
             component.find('#submit-button').at(1).simulate('click');
             postToVSCodeStub.should.not.have.been.called;
+            setTransactionSubmittedStub.should.not.have.been.calledOnce;
+
         });
 
         it('should not submit if no transaction has been selected as the evaluate button is disabled', () => {
             component = updateManualInputValues(component, undefined, '{"key": "Green"}', '{"some": "data"}');
             component.find('#evaluate-button').at(1).simulate('click');
             postToVSCodeStub.should.not.have.been.called;
+            setTransactionSubmittedStub.should.not.have.been.calledOnce;
+
         });
 
         it('should clear the activeTransaction if a new/updated smartContract is supplied and the activeTransaction no longer exists', () => {
@@ -684,7 +698,7 @@ describe('TransactionInputContainer component', () => {
 
         describe('Without associatedTxdata', () => {
             beforeEach(() => {
-                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={{}} preselectedTransaction={preselectedTransaction}/>);
+                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={{}} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub} />);
                 component = toggleContentSwitcher(component);
             });
 
@@ -715,17 +729,19 @@ describe('TransactionInputContainer component', () => {
             it('should not submit if no directory is associated as the submit button is disabled', () => {
                 component.find('#submit-button').at(1).simulate('click');
                 postToVSCodeStub.should.not.have.been.called;
+                setTransactionSubmittedStub.should.not.have.been.calledOnce;
             });
 
             it('should not submit if no directory is associated as the evaluate button is disabled', () => {
                 component.find('#evaluate-button').at(1).simulate('click');
                 postToVSCodeStub.should.not.have.been.called;
+                setTransactionSubmittedStub.should.not.have.been.calledOnce;
             });
         });
 
         describe('With associatedTxdata', () => {
             beforeEach(() => {
-                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} />);
+                component = mount(<TransactionInputContainer smartContract={greenContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub}/>);
                 component = toggleContentSwitcher(component);
             });
 
@@ -792,6 +808,7 @@ describe('TransactionInputContainer component', () => {
                         txDataFile: 'transactionData.txdata',
                     }
                 });
+                setTransactionSubmittedStub.should.have.been.calledOnce;
             });
 
             it('should attempt to evaluate a transaction when the submit button is clicked ', () => {
@@ -813,6 +830,7 @@ describe('TransactionInputContainer component', () => {
                         txDataFile: 'transactionData.txdata',
                     }
                 });
+                setTransactionSubmittedStub.should.have.been.calledOnce;
             });
 
             it('should attempt to submit a transaction with custom peers when the submit button is clicked', () => {
@@ -838,6 +856,7 @@ describe('TransactionInputContainer component', () => {
                         txDataFile: 'transactionData.txdata',
                     }
                 });
+                setTransactionSubmittedStub.should.have.been.calledOnce;
             });
 
             it('should attempt to submit a transaction with custom peers when the evaluate button is clicked', () => {
@@ -863,23 +882,26 @@ describe('TransactionInputContainer component', () => {
                         txDataFile: 'transactionData.txdata',
                     }
                 });
+                setTransactionSubmittedStub.should.have.been.calledOnce;
             });
 
             it('should not submit if no transaction has been selected as the submit button is disabled', () => {
                 component.find('#submit-button').at(1).simulate('click');
                 postToVSCodeStub.should.not.have.been.called;
+                setTransactionSubmittedStub.should.not.have.been.calledOnce;
             });
 
             it('should not submit if no transaction has been selected as the evaluate button is disabled', () => {
                 component.find('#evaluate-button').at(1).simulate('click');
                 postToVSCodeStub.should.not.have.been.called;
+                setTransactionSubmittedStub.should.not.have.been.calledOnce;
             });
         });
     });
 
     describe('Manual input for contracts with no metadata', () => {
         beforeEach(() => {
-            component = mount(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction}/>);
+            component = mount(<TransactionInputContainer smartContract={purpleContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub}/>);
         });
 
         it('updates when the user types a transaction name in the inputText', () => {
@@ -957,6 +979,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to evaluate a transaction when the evaluate button is clicked', () => {
@@ -977,6 +1000,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to submit a transaction with transient data when the submit button is clicked ', () => {
@@ -997,6 +1021,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to evaluate a transaction with transient data when the evaluate button is clicked', () => {
@@ -1017,6 +1042,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to submit a transaction with custom peers when the submit button is clicked', () => {
@@ -1042,6 +1068,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should attempt to submit a transaction with custom peers when the evaluate button is clicked', () => {
@@ -1067,12 +1094,14 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('should not submit if no transaction name has been introduced as the submit button is disabled', () => {
             component = updateManualInputValues(component, undefined, '["Purple"]', '{"some": "data"}', false);
             component.find('#submit-button').at(1).simulate('click');
             postToVSCodeStub.should.not.have.been.called;
+            setTransactionSubmittedStub.should.not.have.been.calledOnce;
         });
 
         it('should not submit if no transaction name has been introduced as the evaluate button is disabled', () => {
@@ -1081,6 +1110,7 @@ describe('TransactionInputContainer component', () => {
             expect(submit.prop('disabled')).toBeTruthy();
             submit.simulate('click');
             postToVSCodeStub.should.not.have.been.called;
+            setTransactionSubmittedStub.should.not.have.been.calledOnce;
         });
 
         it('when a transaction is submitted, it correctly parses the textarea when it contains an array rather than a JSON object', () => {
@@ -1102,6 +1132,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('when a transaction is submitted, it correctly parses the textarea with extra whitespace', () => {
@@ -1126,6 +1157,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
 
         it('when a transaction is submitted, it correctly parses the textarea with an empty string as the only value', () => {
@@ -1147,6 +1179,7 @@ describe('TransactionInputContainer component', () => {
                     txDataFile: undefined,
                 }
             });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
         });
     });
 
