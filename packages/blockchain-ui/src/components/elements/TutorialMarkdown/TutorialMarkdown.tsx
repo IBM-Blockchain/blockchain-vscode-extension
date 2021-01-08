@@ -136,6 +136,14 @@ const transform: any = (node: any, index: any, tutorialDirectory: string, tutori
             return convertNodeToElement(node, index, transformWrapper);
         }
 
+        if (tag === 'table' && attribs) {
+            attribs.style = 'border: 1px solid white; border-collapse: collapse;';
+        }
+
+        if ((tag === 'th' || tag === 'td') && attribs) {
+            attribs.style = 'border: 1px solid white; padding: 4px;';
+        }
+
         if (tag === 'a' && attribs && attribs.href) {
             if (attribs.href.startsWith('mailto')) {
                 // demo-contract@0.0.2 comes through as a link, stop this
