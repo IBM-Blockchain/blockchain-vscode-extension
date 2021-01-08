@@ -67,7 +67,7 @@ class TutorialTile extends Component <IProps> {
                     {this.populateObjectives()}
                 </div>
                 <div className='button-container'>
-                    {this.props.tutorialObject.series === 'Basic tutorials' ?
+                    {this.props.tutorialObject.series === 'Basic tutorials' || this.props.tutorialObject.series === 'Joining a network' ?
                         <Button className='pdf-button' kind='ghost' size='default' onClick={this.savePDFHandler}>Download as PDF</Button> :
                         <></>
                     }

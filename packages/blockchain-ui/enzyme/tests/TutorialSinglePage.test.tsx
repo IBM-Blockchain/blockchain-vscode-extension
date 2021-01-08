@@ -36,6 +36,7 @@ describe('TutorialPage component', () => {
             '```typescript\nconst astring: string = "string"\n```',
             '```\ncode block without language\n```',
             '`single line codeblock`',
+            '<table><tr><td>Hello</td><td>World</td></tr></table>'
       ].join('\n'),
     };
 
