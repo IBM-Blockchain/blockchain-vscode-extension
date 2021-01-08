@@ -1,4 +1,5 @@
 import React, { FunctionComponent } from 'react';
+import { Loading } from 'carbon-components-react';
 import { Launch32 } from '@carbon/icons-react';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import CommandLink from '../CommandLink/CommandLink';
@@ -7,9 +8,10 @@ import block from '../../../resources/block.svg';
 
 interface IProps {
     output: string;
+    isLoading: boolean;
 }
 
-const TransactionOutput: FunctionComponent<IProps> = ({ output }) => {
+const TransactionOutput: FunctionComponent<IProps> = ({ output, isLoading }) => {
     return (
         <div className='output-panel' id='output-panel'>
             <p className='output-title'>Transaction output</p>
@@ -32,6 +34,7 @@ const TransactionOutput: FunctionComponent<IProps> = ({ output }) => {
                     )
                 }
             </div>
+            {isLoading && <Loading id='output-loading' description='Waiting for transaction output to be sent' withOverlay />}
         </div>
     );
 };

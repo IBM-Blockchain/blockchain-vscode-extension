@@ -25,6 +25,7 @@ interface IState {
     associatedTxdata: IAssociatedTxdata;
     transactionOutput: string;
     activeSmartContract: ISmartContract | undefined;
+    transactionSubmitted: boolean;
 }
 
 class TransactionPage extends Component<IProps, IState> {
@@ -39,6 +40,7 @@ class TransactionPage extends Component<IProps, IState> {
             preselectedSmartContract,
             // If only a single smartContract is given, force it to be active
             activeSmartContract: smartContracts.length === 1 ? smartContracts[0] : preselectedSmartContract,
+            transactionSubmitted: false,
         };
     }
 
@@ -83,6 +85,7 @@ class TransactionPage extends Component<IProps, IState> {
         }
 
         if (prevProps.transactionOutput !== transactionOutput) {
+            this.setTransactionSubmitted(false);
             this.setState({
                 transactionOutput,
             });
@@ -108,9 +111,15 @@ class TransactionPage extends Component<IProps, IState> {
         });
     }
 
+    setTransactionSubmitted(transactionSubmitted: boolean): void {
+        this.setState({
+            transactionSubmitted,
+        })
+    }
+
     render(): JSX.Element {
         const { preselectedTransaction } = this.props.transactionViewData;
-        const { gatewayName, smartContracts, associatedTxdata, transactionOutput, activeSmartContract } = this.state;
+        const { gatewayName, smartContracts, associatedTxdata, transactionOutput, activeSmartContract, transactionSubmitted } = this.state;
 
         const breadcrumb: Array<string> = this.createBreadcrumb(gatewayName, activeSmartContract, smartContracts && smartContracts.length > 1);
         return (
@@ -138,10 +147,11 @@ class TransactionPage extends Component<IProps, IState> {
                                     smartContract={activeSmartContract}
                                     associatedTxdata={associatedTxdata}
                                     preselectedTransaction={preselectedTransaction}
+                                    setTransactionSubmitted={(isSubmitted: boolean) => this.setTransactionSubmitted(isSubmitted)}
                                 />
                             </div>
                             <div className='bx--col-lg-10 bx--col-md-4 bx--col-sm-4'>
-                                <TransactionOutput output={transactionOutput} />
+                                <TransactionOutput output={transactionOutput} isLoading={transactionSubmitted} />
                             </div>
                         </div>
                     </div>
