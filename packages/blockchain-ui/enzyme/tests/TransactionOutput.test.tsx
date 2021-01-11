@@ -10,14 +10,14 @@ chai.use(sinonChai);
 describe('TransactionOutput component', () => {
     it('should render the expected snapshot', async () => {
         const component: any = renderer
-            .create(<TransactionOutput output='some output'/>)
+            .create(<TransactionOutput output='some output' isLoading={false} />)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
 
     it('should render the expected snapshot when no output is received', async () => {
         const component: any = renderer
-            .create(<TransactionOutput output=''/>)
+            .create(<TransactionOutput output='' isLoading={false} />)
             .toJSON();
         expect(component).toMatchSnapshot();
     });

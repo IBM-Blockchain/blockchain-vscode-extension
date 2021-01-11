@@ -11,6 +11,8 @@ import ITransaction from '../../src/interfaces/ITransaction';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 import IDataFileTransaction from '../../src/interfaces/IDataFileTransaction';
 import IAssociatedTxData from '../../src/interfaces/IAssociatedTxdata';
+import TransactionInputContainer from '../../src/components/elements/TransactionInputContainer/TransactionInputContainer';
+
 chai.should();
 chai.use(sinonChai);
 
@@ -237,6 +239,22 @@ describe('TransactionPage component', () => {
             transactionOutput: moreMockTransactionOutput
         });
         componentDidUpdateSpy.should.have.been.called;
+        component.state().transactionSubmitted.should.equal(false);
         component.state().transactionOutput.should.equal(moreMockTransactionOutput);
+    });
+
+    it('should show the loading spinner when setTransactionSubmitted is called with true', () => {
+        const loadingID = '#output-loading';
+        let component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+        component.state().transactionSubmitted.should.be.false;
+        expect(component.find(loadingID).exists()).toBeFalsy();
+
+        act(() => {
+            component.find(TransactionInputContainer).prop('setTransactionSubmitted')(true);
+        });
+        component = component.update();
+
+        component.state().transactionSubmitted.should.be.true;
+        expect(component.find(loadingID).exists()).toBeTruthy();
     });
 });
