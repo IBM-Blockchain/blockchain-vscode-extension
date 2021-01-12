@@ -149,78 +149,90 @@ export async function addEnvironment(): Promise<void> {
             }
         }
 
-        // Create environment
-        fabricEnvironmentEntry.name = environmentName;
-
+        // last user input required before adding environment
+        let fabricCapabilities: string;
         if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
-
-            const fabricCapabilities: string = await UserInputUtil.selectCapabilities('Select the channel capability version to use for the network');
+            fabricCapabilities = await UserInputUtil.selectCapabilities('Select the channel capability version to use for the network');
             if (!fabricCapabilities) {
                 return;
             }
+        }
 
-            await LocalMicroEnvironmentManager.instance().initialize(environmentName, configurationChosen, fabricCapabilities);
+        // Create environment
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Blockchain Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>): Promise<void> => {
+            progress.report({ message: `Adding ${environmentName} environment` });
 
-            const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
-            // Generate all nodes, gateways and wallets
-            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, environmentEntry);
+            fabricEnvironmentEntry.name = environmentName;
 
-            if (environmentName === FabricRuntimeUtil.LOCAL_FABRIC) {
-                // If the user has deleted their 1 Org Local Fabric and wants to recreate it, we need to set this flag to true.
-                // This means that after toggling the local functionality off and back on again, the 1 Org Local Fabric will recreate.
-                const extensionData: ExtensionData = GlobalState.get();
-                extensionData.deletedOneOrgLocalFabric = false;
-                await GlobalState.update(extensionData);
+            if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
+
+                await LocalMicroEnvironmentManager.instance().initialize(environmentName, configurationChosen, fabricCapabilities);
+
+                const environmentEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
+                // Generate all nodes, gateways and wallets
+                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC, environmentEntry);
+
+                if (environmentName === FabricRuntimeUtil.LOCAL_FABRIC) {
+                    // If the user has deleted their 1 Org Local Fabric and wants to recreate it, we need to set this flag to true.
+                    // This means that after toggling the local functionality off and back on again, the 1 Org Local Fabric will recreate.
+                    const extensionData: ExtensionData = GlobalState.get();
+                    extensionData.deletedOneOrgLocalFabric = false;
+                    await GlobalState.update(extensionData);
+                }
+
             }
 
-        }
-
-        if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
-            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-            const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
-            envDir = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, environmentName);
-            fabricEnvironmentEntry.environmentDirectory = envDir;
-        }
-
-        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
-            // We don't want to add an entry if creating from a template, as the initialize handles this.
-            await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
-        }
-
-        if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
-
-            let addedAllNodes: boolean;
-
-            if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
-                addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentEntry, true, createMethod);
-            } else {
-                addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, createMethod);
+            if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
+                const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+                const resolvedExtDir: string = FileSystemUtil.getDirPath(extDir);
+                envDir = path.join(resolvedExtDir, FileConfigurations.FABRIC_ENVIRONMENTS, environmentName);
+                fabricEnvironmentEntry.environmentDirectory = envDir;
             }
 
-            if (addedAllNodes === undefined) {
-                await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
-                // No need to try and delete from LocalMicroEnvironmentManager, as it can't be a LocalMicroEnvironment entry.
-                return;
-            } else if (addedAllNodes) {
-                const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
-                const nodes: FabricNode[] = await environment.getNodes();
-                if (nodes.length === 0) {
-                    outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);
+            if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE) {
+                // We don't want to add an entry if creating from a template, as the initialize handles this.
+                await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
+            }
+
+            if (createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_TEMPLATE && createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_MICROFAB) {
+
+                let addedAllNodes: boolean;
+
+                if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
+                    addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentEntry, true, createMethod);
                 } else {
-                    outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
+                    addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, createMethod);
+                }
+
+                if (addedAllNodes === undefined) {
+                    await fabricEnvironmentRegistry.delete(fabricEnvironmentEntry.name);
+                    // No need to try and delete from LocalMicroEnvironmentManager, as it can't be a LocalMicroEnvironment entry.
+                    return;
+                } else if (addedAllNodes) {
+                    const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentEntry);
+                    const nodes: FabricNode[] = await environment.getNodes();
+                    if (nodes.length === 0) {
+                        outputAdapter.log(LogType.SUCCESS, `Successfully added a new environment. No nodes included in current filters, click ${fabricEnvironmentEntry.name} to edit filters`);
+                    } else {
+                        outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
+                    }
+                } else {
+                    outputAdapter.log(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
                 }
             } else {
-                outputAdapter.log(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
+                outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
             }
-        } else {
-            outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
-        }
 
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
 
-        Reporter.instance().sendTelemetryEvent('addEnvironmentCommand');
+            Reporter.instance().sendTelemetryEvent('addEnvironmentCommand');
+        });
     } catch (error) {
 
         if (fabricEnvironmentEntry.name) {
