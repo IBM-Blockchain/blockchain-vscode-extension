@@ -32,22 +32,22 @@ Private Data Smart Contracts are available in TypeScript, Java and JavaScript, t
 
 > Commands can be executed from the Command Palette (`Ctrl+Shift+P` for Windows, `Cmd+Shift+P` for MacOS). For this extension, all commands start with `IBM Blockchain Platform:`. Throughout this tutorial, there will be side notes prompting you when an interaction can be done using the Command Palette.
 
-1. Navigate to the __IBM Blockchain Platform__ window by selecting the corresponding icon from the icon panel on the left.
+1. Navigate to the **IBM Blockchain Platform** window by selecting the corresponding icon from the icon panel on the left.
 
 2. Hover over the `SMART CONTRACTS` panel, click the `...` menu, and select the `Create New Project` option from the dropdown.
 
-    > Command Palette alternative: Create New Project
+   > Command Palette alternative: Create New Project
 
 3. As this is a tutorial on private data, we will be using the `Private Data Contract`, so select this option.
 
-4. Choose a smart contract language. As previously stated, this tutorial will use `TypeScript`, but feel free to choose `Java` or `JavaScript` if you would prefer to work with that.
+4. Choose a smart contract language. As previously stated, this tutorial will use `TypeScript`, but feel free to choose `Java`, `JavaScript` or `Go` if you would prefer to work with that.
 
 5. The next option is whether you would like to name your private asset in the generated contract. The default is `MyPrivateAsset`, but feel free to name your asset whatever you want. However, we recommend sticking with `MyPrivateAsset` for this tutorial.
 
-    > Pro Tip: If you decided to change the name of your asset, remember to swap `MyPrivateAsset` for your new name in future steps.
+   > Pro Tip: If you decided to change the name of your asset, remember to swap `MyPrivateAsset` for your new name in future steps.
 
 6. Choose a location to save the project. Click `Browse`, then
-`New Folder` and name the project what you want e.g. `privateContract`. Make sure you avoid using spaces when you name the folder.
+   `New Folder` and name the project what you want e.g. `privateContract`. Make sure you avoid using spaces when you name the folder.
 
 7. Click `Create`, select the new folder you created and click `Save`.
 
@@ -56,6 +56,7 @@ Private Data Smart Contracts are available in TypeScript, Java and JavaScript, t
 There will now be a skeleton contract in your desired language, containing your private asset. You can view your new contract by navigating to the Explorer view (the document looking icon in the left-hand icon bar), and opening `src/my-private-asset-contract.ts`.
 
 Congratulations, you've created a Private Data Smart Contract!
+
 </details>
 
 ---
@@ -86,15 +87,16 @@ The `verifyMyPrivateAsset` transaction can be used to verify if a given set of p
 
     @Transactions(false)
 
-    public async verifyMyPrivateAsset(ctx: Context, myPrivateAssetId:   string, objectToVerify: MyPrivateAsset): Promise<boolean>
+    public async verifyMyPrivateAsset(ctx: Context, mspid: string, myPrivateAssetId: string, objectToVerify: MyPrivateAsset): Promise<boolean>
 
-This transaction requires three arguments – `mspid`, `myPrivateAssetId` and the `objectToVerify` (made up of a key/value pair). The `mspid` is the ID of the organization that you want to verify against, for example if Bob wants to verify Alice's data then he would input Alice's MSPID. The `myPrivateAssetId` is simply the key that was used when saving the private data (supplied when passing in transient data) to the Private Data Collection. The object key and value will appear in the format `{"key":value"}`. For example, if Alice stores some private data `{"myPrivateValue":"50"}` in her Private Data Collection, identifiable by the MSPID `AliceOrg1MSP`, which only she has access to but wants to prove to Bob that it exists, Bob would use the verify transaction to confirm whether Alice is telling the truth or not. Bob can now submit the `verifyPrivateAsset()` transaction with the arguments: `mspid` Alice's is `AliceOrg1MSP`, `asset ID` which is on the public ledger as `myPrivateAssetID` and the object `{"myPrivateValue":"50"}`. If Alice provided the correct data, the transaction should return true as the hash provided matches the hash stored on the public ledger. We will look at this in more detail later.
+This transaction requires three arguments – `mspid`, `myPrivateAssetId` and the `objectToVerify` (made up of a key/value pair). The `mspid` is the ID of the organization that you want to verify against, for example if Bob wants to verify data in Alice's collection, then he would input Alice's MSPID. The `myPrivateAssetId` is simply the key that was used when saving the private data (supplied when passing in transient data) to the Private Data Collection. The object key and value will appear in the format `{"key":value"}`. For example, if Alice stores some private data `{"myPrivateValue":"50"}` in her Private Data Collection, Bob could use the verify transaction to confirm whether Alice is telling the truth or not. Bob can now submit the `verifyPrivateAsset()` transaction with the arguments: `mspid` Alice's is `AliceOrg1MSP`, `asset ID` which is on the public ledger as `myPrivateAssetID` and the object `{"myPrivateValue":"50"}`. If Alice provided the correct data, the transaction should return true as the hash provided matches the hash stored on the public ledger. We will look at this in more detail later.
 
-Notice the lines that start with `@Transaction()`. These come before each function in the generated `Private Data Contract` and they define the preceding transaction to be a callable transaction function. `@Transaction()` takes a boolean parameter where `true` indicates that the function is intended to be called using  `submit` and `false` indicates that the function is intended to be called using `evaluate`, with the default being set to true. The differences between `@Transaction()` and `@Transaction(false)` is especially important when it comes to the `readMyPrivateAsset()` transaction. A `Submit transaction` MUST NOT be performed on the `readMyPrivateAsset()`transaction. Doing so would result in the returned private data being submitted to the public ledger.
+Notice the lines that start with `@Transaction()`. These come before each function in the generated `Private Data Contract` and they define the preceding transaction to be a callable transaction function. `@Transaction()` takes a boolean parameter where `true` indicates that the function is intended to be called using `submit` and `false` indicates that the function is intended to be called using `evaluate`, with the default being set to true. The differences between `@Transaction()` and `@Transaction(false)` is especially important when it comes to the `readMyPrivateAsset()` transaction. A `Submit transaction` MUST NOT be performed on the `readMyPrivateAsset()`transaction. Doing so would result in the returned private data being submitted to the public ledger.
 
 At the top of the `Private Data Contract` you'll see the function `getCollectionName`, a helper function that returns the `collectionName` that is required when transacting with a private contract. It is currently implemented to utilize the implicit collection that is created when you create a Local Fabric network through the extension. Implicit collections are a v2.0 Hyperledger feature, find out more about them [on the official Hyperledger Fabric docs](https://hyperledger-fabric.readthedocs.io/en/release-2.2/private-data-arch.html#referencing-implicit-collections-from-chaincode).
 
 It is also worth having a look at the collections.json file at the root of the file directory for your project. Collections.json is the file that defines information such as who can persist data, how long private data is stored in a private database and the number of peers required for disseminating data – as well as how many it can be distributed to. The file currently contains only an empty array as we'll be using implicit collections in this tutorial, when you want to stop using implicit collections there is an example collections.json [on the official Hyperledger Fabric docs](https://hyperledger-fabric.readthedocs.io/en/release-2.2/private-data-arch.html#private-data-collection-definition).
+
 </details>
 
 ---
@@ -104,8 +106,6 @@ It is also worth having a look at the collections.json file at the root of the f
 
 In this step, we will take you through the steps of creating a 2 org network. However, if you already have a 2 org network set up, feel free to use that instead.
 
-> Note: If you use your own network, add it as a collection in the collections.json file once the contract has been generated.
-
 1. Hover over the `FABRIC ENVIRONMENTS` panel on the left hand side of the screen and select the +.
 2. You will then be asked to `Select a method to add an environment`. Choose the `Create new from template` option.
 3. From the list of network configuration options, choose the `2 Org template (2 CAs, 2 peers, 1 channel)`.
@@ -114,7 +114,7 @@ In this step, we will take you through the steps of creating a 2 org network. Ho
 
 After a few minutes, you will have your 2 org network ready to use your new Private Data Smart Contract on!
 
-This step also creates the implicit collections described in the previous step. As this is a 2 org network, 2 collections will be created. They will be created as `_implicit_org_Org1MSP` and `_implicit_org_Org2MSP` where `Org1MSP` and `Org2MSP` is the MSPID used to specify the organisation. Your MSPIDs for a network are found in the "Organizations" menu in the "Fabric Environments" panel.
+As implicit collections are a built-in Hyperledger Fabric feature, 2 implicit collections will be automatically created when you start the network. They will be created as `_implicit_org_Org1MSP` and `_implicit_org_Org2MSP` where `Org1MSP` and `Org2MSP` are the MSPIDs used to identify the organisations. Your MSPIDs for a network are found in the "Organizations" menu in the "Fabric Environments" panel.
 
 </details>
 
@@ -126,25 +126,27 @@ This step also creates the implicit collections described in the previous step. 
 We will now package and deploy our smart contract into the local environment. The VS Code extension has a simplified version of the process to deploy a smart contract..
 
 > <br>
-   > <b>Want to know more?</b><br>For more about smart contract packages (chaincode) and the lifecycle, check out the <a href="https://hyperledger-fabric.readthedocs.io/en/latest/chaincode_lifecycle.html">Hyperledger Fabric documentation</a>.
-   > <br>&nbsp;
+> <b>Want to know more?</b><br>For more about smart contract packages (chaincode) and the lifecycle, check out the <a href="https://hyperledger-fabric.readthedocs.io/en/latest/chaincode_lifecycle.html">Hyperledger Fabric documentation</a>.
+> <br>&nbsp;
 
 <br/>
 
 **Steps to package and deploy a Private Data Smart Contract:**
-*For more information on packaging and deploying a contract, view tutorial 3 of the basic tutorials series.*
+_For more information on packaging and deploying a contract, view tutorial 3 of the basic tutorials series._
+
 1. Move the mouse over the title bar of the Smart Contracts view, click the "..." that appears and select "Package Open Project".
 2. Select "tar.gz (V2 channel capabilities)" to deploy this contract in future to a channel with V2 channel capabilities. The Smart Contracts view will be updated to show the new package.
 3. In the Fabric Environments view, click "mychannel" -> "+ Deploy smart contract".
 4. In the Deploy Smart Contract form, select "privateContract@0.0.1" from the drop down list, and click 'Next'.
-5. In step 2 of the form, default values for Definition name and version are provided and don't enter anything for Endorsement policy or Collections configuration as we will be using the preset implicit collections to demonstrate private contracts. Then click 'Next' to move to Step 3 of the deploy. - *For TypeScript smart contracts, both the name and version are taken from the <i>package.json</i> file in the root of the smart contract project.*
-6. In step 3 of the form, the automated steps of the deploy are sumarized, click 'Deploy' to start the deployment.
+5. In step 2 of the form, default values for the definition name and version are provided and don't require any changes. The endorsement policy and collections configuration can be left blank as we will be using the preset implicit collections to demonstrate private contracts. Then click 'Next' to move to Step 3 of the deploy. - _For TypeScript smart contracts, both the name and version are taken from the <i>package.json</i> file in the root of the smart contract project._
+6. In step 3 of the form, the automated steps of the deploy are summarized, click 'Deploy' to start the deployment.
 
 Deployment may take a few minutes to complete.
 
 When deployment has completed you will see the new smart contract listed under "mychannel" in the Fabric Environments view.
 
 > Command Palette alternative: Deploy Smart Contract
+
 </details>
 
 ---
@@ -155,9 +157,9 @@ When deployment has completed you will see the new smart contract listed under "
 In this step we will interact with the network as Org1 through a series of transactions. Providing the previous instructions have been followed correctly, all transactions should be successful as Org1 has access to the implicit Private Data Collection that is automatically created (`_implicit_org_1OrgMSP`).
 
 > **Note:** When following the instructions below, do the following if you wish to use the command palette, otherwise ignore this and just follow the instructions below this note.
+>
 > 1. You will be asked to choose a gateway to connect with, select your new network, so `newNetwork > Org1`, if that's what you called it.
 > 2. Choose your private data smart contract from the list of smart contracts. From here, the flow is the same as stated per instruction.
-
 
 Let's start transacting!
 
@@ -215,16 +217,18 @@ Once submitted, the output will either return true or false. True if the argumen
 {
   "mspid": "Org1MSP",
   "myPrivateAssetId": "001",
-  "objectToVerify": {"privateValue": "125"}
+  "objectToVerify": { "privateValue": "125" }
 }
 ```
+
 <div class='indent'>
 <em>Note: if you're using another language and have arguments such as keys such as `arg0` and `arg1` enter the values as above in the same order but leave the keys the same.</em>
 
 The object includes the MSPID, asset ID and the private value of 125. Do not enter any transient data here and clear the input box if it is prefilled. Finally select "Evaluate transaction". The Transaction output will display `Returned value from verifyMyPrivateAsset: true`. The `true` part of that expression confirms that the information provided by Org1 to Org2 was in fact correct.
+
 </div>
 
-2. Feel free to have a go at submitting a verify transaction with incorrect arguments to prove that the transaction would provide a different outcome across the output. For example, submit a `verifyMyPrivateAsset` transaction with the original arguments as above but change the `"objectToVerify"` to have the value `{"privateValue": "150"}`  because Org1 may have forgotten they previously updated the value! Obviously 150 is not the same as 125 so the Transaction output would display `Returned value from verifyMyPrivateAsset: false`.
+2. Feel free to have a go at submitting a verify transaction with incorrect arguments to prove that the transaction would provide a different outcome across the output. For example, submit a `verifyMyPrivateAsset` transaction with the original arguments as above but change the `"objectToVerify"` to have the value `{"privateValue": "150"}` because Org1 may have forgotten they previously updated the value! Obviously 150 is not the same as 125 so the Transaction output would display `Returned value from verifyMyPrivateAsset: false`.
 
 </details>
 
