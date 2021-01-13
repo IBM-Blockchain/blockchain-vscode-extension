@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0-rc.1
-_Release date: December 17th 2020_
+# IBM Blockchain Platform Extension updated to v2.0.0
+_Release date: January 14th 2021_
 
 Announcements
 ---
@@ -35,6 +35,6 @@ Notes
 
 This release's Conga Comic:	
 ---	
-<img src="https://congacomic.github.io/assets/img/blockheight-82.jpg" width="800">	
+<img src="https://congacomic.github.io/assets/img/blockheight-83.jpg" width="800">	
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
