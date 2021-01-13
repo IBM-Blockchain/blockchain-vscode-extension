@@ -33,8 +33,9 @@ class App extends Component<{}, IAppState> {
     componentDidMount(): void {
         window.addEventListener('message', (event: MessageEvent) => {
 
-            const newState: any = {
-                redirectPath: event.data.path
+            const newState: IAppState = {
+                ...this.state,
+                redirectPath: event.data.path,
             };
 
             if (event.data.version) {
@@ -105,7 +106,12 @@ class App extends Component<{}, IAppState> {
                             <DeployPage deployData={this.state.deployData} />}>
                         </Route>
                         <Route exact path='/transaction' render={(): JSX.Element =>
-                            <TransactionPage transactionViewData={this.state.transactionViewData} transactionOutput={this.state.transactionOutput}/>}>
+                            <TransactionPage
+                                transactionViewData={this.state.transactionViewData}
+                                transactionOutput={this.state.transactionOutput}
+                                clearTransactionOutput={() => this.setState({ transactionOutput: '' })}
+                            />}
+                        >
                         </Route>
                     </div>
                 </div>

@@ -19,6 +19,7 @@ chai.use(sinonChai);
 describe('TransactionPage component', () => {
     let mySandBox: sinon.SinonSandbox;
     let postMessageHandlerStub: sinon.SinonStub;
+    let clearTransactionOutputStub: sinon.SinonStub;
 
     const transactionOne: ITransaction = {
         name: 'transactionOne',
@@ -68,6 +69,7 @@ describe('TransactionPage component', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         postMessageHandlerStub = mySandBox.stub();
+        clearTransactionOutputStub = mySandBox.stub();
     });
 
     afterEach(async () => {
@@ -76,7 +78,7 @@ describe('TransactionPage component', () => {
 
     it('should render the expected snapshot', async () => {
         const component: any = renderer
-            .create(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>)
+            .create(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub} />)
             .toJSON();
         expect(component).toMatchSnapshot();
     });
@@ -87,7 +89,7 @@ describe('TransactionPage component', () => {
             greenContract,
         ];
         multipleContractsTransactionData.preselectedSmartContract = undefined;
-        const component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        const component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('smartContracts', multipleContractsTransactionData.smartContracts);
         expect(component.state()).toHaveProperty('activeSmartContract', multipleContractsTransactionData.smartContracts[0]);
 
@@ -101,7 +103,7 @@ describe('TransactionPage component', () => {
             greenContract,
             { ...greenContract, contractName: 'other contract' },
         ];
-        const component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        const component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('smartContracts', multipleContractsTransactionData.smartContracts);
 
         const contractDropdown: any = component.find('#contract-select');
@@ -116,7 +118,7 @@ describe('TransactionPage component', () => {
         ];
         multipleContractsTransactionData.preselectedSmartContract = undefined;
 
-        let component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        let component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('smartContracts', multipleContractsTransactionData.smartContracts);
         expect(component.state()).toHaveProperty('activeSmartContract', undefined);
 
@@ -137,7 +139,7 @@ describe('TransactionPage component', () => {
         ];
         multipleContractsTransactionData.preselectedSmartContract = undefined;
 
-        let component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        let component: any = mount(<TransactionPage transactionViewData={multipleContractsTransactionData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('preselectedSmartContract', undefined);
 
         component.setProps({ transactionViewData: { ...multipleContractsTransactionData, preselectedSmartContract: multipleContractsTransactionData.smartContracts[1] } });
@@ -146,7 +148,7 @@ describe('TransactionPage component', () => {
 
     it('should update the smartContract when a new one is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
-        const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+        const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('smartContracts', [greenContract]);
 
         const newContract: ISmartContract =  { ...greenContract, name: 'updatedContract' };
@@ -161,7 +163,7 @@ describe('TransactionPage component', () => {
     });
 
     it('should clear the activeSmartContract when no smartContracts are sent', () => {
-        let component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+        let component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
 
         component.setProps({ transactionViewData: { ...transactionViewData, smartContracts: [] } });
         expect(component.state()).toHaveProperty('smartContracts', []);
@@ -176,7 +178,7 @@ describe('TransactionPage component', () => {
         ];
         twoContractsTransactionData.preselectedSmartContract = twoContractsTransactionData.smartContracts[1];
 
-        let component: any = mount(<TransactionPage transactionViewData={twoContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        let component: any = mount(<TransactionPage transactionViewData={twoContractsTransactionData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('activeSmartContract', twoContractsTransactionData.smartContracts[1]);
 
 
@@ -199,7 +201,7 @@ describe('TransactionPage component', () => {
         ];
         twoContractsTransactionData.preselectedSmartContract = undefined;
 
-        let component: any = mount(<TransactionPage transactionViewData={twoContractsTransactionData} transactionOutput={mockTransactionOutput}/>);
+        let component: any = mount(<TransactionPage transactionViewData={twoContractsTransactionData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('activeSmartContract', undefined);
 
 
@@ -216,7 +218,7 @@ describe('TransactionPage component', () => {
 
     it('should update the associatedTxdata when something new is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
-        const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+        const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         expect(component.state()).toHaveProperty('associatedTxdata', {});
 
         component.setProps({
@@ -232,7 +234,7 @@ describe('TransactionPage component', () => {
 
     it('should update the transaction output when something new is passed down through props', async () => {
         const componentDidUpdateSpy: sinon.SinonSpy = mySandBox.spy(TransactionPage.prototype, 'componentDidUpdate');
-        const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+        const component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         component.state().transactionOutput.should.equal(mockTransactionOutput);
 
         component.setProps({
@@ -245,7 +247,7 @@ describe('TransactionPage component', () => {
 
     it('should show the loading spinner when setTransactionSubmitted is called with true', () => {
         const loadingID = '#output-loading';
-        let component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput}/>);
+        let component: any = mount(<TransactionPage transactionViewData={transactionViewData} transactionOutput={mockTransactionOutput} clearTransactionOutput={clearTransactionOutputStub}/>);
         component.state().transactionSubmitted.should.be.false;
         expect(component.find(loadingID).exists()).toBeFalsy();
 
@@ -256,5 +258,6 @@ describe('TransactionPage component', () => {
 
         component.state().transactionSubmitted.should.be.true;
         expect(component.find(loadingID).exists()).toBeTruthy();
+        clearTransactionOutputStub.should.have.been.called;
     });
 });

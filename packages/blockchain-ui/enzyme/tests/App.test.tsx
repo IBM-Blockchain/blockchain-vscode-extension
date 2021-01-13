@@ -10,6 +10,8 @@ import ITutorialObject from '../../src/interfaces/ITutorialObject';
 import IPackageRegistryEntry from '../../src/interfaces/IPackageRegistryEntry';
 import ISmartContract from '../../src/interfaces/ISmartContract';
 import IRepositoryObject from '../../src/interfaces/IRepositoryObject';
+import TransactionPage from '../../src/components/pages/TransactionPage/TransactionPage';
+import { act } from 'react-dom/test-utils';
 
 chai.should();
 chai.use(sinonChai);
@@ -487,4 +489,18 @@ describe('App', () => {
         dispatchEvent(msg);
         component.state().transactionOutput.should.deep.equal(transactionOutput);
     });
+
+    it('clears the transactionOutput when the clearTransactionOutput function is called by the child component TransactionPage', () => {
+        const transactionOutput: string = 'here is some output from a transaction';
+        let component: any = mount(<App/>);
+        component.setState({ redirectPath: '/transaction', transactionOutput });
+        component = component.update();
+        component.state().transactionOutput.should.deep.equal(transactionOutput);
+
+        act(() => {
+            component.find(TransactionPage).prop('clearTransactionOutput')();
+        });
+        component = component.update();
+        component.state().transactionOutput.should.deep.equal('');
+    })
 });

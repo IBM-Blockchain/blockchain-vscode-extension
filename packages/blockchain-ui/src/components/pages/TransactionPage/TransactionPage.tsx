@@ -16,6 +16,7 @@ interface IProps {
         preselectedTransaction: ITransaction
     };
     transactionOutput: string;
+    clearTransactionOutput: () => void;
 }
 
 interface IState {
@@ -85,9 +86,10 @@ class TransactionPage extends Component<IProps, IState> {
         }
 
         if (prevProps.transactionOutput !== transactionOutput) {
-            this.setTransactionSubmitted(false);
             this.setState({
                 transactionOutput,
+                // Only update transactionSubmitted if some transactionOutput is returned
+                transactionSubmitted: transactionOutput ? false : this.state.transactionSubmitted,
             });
         }
     }
@@ -111,10 +113,11 @@ class TransactionPage extends Component<IProps, IState> {
         });
     }
 
-    setTransactionSubmitted(transactionSubmitted: boolean): void {
+    setTransactionSubmitted(): void {
         this.setState({
-            transactionSubmitted,
+            transactionSubmitted: true,
         });
+        this.props.clearTransactionOutput();
     }
 
     render(): JSX.Element {
@@ -147,7 +150,7 @@ class TransactionPage extends Component<IProps, IState> {
                                     smartContract={activeSmartContract}
                                     associatedTxdata={associatedTxdata}
                                     preselectedTransaction={preselectedTransaction}
-                                    setTransactionSubmitted={(isSubmitted: boolean) => this.setTransactionSubmitted(isSubmitted)}
+                                    setTransactionSubmitted={() => this.setTransactionSubmitted()}
                                 />
                             </div>
                             <div className='bx--col-lg-10 bx--col-md-4 bx--col-sm-4'>
