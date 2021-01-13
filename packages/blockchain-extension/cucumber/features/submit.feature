@@ -39,7 +39,7 @@ Feature: Submit transaction
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
 
   Scenario Outline: Submit a verify transaction for a private data smart contract
-    Given a private <language> smart contract for <assetType> assets with the name <name> and version <version> and mspid <mspid>
+    Given a private <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
@@ -53,11 +53,11 @@ Feature: Submit transaction
     When I submit the transaction 'verifyPrivateConga' on the channel 'mychannel' with args '["001", "{\"privateValue\":\"125\"}"]'
     Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
     Examples:
-      | language   | assetType    | name                      | mspid   | version |
-      | JavaScript | PrivateConga | PrivateJavaScriptContract | Org1MSP | 0.0.1   |
-      | TypeScript | PrivateConga | PrivateTypeScriptContract | Org1MSP | 0.0.1   |
-      | Java       | PrivateConga | PrivateJavaContract       | Org1MSP | 0.0.1   |
-      | Go         | PrivateConga | PrivateGoContract         | Org1MSP | 0.0.1   |
+      | language   | assetType    | name                      | version |
+      | JavaScript | PrivateConga | PrivateJavaScriptContract | 0.0.1   |
+      | TypeScript | PrivateConga | PrivateTypeScriptContract | 0.0.1   |
+      | Java       | PrivateConga | PrivateJavaContract       | 0.0.1   |
+      | Go         | PrivateConga | PrivateGoContract         | 0.0.1   |
 
 
   @otherFabric
