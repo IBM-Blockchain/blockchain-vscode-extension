@@ -50,7 +50,7 @@ Feature: Submit transaction
     When I deploy the contract on channel 'mychannel' with sequence '2' with private data
     When I submit the transaction 'createPrivateConga' on the channel 'mychannel' with args '["001"]' and with the transient data '{"privateValue":"125"}'
     Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'No value returned from createPrivateConga'
-    When I submit the transaction 'verifyPrivateConga' on the channel 'mychannel' with args '["001", "{\"privateValue\":\"125\"}"]'
+    When I submit the transaction 'verifyPrivateConga' on the channel 'mychannel' with args '["Org1MSP", "001", "{\"privateValue\":\"125\"}"]'
     Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from verifyPrivateConga: true'
     Examples:
       | language   | assetType    | name                      | version |
