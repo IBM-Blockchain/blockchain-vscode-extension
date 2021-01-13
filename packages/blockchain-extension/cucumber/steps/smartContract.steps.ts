@@ -29,16 +29,10 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given(/^a (private )?(.+) smart contract for (.+) assets with the name (.+) and version (.\S+)( and mspid)? ?(.+)?$/, this.timeout, async (privateOrNot: string, language: string, assetType: string, name: string, version: string, _ignore: string, mspid: string) => {
+    this.Given(/^a ?(.+) smart contract for (.+) assets with the name (.+) and version (.\S+) ?(.+)?$/, this.timeout, async (language: string, assetType: string, name: string, version: string, _ignore: string) => {
         this.contractLanguage = language;
         if (assetType === 'null') {
             assetType = null;
-        }
-
-        if (privateOrNot === 'private ') {
-            this.mspid = mspid;
-        } else {
-            this.mspid = null;
         }
 
         this.contractAssetType = assetType;
@@ -60,15 +54,11 @@ module.exports = function(): any {
         }
     });
 
-    this.Given(/the( private)? contract has been created/, this.timeout, async (_privateOrNot: string) => {
+    this.Given(/the contract has been created/, this.timeout, async () => {
         const contractDirectory: string = this.smartContractHelper.getContractDirectory(this.contractDefinitionName, this.contractLanguage, this.capability);
         const exists: boolean = await fs.pathExists(contractDirectory);
         if (!exists) {
-            if (_privateOrNot === ' private') {
-                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, this.mspid, this.capability);
-            } else {
-                this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, undefined, this.capability);
-            }
+            this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, this.capability);
         } else {
             this.contractDirectory = contractDirectory;
         }
@@ -110,12 +100,8 @@ module.exports = function(): any {
      * When
      */
 
-    this.When(/I create the( private)? contract/, this.timeout, async (_privateOrNot: string) => {
-        if (_privateOrNot === ' private') {
-            this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName, this.mspid);
-        } else {
-            this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName);
-        }
+    this.When(/I create the contract/, this.timeout, async () => {
+        this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractDefinitionName);
     });
 
     this.When(/I install and instantiate the package with the transaction '(.*?)' and args '(.*?)', (not )?using private data on channel '(.*?)'/, this.timeout, async (transaction: string, args: string, usingPrivateData: string, channel: string) => {

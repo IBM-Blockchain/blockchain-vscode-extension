@@ -33,7 +33,6 @@ export async function createSmartContractProject(): Promise<void> {
     const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
     let contractType: IBlockchainQuickPickItem<string>;
     let privateOrDefault: string;
-    let mspID: string;
     const pdContract: string = ' Private Data ';
     const defaultContract: string = ' ';
     const typeDefault: string = 'default';
@@ -49,11 +48,6 @@ export async function createSmartContractProject(): Promise<void> {
     if (contractType.data === typeDefault) {
         privateOrDefault = defaultContract;
     } else {
-        mspID = await UserInputUtil.showInputBox('Please provide an mspID for the private data collection', 'Org1MSP');
-        if (!mspID) {
-            return;
-        }
-
         privateOrDefault = pdContract;
     }
 
@@ -133,10 +127,6 @@ export async function createSmartContractProject(): Promise<void> {
             'skip-install': skipInstall,
             'asset': assetType
         };
-
-        if (contractType.data === 'private') {
-            runOptions.mspId = mspID;
-        }
 
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,

@@ -271,9 +271,8 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should start a typescript private data smart contract project, in a new window', async () => {
         showQuickPickItemStub.onFirstCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
-        showInputBoxStub.onFirstCall().resolves('Org1MSP');
         showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-        showInputBoxStub.onSecondCall().resolves('Conga');
+        showInputBoxStub.onFirstCall().resolves('Conga');
         showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         browseStub.resolves(uri);
 
@@ -287,9 +286,8 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should have the correct default asset name when user selects private data smart contract', async () => {
         showQuickPickItemStub.onFirstCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
-        showInputBoxStub.onFirstCall().resolves('Org1MSP');
         showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-        showInputBoxStub.onSecondCall().resolves('MyPrivateAsset');
+        showInputBoxStub.onFirstCall().resolves('MyPrivateAsset');
         showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         browseStub.resolves(uri);
 
@@ -306,24 +304,14 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should not report an error when focusFilesExplorer throws an error', async () => {
         executeCommandStub.withArgs('workbench.files.action.focusFilesExplorer').rejects(new Error('unsupported'));
         showQuickPickItemStub.onFirstCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
-        showInputBoxStub.onFirstCall().resolves('Org1MSP');
         showLanguagesQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-        showInputBoxStub.onSecondCall().resolves('MyPrivateAsset');
+        showInputBoxStub.onFirstCall().resolves('MyPrivateAsset');
         showFolderOptionsStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         browseStub.resolves(uri);
 
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated Private Data Smart Contract Project');
         logSpy.should.not.have.been.calledWithExactly(LogType.ERROR, sinon.match.string, sinon.match.string);
-    });
-
-    it('should not do anything if the user cancels when asked for the mspID', async () => {
-        showQuickPickItemStub.onFirstCall().resolves({label: UserInputUtil.GENERATE_PD_CONTRACT, description: UserInputUtil.GENERATE_PD_CONTRACT_DESCRIPTION, data: 'private'});
-        showInputBoxStub.onFirstCall().resolves(undefined);
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        browseStub.should.not.have.been.called;
-        showLanguagesQuickPickStub.should.not.have.been.called;
-        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should not do anything if the user cancels the type of smart contract', async () => {
