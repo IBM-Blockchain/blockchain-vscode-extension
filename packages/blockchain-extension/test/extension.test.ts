@@ -51,8 +51,9 @@ describe('Extension Tests', () => {
     let completeActivationStub: sinon.SinonStub;
     let setExtensionContextStub: sinon.SinonStub;
     let hasPreReqsInstalledStub: sinon.SinonStub;
-    let registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub;
+    let registerPreActivationCommandsStub: sinon.SinonStub;
     let createTempCommandsStub: sinon.SinonStub;
+    let showConfirmationWarningMessageStub: sinon.SinonStub;
 
     before(async () => {
         // We need this else TestUtil.setupTests() will fail when it tries to activate
@@ -83,8 +84,10 @@ describe('Extension Tests', () => {
         completeActivationStub = mySandBox.stub(ExtensionUtil, 'completeActivation');
         setExtensionContextStub = mySandBox.stub(GlobalState, 'setExtensionContext');
         hasPreReqsInstalledStub = mySandBox.stub(DependencyManager.instance(), 'hasPreReqsInstalled');
-        registerPreReqAndReleaseNotesCommandStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand');
+        registerPreActivationCommandsStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands');
         createTempCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
+        showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`Detected old local environments which can not be used with this upgrade. Would you like to teardown these environments?`).resolves(false);
+
     });
 
     afterEach(async () => {
@@ -149,7 +152,7 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.resolves(true);
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -173,7 +176,7 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -194,7 +197,7 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.resolves(true);
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -219,7 +222,7 @@ describe('Extension Tests', () => {
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -241,7 +244,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).resolves();
 
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
 
             createTempCommandsStub.returns(undefined);
             const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(GlobalState, 'update');
@@ -268,7 +271,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -292,7 +295,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).resolves();
 
             hasPreReqsInstalledStub.resolves(false);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -317,7 +320,7 @@ describe('Extension Tests', () => {
             createTempCommandsStub.should.have.been.calledOnceWith(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
             setupCommandsStub.should.not.have.been.called;
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -337,7 +340,7 @@ describe('Extension Tests', () => {
             executeCommandStub.callThrough();
             executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -365,7 +368,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
@@ -389,7 +392,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
 
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -429,7 +432,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
@@ -452,7 +455,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
 
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -491,7 +494,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
@@ -513,7 +516,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs(ExtensionCommands.DELETE_ENVIRONMENT).resolves();
 
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -558,7 +561,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
@@ -578,7 +581,7 @@ describe('Extension Tests', () => {
             executeCommandStub.callThrough();
             executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -612,7 +615,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             showInformationMessageStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
@@ -632,7 +635,7 @@ describe('Extension Tests', () => {
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -660,7 +663,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandSpy.should.not.have.been.calledWith('markdown.showPreview');
@@ -682,7 +685,7 @@ describe('Extension Tests', () => {
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
             setExtensionContextStub.returns(undefined);
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -713,7 +716,7 @@ describe('Extension Tests', () => {
             setupCommandsStub.should.have.been.calledOnce;
 
             hasPreReqsInstalledStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.have.been.calledWith('markdown.showPreview', releaseNotesUri);
@@ -739,7 +742,7 @@ describe('Extension Tests', () => {
             executeCommandStub.callThrough();
             executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -766,7 +769,7 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.should.not.have.been.called;
             createTempCommandsStub.should.have.been.calledOnceWith(true);
             setupCommandsStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
@@ -792,7 +795,7 @@ describe('Extension Tests', () => {
             executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
             executeCommandStub.withArgs(ExtensionCommands.OPEN_FABRIC_2_PAGE).resolves();
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -819,7 +822,7 @@ describe('Extension Tests', () => {
             hasPreReqsInstalledStub.should.not.have.been.called;
             createTempCommandsStub.should.have.been.calledOnceWith(true);
             setupCommandsStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
@@ -841,7 +844,7 @@ describe('Extension Tests', () => {
             executeCommandStub.callThrough();
 
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -867,7 +870,7 @@ describe('Extension Tests', () => {
             createTempCommandsStub.should.have.been.calledOnceWith(true);
             hasPreReqsInstalledStub.should.have.been.calledOnce;
             setupCommandsStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
 
@@ -925,7 +928,7 @@ describe('Extension Tests', () => {
             const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
             setExtensionContextStub.returns(undefined);
             hasPreReqsInstalledStub.resolves(true);
-            registerPreReqAndReleaseNotesCommandStub.resolves(context);
+            registerPreActivationCommandsStub.resolves(context);
             createTempCommandsStub.returns(undefined);
 
             const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
@@ -951,7 +954,7 @@ describe('Extension Tests', () => {
             setExtensionContextStub.should.have.been.calledTwice;
             createTempCommandsStub.should.have.been.calledOnceWith(true);
             setupCommandsStub.should.have.been.calledOnce;
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             completeActivationStub.should.have.been.calledOnce;
 
@@ -968,6 +971,252 @@ describe('Extension Tests', () => {
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
 
         });
+
+        it(`should ask user if they want to teardown old (v1 extension) local ansible environments if present when major extension version has been updated`, async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+
+            const v1AnsibleLocal: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'v1Ansible', environmentType: EnvironmentType.MANAGED, environmentDirectory: '/some/path'});
+            const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
+            getAllEnvironmentsStub.onFirstCall().resolves([v1AnsibleLocal]);
+            getAllEnvironmentsStub.onSecondCall().resolves([]);
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.OPEN_FABRIC_2_PAGE).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, v1AnsibleLocal.name, true).resolves();
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreActivationCommandsStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '1.0.6';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves('Learn more');
+
+            await GlobalState.update(extensionData);
+
+            await myExtension.activate(context);
+
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            setExtensionContextStub.should.have.been.calledTwice;
+            hasPreReqsInstalledStub.should.not.have.been.called;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, v1AnsibleLocal.name, true);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            completeActivationStub.should.have.been.calledOnce;
+
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+
+        });
+
+        it(`should teardown old v1 ansible local environments if present and user agrees when major extension version has been updated`, async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+
+            const v1AnsibleLocal: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'v1Ansible', environmentType: EnvironmentType.MANAGED, environmentDirectory: '/some/path'});
+            const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
+            getAllEnvironmentsStub.onFirstCall().resolves([v1AnsibleLocal]);
+            getAllEnvironmentsStub.onSecondCall().resolves([]);
+            showConfirmationWarningMessageStub.resolves(true);
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.OPEN_FABRIC_2_PAGE).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, v1AnsibleLocal.name, true).resolves();
+
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreActivationCommandsStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '1.0.6';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves('Learn more');
+
+            await GlobalState.update(extensionData);
+
+            await myExtension.activate(context);
+
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Successful teardown of ${v1AnsibleLocal.name} environment.`);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            setExtensionContextStub.should.have.been.calledTwice;
+            hasPreReqsInstalledStub.should.not.have.been.called;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, v1AnsibleLocal.name, true);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            completeActivationStub.should.have.been.calledOnce;
+
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+
+        });
+
+        it(`should log error if teardown of old v1 ansible local environments fails when major extension version has been updated`, async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+
+            const v1AnsibleLocal: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'v1Ansible', environmentType: EnvironmentType.MANAGED, environmentDirectory: '/some/path'});
+            const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
+            getAllEnvironmentsStub.onFirstCall().resolves([v1AnsibleLocal]);
+            getAllEnvironmentsStub.onSecondCall().resolves([]);
+            showConfirmationWarningMessageStub.resolves(true);
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.OPEN_FABRIC_2_PAGE).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, v1AnsibleLocal.name, true).rejects('some error');
+
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreActivationCommandsStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '1.0.6';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves('Learn more');
+
+            await GlobalState.update(extensionData);
+
+            await myExtension.activate(context);
+
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Unable to teardown ${v1AnsibleLocal.name} environment: some error.`);
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            showConfirmationWarningMessageStub.should.have.been.calledOnce;
+            setExtensionContextStub.should.have.been.calledTwice;
+            hasPreReqsInstalledStub.should.not.have.been.called;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, v1AnsibleLocal.name, true);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            completeActivationStub.should.have.been.calledOnce;
+
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+
+        });
+
+        it(`should not ask user if they want to teardown old (v1 extension) local ansible environments if none present when major extension version has been updated`, async () => {
+            const releaseNotesPath: string = path.join(ExtensionUtil.getExtensionPath(), 'RELEASE-NOTES.md');
+            const releaseNotesUri: vscode.Uri = vscode.Uri.file(releaseNotesPath);
+
+            const v1OpsTools: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry({name: 'v1Ansible', environmentType: 3 as EnvironmentType, environmentDirectory: '/some/path'});
+            const getAllEnvironmentsStub: sinon.SinonStub = mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll');
+            getAllEnvironmentsStub.onFirstCall().resolves([v1OpsTools]);
+            getAllEnvironmentsStub.onSecondCall().resolves([]);
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+            setupCommandsStub.resolves();
+            completeActivationStub.resolves();
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            setExtensionContextStub.returns(undefined);
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            executeCommandStub.withArgs('markdown.showPreview', releaseNotesUri).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.OPEN_FABRIC_2_PAGE).resolves();
+            hasPreReqsInstalledStub.resolves(true);
+            registerPreActivationCommandsStub.resolves(context);
+            createTempCommandsStub.returns(undefined);
+
+            const extensionData: ExtensionData = DEFAULT_EXTENSION_DATA;
+            extensionData.preReqPageShown = true;
+            extensionData.dockerForWindows = true;
+            extensionData.version = '1.0.6';
+            extensionData.generatorVersion = dependencies['generator-fabric'];
+            extensionData.migrationCheck = 2;
+            extensionData.createOneOrgLocalFabric = true;
+            extensionData.deletedOneOrgLocalFabric = false;
+
+            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves('Learn more');
+
+            await GlobalState.update(extensionData);
+
+            await myExtension.activate(context);
+
+            sendTelemetryStub.should.have.been.calledWith('updatedInstall', { IBM: sinon.match.string });
+
+            logSpy.should.have.been.calledWith(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
+
+            showConfirmationWarningMessageStub.should.have.not.been.calledOnce;
+            setExtensionContextStub.should.have.been.calledTwice;
+            hasPreReqsInstalledStub.should.not.have.been.called;
+            createTempCommandsStub.should.have.been.calledOnceWith(true);
+            setupCommandsStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, v1OpsTools.name, true);
+
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DELETE_ENVIRONMENT);
+            completeActivationStub.should.have.been.calledOnce;
+
+            showInformationMessageStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.OPEN_FABRIC_2_PAGE);
+
+        });
+
     });
 
     describe('deactivate', () => {

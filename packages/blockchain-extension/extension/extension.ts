@@ -20,6 +20,7 @@ import * as nls from 'vscode-nls';
 nls.config({ messageFormat: nls.MessageFormat.both })();
 import * as vscode from 'vscode';
 import * as semver from 'semver';
+import * as path from 'path';
 import { Reporter } from './util/Reporter';
 import { ExtensionUtil } from './util/ExtensionUtil';
 import { VSCodeBlockchainOutputAdapter } from './logging/VSCodeBlockchainOutputAdapter';
@@ -30,7 +31,7 @@ import { version as currentExtensionVersion } from '../package.json';
 import { SettingConfigurations } from './configurations';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { GlobalState, ExtensionData } from './util/GlobalState';
-import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil, FabricEnvironmentRegistryEntry, EnvironmentFlags, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
+import { FabricWalletRegistry, FabricEnvironmentRegistry, LogType, FabricGatewayRegistry, FileSystemUtil, FabricEnvironmentRegistryEntry, EnvironmentFlags, FabricRuntimeUtil, EnvironmentType } from 'ibm-blockchain-platform-common';
 import { RepositoryRegistry } from './registries/RepositoryRegistry';
 import { Dependencies } from './dependencies/Dependencies';
 import { LocalMicroEnvironmentManager } from './fabric/environments/LocalMicroEnvironmentManager';
@@ -77,6 +78,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     const extensionUpdated: boolean = newExtensionData.version !== originalExtensionData.version;
+    // Determine if this is a major version upgrade
+    let extensionUpgraded: boolean = false;
+    if (originalExtensionData.version && newExtensionData.version) {
+        const semverOriginal: number = semver.major(originalExtensionData.version);
+        const semverNew: number = semver.major(newExtensionData.version);
+        extensionUpgraded = semverNew > semverOriginal
+    }
 
     await GlobalState.update(newExtensionData);
 
@@ -116,8 +124,33 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
 
         // Register the 'Open Pre Req' command
-        context = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(context);
+        context = await ExtensionUtil.registerPreActivationCommands(context);
 
+        if (extensionUpgraded) {
+            // If user upgraded major versions, if old local ansible environmens present ask if they should be teardown
+            // This needs to happen before rendering pannels, otherwise the user will see the old environments
+            const v1ExtDir: string = extDir.replace(`${path.sep}v2`, '');
+            FabricEnvironmentRegistry.instance().setRegistryPath(v1ExtDir);
+            let v1EnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
+            if (v1EnvironmentEntries.length > 0) {
+                v1EnvironmentEntries = v1EnvironmentEntries.filter((entry: FabricEnvironmentRegistryEntry) => entry.environmentType === EnvironmentType.MANAGED );
+                if (v1EnvironmentEntries.length > 0) {
+                    const teardown: boolean = await UserInputUtil.showConfirmationWarningMessage('Detected old local environments which can not be used with this upgrade. Would you like to teardown these environments?');
+                    if (teardown) {
+                        for (const entry of v1EnvironmentEntries) {
+                            try {
+                                await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true, entry.name, true);
+                                outputAdapter.log(LogType.INFO, undefined, `Successful teardown of ${entry.name} environment.`);
+                            } catch (error) {
+                                outputAdapter.log(LogType.ERROR, undefined, `Unable to teardown ${entry.name} environment: ${error.toString()}.`);
+                            }
+                        }
+                    }
+                }
+            }
+            FabricEnvironmentRegistry.instance().setRegistryPath(extDir);
+        }
+    
         let createLocalEnvironment: boolean = false;
         // Get all old local and ansible environments
         const oldAnsibleEnvironmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll([EnvironmentFlags.ANSIBLE]);
@@ -187,19 +220,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // We only want to do this stuff if the extension has all the required dependencies
         if (dependenciesInstalled || bypassPreReqs) {
             await ExtensionUtil.completeActivation(extensionUpdated);
-            
-            if (originalExtensionData.version && newExtensionData.version) {
-                const semverOriginal: number = semver.major(originalExtensionData.version);
-                const semverNew: number = semver.major(newExtensionData.version);
-                if (semverNew > semverOriginal) {
-                    // If user has migrated and installed a new major version
-    
-                    const whatsNewPrompt: string = 'Learn more';
-                    const response: string = await vscode.window.showInformationMessage(`You have successfully updated to version 2 of the IBM Blockchain Platform extension. Lots of changes have happened since version 1, so be sure to check what's new!`, whatsNewPrompt);
-                    if (response === whatsNewPrompt) {
-                        await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE);
-                    }
-    
+
+            if (extensionUpgraded) {
+                // If user has migrated and installed a new major version
+                const whatsNewPrompt: string = 'Learn more';
+                const response: string = await vscode.window.showInformationMessage(`You have successfully updated to version 2 of the IBM Blockchain Platform extension. Lots of changes have happened since version 1, so be sure to check what's new!`, whatsNewPrompt);
+                if (response === whatsNewPrompt) {
+                    await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE);
                 }
             }
         }

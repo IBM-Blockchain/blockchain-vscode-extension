@@ -31,7 +31,8 @@ export enum EnvironmentType {
     OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS,
     SAAS_OPS_TOOLS_ENVIRONMENT = EnvironmentFlags.OPS_TOOLS | EnvironmentFlags.SAAS,
     LOCAL_MICROFAB_ENVIRONMENT = EnvironmentFlags.MICROFAB | EnvironmentFlags.MANAGED | EnvironmentFlags.LOCAL,
-    MICROFAB_ENVIRONMENT = EnvironmentFlags.MICROFAB
+    MICROFAB_ENVIRONMENT = EnvironmentFlags.MICROFAB,
+    MANAGED = EnvironmentFlags.MANAGED
 }
 
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {

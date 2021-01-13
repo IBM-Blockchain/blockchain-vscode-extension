@@ -395,12 +395,12 @@ describe('ExtensionUtil Tests', () => {
             const disposeExtensionSpy: sinon.SinonSpy = mySandBox.spy(ExtensionUtil, 'disposeExtension');
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             disposeExtensionSpy.should.have.been.calledOnceWith(ctx);
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
         });
 
         it('should register and show home page', async () => {
@@ -408,13 +408,13 @@ describe('ExtensionUtil Tests', () => {
             homeViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             homeViewStub.should.have.been.calledOnce;
         });
 
@@ -423,13 +423,13 @@ describe('ExtensionUtil Tests', () => {
             fabric2ViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_2_PAGE);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             fabric2ViewStub.should.have.been.calledOnce;
         });
 
@@ -438,13 +438,13 @@ describe('ExtensionUtil Tests', () => {
             TutorialGalleryViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             TutorialGalleryViewStub.should.have.been.calledOnce;
         });
 
@@ -453,13 +453,13 @@ describe('ExtensionUtil Tests', () => {
             sampleGalleryViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_GALLERY);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             sampleGalleryViewStub.should.have.been.calledOnce;
         });
 
@@ -480,13 +480,13 @@ describe('ExtensionUtil Tests', () => {
             TutorialViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             TutorialViewStub.should.have.been.calledOnce;
         });
 
@@ -495,13 +495,13 @@ describe('ExtensionUtil Tests', () => {
             sampleViewStub.resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, 'hyperledger/fabric-samples', 'FabCar');
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             sampleViewStub.should.have.been.calledOnce;
         });
 
@@ -511,13 +511,13 @@ describe('ExtensionUtil Tests', () => {
             const sendTelemetryEventStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_INSTANCE_LINK);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse('https://cloud.ibm.com/catalog/services/blockchain-platform'));
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openNewInstanceLink');
         });
@@ -527,7 +527,7 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub.withArgs('vscode.open').resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
@@ -535,7 +535,7 @@ describe('ExtensionUtil Tests', () => {
 
             const url: string = path.join(ExtensionUtil.getExtensionPath(), 'URL');
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(url));
         });
 
@@ -544,13 +544,13 @@ describe('ExtensionUtil Tests', () => {
             executeCommandStub.withArgs('vscode.open').resolves();
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_VSCODE_EXTENSION);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(defaultDependencies.optional.ibmCloudAccountExtension.url));
         });
 
@@ -560,13 +560,13 @@ describe('ExtensionUtil Tests', () => {
             const someExtensionUrl: string = 'vscode:extension/someExtension';
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_VSCODE_EXTENSION, someExtensionUrl);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith('vscode.open', vscode.Uri.parse(someExtensionUrl));
         });
 
@@ -584,11 +584,11 @@ describe('ExtensionUtil Tests', () => {
         //     const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         //     const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-        //     const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+        //     const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
         //     await ExtensionUtil.registerCommands(ctx);
 
-        //     registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+        //     registerPreActivationCommandsStub.should.have.been.calledOnce;
 
         //     executeCommand.should.have.been.calledOnce;
         //     executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', true);
@@ -600,7 +600,7 @@ describe('ExtensionUtil Tests', () => {
         //     const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
         //     const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-        //     const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+        //     const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
         //     mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves();
 
@@ -628,7 +628,7 @@ describe('ExtensionUtil Tests', () => {
         //     await ExtensionUtil.registerCommands(ctx);
         //     await Promise.all(promises);
 
-        //     registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+        //     registerPreActivationCommandsStub.should.have.been.calledOnce;
 
         //     executeCommand.should.have.been.calledThrice;
         //     executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
@@ -657,7 +657,7 @@ describe('ExtensionUtil Tests', () => {
         //     const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
         //     const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-        //     const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+        //     const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
         //     const promises: any[] = [];
         //     const onDidChangeActiveDebugSessionStub: sinon.SinonStub = mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession');
@@ -673,7 +673,7 @@ describe('ExtensionUtil Tests', () => {
         //     await ExtensionUtil.registerCommands(ctx);
         //     await Promise.all(promises);
 
-        //     registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+        //     registerPreActivationCommandsStub.should.have.been.calledOnce;
 
         //     executeCommand.should.have.been.calledThrice;
         //     executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
@@ -702,11 +702,11 @@ describe('ExtensionUtil Tests', () => {
         //     const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
 
         //     const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
-        //     const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+        //     const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
         //     await ExtensionUtil.registerCommands(ctx);
 
-        //     registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+        //     registerPreActivationCommandsStub.should.have.been.calledOnce;
 
         //     executeCommand.should.have.been.calledTwice;
         //     executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
@@ -722,11 +722,11 @@ describe('ExtensionUtil Tests', () => {
         //     const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         //     const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-        //     const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+        //     const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
         //     await ExtensionUtil.registerCommands(ctx);
 
-        //     registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+        //     registerPreActivationCommandsStub.should.have.been.calledOnce;
 
         //     executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
         // });
@@ -740,11 +740,11 @@ describe('ExtensionUtil Tests', () => {
         //     const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         //     const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-        //     const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+        //     const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
         //     await ExtensionUtil.registerCommands(ctx);
 
-        //     registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+        //     registerPreActivationCommandsStub.should.have.been.calledOnce;
 
         //     executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
         // });
@@ -761,11 +761,11 @@ describe('ExtensionUtil Tests', () => {
         //     const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         //     const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-        //     const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+        //     const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
         //     await ExtensionUtil.registerCommands(ctx);
 
-        //     registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+        //     registerPreActivationCommandsStub.should.have.been.calledOnce;
 
         //     executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
         // });
@@ -778,11 +778,11 @@ describe('ExtensionUtil Tests', () => {
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             reporterStub.should.have.been.called;
         });
@@ -795,11 +795,11 @@ describe('ExtensionUtil Tests', () => {
 
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
-            const registerPreReqAndReleaseNotesCommandStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand').resolves(ctx);
+            const registerPreActivationCommandsStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands').resolves(ctx);
 
             await ExtensionUtil.registerCommands(ctx);
 
-            registerPreReqAndReleaseNotesCommandStub.should.have.been.calledOnce;
+            registerPreActivationCommandsStub.should.have.been.calledOnce;
 
             reporterStub.should.not.have.been.called;
         });
@@ -826,7 +826,7 @@ describe('ExtensionUtil Tests', () => {
         });
     });
 
-    describe('registerPreReqAndReleaseNotesCommand', () => {
+    describe('registerPreActivationCommands', () => {
 
         it('should register and open PreReq page', async () => {
             const preReqViewStub: sinon.SinonStub = mySandBox.stub(PreReqView.prototype, 'openView');
@@ -835,7 +835,7 @@ describe('ExtensionUtil Tests', () => {
             const ctx: vscode.ExtensionContext = { subscriptions: [] } as vscode.ExtensionContext;
             const registerCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'registerCommand').withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).yields({} as vscode.Command);
 
-            const context: vscode.ExtensionContext = await ExtensionUtil.registerPreReqAndReleaseNotesCommand(ctx);
+            const context: vscode.ExtensionContext = await ExtensionUtil.registerPreActivationCommands(ctx);
             context.subscriptions.length.should.equal(4);
             registerCommandStub.should.have.been.calledOnce;
             preReqViewStub.should.have.been.calledOnce;
@@ -1694,7 +1694,7 @@ describe('ExtensionUtil Tests', () => {
             });
 
             hasPreReqsInstalledStub = mySandBox.stub(DependencyManager.instance(), 'hasPreReqsInstalled');
-            registerStub = mySandBox.stub(ExtensionUtil, 'registerPreReqAndReleaseNotesCommand');
+            registerStub = mySandBox.stub(ExtensionUtil, 'registerPreActivationCommands');
             registerStub.callThrough();
             disposeExtensionStub = mySandBox.stub(ExtensionUtil, 'disposeExtension');
             disposeExtensionStub.callThrough();

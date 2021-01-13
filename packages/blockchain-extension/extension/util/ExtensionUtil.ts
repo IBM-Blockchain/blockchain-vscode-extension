@@ -444,7 +444,7 @@ export class ExtensionUtil {
                                 const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
                                 this.disposeExtension(ctx);
-                                await this.registerPreReqAndReleaseNotesCommand(ctx);
+                                await this.registerPreActivationCommands(ctx);
                                 const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
 
                                 tempCommandRegistry.createTempCommands(false, ExtensionCommands.OPEN_PRE_REQ_PAGE);
@@ -531,7 +531,7 @@ export class ExtensionUtil {
             }
         });
 
-        context = await this.registerPreReqAndReleaseNotesCommand(context);
+        context = await this.registerPreActivationCommands(context);
 
         const packageJson: any = ExtensionUtil.getPackageJSON();
 
@@ -753,7 +753,7 @@ export class ExtensionUtil {
         context.subscriptions.splice(0, context.subscriptions.length);
     }
 
-    public static async registerPreReqAndReleaseNotesCommand(context: vscode.ExtensionContext): Promise<vscode.ExtensionContext> {
+    public static async registerPreActivationCommands(context: vscode.ExtensionContext): Promise<vscode.ExtensionContext> {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE, async (d: Dependencies) => {
             const preReqView: PreReqView = new PreReqView(context, d);
             await preReqView.openView(true);
