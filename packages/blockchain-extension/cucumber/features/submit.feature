@@ -39,13 +39,13 @@ Feature: Submit transaction
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
 
   Scenario Outline: Submit a verify transaction for a private data smart contract
-    Given a private <language> smart contract for <assetType> assets with the name <name> and version <version>
+    Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
     And the 1 Org Local Fabric environment is running
     And the '1 Org Local Fabric' environment is connected
     And the 'Org1' wallet
     And the 'Local Fabric Admin' identity
     And I'm connected to the '1 Org Local Fabric - Org1 Gateway' gateway
-    And the private contract has been created
+    And the contract has been created
     And the contract has been packaged as a tar.gz
     When I deploy the contract on channel 'mychannel' with sequence '2' with private data
     When I submit the transaction 'createPrivateConga' on the channel 'mychannel' with args '["001"]' and with the transient data '{"privateValue":"125"}'

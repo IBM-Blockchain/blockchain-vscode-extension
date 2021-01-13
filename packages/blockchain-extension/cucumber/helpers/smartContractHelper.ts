@@ -53,7 +53,7 @@ export class SmartContractHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createSmartContract(language: string, assetType: string, contractName: string, mspid?: string, capability?: string): Promise<string> {
+    public async createSmartContract(language: string, assetType: string, contractName: string, capability?: string): Promise<string> {
 
         let type: LanguageType;
         if (language === 'JavaScript' || language === 'TypeScript' || language === 'Java' || language === 'Go') {
@@ -69,7 +69,6 @@ export class SmartContractHelper {
                 data: 'private'
             });
             this.userInputUtilHelper.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyPrivateAsset').resolves(assetType);
-            this.userInputUtilHelper.inputBoxStub.withArgs('Please provide an mspID for the private data collection', 'Org1MSP').resolves(mspid);
         } else {
             this.userInputUtilHelper.showQuickPickItemStub.withArgs('Choose a contract type to generate:').resolves({
                 label: UserInputUtil.GENERATE_DEFAULT_CONTRACT,

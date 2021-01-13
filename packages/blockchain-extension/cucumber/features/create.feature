@@ -15,9 +15,9 @@ Feature: Created Smart Contracts
 
 
     Scenario Outline: Create a v2 private data smart contract
-        Given a private <language> smart contract for <assetType> assets with the name <name> and version <version>
+        Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract hasn't been created already
-        When I create the private contract
+        When I create the contract
         Then a new contract directory should exist
         Examples:
             | language   | assetType    | name                      | version |
@@ -26,9 +26,9 @@ Feature: Created Smart Contracts
             | Java       | PrivateConga | PrivateJavaContract       | 0.0.1   |
 
     Scenario Outline: Create a v1 private data smart contract
-        Given a private <language> smart contract for <assetType> assets with the name <name> and version <version>
+        Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract hasn't been created already
-        When I create the private contract
+        When I create the contract
         Then a new contract directory should exist
         Examples:
             | language   | assetType    | name                        | version |
