@@ -45,7 +45,7 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
     const mocha: Mocha = new Mocha({
         ui: 'bdd',
         useColors: true,
-        timeout: 60000,
+        timeout: 120000,
         reporter: 'mocha-multi-reporters',
         reporterOptions: {
             reporterEnabled: 'mocha-junit-reporter, spec',
