@@ -171,7 +171,7 @@ describe('TransactionInputContainer component', () => {
         tag: [],
     };
 
-    let setTransactionSubmittedStub: (setSubmitted: boolean) => void;
+    let setTransactionSubmittedStub: () => void;
 
     beforeEach(async () => {
         mySandbox = sinon.createSandbox();

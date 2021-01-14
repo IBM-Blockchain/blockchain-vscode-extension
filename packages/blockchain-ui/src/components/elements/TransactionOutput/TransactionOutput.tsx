@@ -16,7 +16,7 @@ const TransactionOutput: FunctionComponent<IProps> = ({ output, isLoading }) => 
         <div className='output-panel' id='output-panel'>
             <p className='output-title'>Transaction output</p>
             <div className='output-panel-inner'>
-                {output
+                {output || isLoading
                     ?  output.split('\n').map((line) => <p className='output-body'>{line}</p>)
                     : (
                         <div className='output-placeholder-container'>

@@ -16,7 +16,7 @@ interface IProps {
     smartContract: ISmartContract | undefined;
     associatedTxdata: IAssociatedTxdata;
     preselectedTransaction: ITransaction;
-    setTransactionSubmitted: (submitted: boolean) => void;
+    setTransactionSubmitted: () => void;
 }
 
 const emptyTransaction: ITransaction = { name: '', parameters: [], returns: { type: '' }, tag: [] };
@@ -142,7 +142,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
         };
 
         Utils.postToVSCode({ command, data });
-        setTransactionSubmitted(true);
+        setTransactionSubmitted();
     };
 
     const updateCustomPeers: any = (event: { selectedItems: { id: string; label: string}[] } ): void => {
