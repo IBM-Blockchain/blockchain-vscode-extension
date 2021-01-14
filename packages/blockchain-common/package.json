@@ -3,7 +3,7 @@
     "author": "IBMBlockchain",
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "2.0.0-rc.2",
+    "version": "2.0.0",
     "publisher": "IBMBlockchain",
     "repository": {
         "type": "git",
