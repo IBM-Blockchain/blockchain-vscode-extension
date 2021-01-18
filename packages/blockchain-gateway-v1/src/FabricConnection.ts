@@ -19,6 +19,7 @@ import { ConsoleOutputAdapter, FabricSmartContractDefinition, OutputAdapter } fr
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { Lifecycle, LifecyclePeer, LifecycleChannel, DefinedSmartContract } from 'ibm-blockchain-platform-fabric-admin';
 import { Endorser, Channel } from 'fabric-common';
+import { EvaluateQueryHandler } from 'ibm-blockchain-platform-fabric-admin';
 
 export abstract class FabricConnection {
 
@@ -105,6 +106,7 @@ export abstract class FabricConnection {
     }
 
     public disconnect(): void {
+        EvaluateQueryHandler.setPeers(undefined);
         this.gateway.disconnect();
     }
 
@@ -196,7 +198,8 @@ export abstract class FabricConnection {
                 asLocalhost: this.discoveryAsLocalhost,
                 enabled: this.discoveryEnabled
             },
-            eventHandlerOptions: { commitTimeout: timeout }
+            eventHandlerOptions: { commitTimeout: timeout },
+            queryHandlerOptions: { strategy: EvaluateQueryHandler.createQueryHandler }
         };
 
         await this.gateway.connect(connectionProfile, options);

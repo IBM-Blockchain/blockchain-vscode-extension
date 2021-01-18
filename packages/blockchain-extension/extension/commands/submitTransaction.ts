@@ -284,6 +284,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             return;
         } else if (channelPeerInfo.length === 1) {
             selectPeers = UserInputUtil.DEFAULT;
+            peerTargetNames.push(channelPeerInfo[0].name);
         } else {
             selectPeers = await UserInputUtil.showQuickPick('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]) as string;
         }

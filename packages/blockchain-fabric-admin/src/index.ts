@@ -18,6 +18,7 @@ export * from './V2SmartContractPackage';
 export {SmartContractType} from './packager/BasePackager'
 
 export * from './Lifecycle';
-export * from  './LifecyclePeer';
+export * from './LifecyclePeer';
 export * from './LifecycleChannel';
+export * from './EvaluateQueryHandler';
 export {Collection} from './CollectionConfig';
