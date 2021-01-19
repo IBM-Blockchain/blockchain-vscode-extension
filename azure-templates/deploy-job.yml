@@ -52,7 +52,7 @@ jobs:
           git checkout package.json
           node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-1*
         displayName: Publish extension
-        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'))
+        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))
 
 
       - script: |
@@ -75,7 +75,7 @@ jobs:
           set -ex
           npm install lerna
           git checkout package.json
-          if [[ $(Build.SourceBranchName) == v1* ]]; then
+          if [[ $(Build.SourceBranchName) == v2* ]]; then
              node ./node_modules/lerna/cli.js version patch --yes --no-git-tag-version
           else
              node ./node_modules/lerna/cli.js version prerelease --yes --no-git-tag-version
@@ -106,7 +106,7 @@ jobs:
       - script: |
           set -ex
 
-          if [[ $(Build.SourceBranchName) == v1* ]]; then
+          if [[ $(Build.SourceBranchName) == v2* ]]; then
             export branch_name=master
           else
             export branch_name=v2

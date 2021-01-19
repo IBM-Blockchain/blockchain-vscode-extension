@@ -9,7 +9,7 @@ schedules:
 trigger: # Hopefully should run the buildPdf stage after every merge into master
   branches:
     include:
-      - merge-2648
+      - master
   tags:
     include:
       - '*'
@@ -125,7 +125,7 @@ stages:
               artifactName: vscode-che-package
 
   - stage: buildPdf
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/merge-2648')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
     jobs:
       - template: azure-templates/build-pdf.yml
 
