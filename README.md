@@ -71,6 +71,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Delete Identity | Delete an identity from a wallet |
 | Delete Gateway | Delete a Hyperledger Fabric instance gateway |
 | Delete Package | Delete a smart contract package |
+| Deploy Smart Contract | Deploy a smart contract package to an environment |
 | Dissociate A Wallet | Remove the association between a wallet and a gateway |
 | Dissociate Directory for Transaction Data | Remove the association between a directory of transaction data and a smart contract |
 | Disconnect From Environment | Disconnect from the environment you're currently connected to |
