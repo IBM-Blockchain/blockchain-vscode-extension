@@ -234,6 +234,92 @@ describe('AddWalletIdentityCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', { method: 'enrollmentID' });
         });
 
+        it('should error when adding with ID and SECRET but no CA in the connction profile', async () => {
+            connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: externalWallet
+            });
+
+            fsReadFile.resolves(`{
+            }`);
+
+            inputBoxStub.onFirstCall().resolves('greyConga');
+
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayA',
+                data: gatewayA
+            });
+            getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
+            enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
+
+            const expectedError: Error = new Error('No certificate authorities found in the connection profile');
+            importIdentityStub.resetHistory();
+
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, undefined, 'myMSPID');
+            should.equal(undefined, result);
+
+            inputBoxStub.should.have.been.calledOnce;
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
+            fsReadFile.should.have.been.calledOnce;
+            getEnrollIdSecretStub.should.have.been.calledOnce;
+            enrollStub.should.have.not.been.called;
+            importIdentityStub.should.have.not.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to add identity to wallet: ${expectedError.message}`, `Unable to add identity to wallet: ${expectedError.toString()}`);
+            sendTelemetryEventStub.should.have.not.been.called;
+        });
+
+        it('should error when adding with ID and SECRET but empty CA in the connction profile', async () => {
+            connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
+            const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: externalWallet
+            });
+
+            fsReadFile.resolves(`{
+                "certificateAuthorities": {
+                }
+            }`);
+
+            inputBoxStub.onFirstCall().resolves('greyConga');
+
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const gatewayA: FabricGatewayRegistryEntry = await FabricGatewayRegistry.instance().get('myGatewayA');
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayA',
+                data: gatewayA
+            });
+            getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
+            enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
+
+            const expectedError: Error = new Error('No certificate authorities found in the connection profile');
+            importIdentityStub.resetHistory();
+
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, undefined, 'myMSPID');
+            should.equal(undefined, result);
+
+            inputBoxStub.should.have.been.calledOnce;
+            showGatewayQuickPickBoxStub.should.have.been.calledOnceWith('Choose a gateway to enroll the identity with', false, true, undefined, externalWallet.fromEnvironment);
+            fsReadFile.should.have.been.calledOnce;
+            getEnrollIdSecretStub.should.have.been.calledOnce;
+            enrollStub.should.have.not.been.called;
+            importIdentityStub.should.have.not.been.called;
+            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to add identity to wallet: ${expectedError.message}`, `Unable to add identity to wallet: ${expectedError.toString()}`);
+            sendTelemetryEventStub.should.have.not.been.called;
+        });
+
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file', async () => {
             connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
             const externalWallet: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get('externalWallet');
