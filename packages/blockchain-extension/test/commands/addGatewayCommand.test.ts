@@ -60,16 +60,26 @@ describe('AddGatewayCommand', () => {
     });
 
     describe('addGateway with connection profile', () => {
+        let ccpOrg1Original: string;
+        let ccpOrg1Expected: string;
+        let ccpOrg2Original: string;
+        let ccpOrg2Expected: string;
 
         beforeEach(async () => {
+            // set paths
+            ccpOrg1Original = path.join(rootPath, '../../test/data/connectionOne/connection.json');
+            ccpOrg1Expected = path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json');
+            ccpOrg2Original = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
+            ccpOrg2Expected = path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json');
+
             // reset the available gateways
             await FabricGatewayRegistry.instance().clear();
             await FabricEnvironmentRegistry.instance().clear();
 
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');
-            copyConnectionProfileStub.onFirstCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
-            copyConnectionProfileStub.onSecondCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'));
+            copyConnectionProfileStub.onFirstCall().resolves(ccpOrg1Expected);
+            copyConnectionProfileStub.onSecondCall().resolves(ccpOrg2Expected);
         });
 
         afterEach(async () => {
@@ -78,7 +88,7 @@ describe('AddGatewayCommand', () => {
 
         it('should test a gateway can be added', async () => {
             showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseStub.onFirstCall().resolves(ccpOrg1Original);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -88,7 +98,7 @@ describe('AddGatewayCommand', () => {
             gateways[0].should.deep.equal({
                 name: 'myGateway',
                 associatedWallet: '',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json')
+                connectionProfilePath: ccpOrg1Expected
             });
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             copyConnectionProfileStub.should.have.been.calledOnce;
@@ -100,14 +110,14 @@ describe('AddGatewayCommand', () => {
         it('should test multiple gateways can be added', async () => {
             // Stub first gateway details
             showInputBoxStub.onFirstCall().resolves('myGatewayOne'); // First gateway name
-            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json')); // First gateway connection profile
+            browseStub.onFirstCall().resolves(ccpOrg1Original); // First gateway connection profile
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             // Stub second gateway details
             showInputBoxStub.reset();
             showInputBoxStub.onFirstCall().resolves('myGatewayTwo'); // Second gateway name
             browseStub.reset();
-            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/connection.json')); // Second gateway connection profile
+            browseStub.onFirstCall().resolves(ccpOrg2Original); // Second gateway connection profile
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -117,13 +127,13 @@ describe('AddGatewayCommand', () => {
             gateways[0].should.deep.equal({
                 name: 'myGatewayOne',
                 associatedWallet: '',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json')
+                connectionProfilePath: ccpOrg1Expected
             });
 
             gateways[1].should.deep.equal({
                 name: 'myGatewayTwo',
                 associatedWallet: '',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
+                connectionProfilePath: ccpOrg2Expected
             });
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -165,7 +175,7 @@ describe('AddGatewayCommand', () => {
 
             // Stub first gateway details
             showInputBoxStub.resolves('myGatewayOne'); // First gateway name
-            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json')); // First gateway connection profile
+            browseStub.onFirstCall().resolves(ccpOrg1Original); // First gateway connection profile
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -176,7 +186,7 @@ describe('AddGatewayCommand', () => {
             gateways[0].should.deep.equal({
                 name: 'myGatewayOne',
                 associatedWallet: '',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json')
+                connectionProfilePath: ccpOrg1Expected
             });
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
