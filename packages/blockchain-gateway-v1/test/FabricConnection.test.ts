@@ -635,7 +635,7 @@ describe('FabricConnection', () => {
             peerName = 'Org1 Peer1';
             mockPeer = mySandBox.createStubInstance(LifecyclePeer);
             fabricConnection['lifecycle']['peers'].clear();
-            fabricConnection['lifecycle']['peers'].set(peerName, mockPeer);
+            fabricConnection['lifecycle']['peers'].set(peerName, mockPeer as unknown as LifecyclePeer);
 
             mockPeer.getChannelCapabilities.resolves(['V2_0']);
         });

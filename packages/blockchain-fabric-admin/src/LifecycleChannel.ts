@@ -839,7 +839,7 @@ export class LifecycleChannel {
     }
 
     private async createEndorser(peerName: string, fabricClient: Client): Promise<Endorser> {
-        const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.wallet, this.identity);
+        const peer: LifecyclePeer = this.lifecycle.peers.get(peerName);
 
         fabricClient.setTlsClientCertAndKey(peer.clientCertKey!, peer.clientKey!);
 
@@ -928,7 +928,7 @@ export class LifecycleChannel {
     private hasLocalhostURLs(peerNames: string[]): boolean {
         const urls: string[] = [];
         for (const peerName of peerNames) {
-            const peer: LifecyclePeer = this.lifecycle.getPeer(peerName, this.wallet, this.identity);
+            const peer: LifecyclePeer = this.lifecycle.peers.get(peerName);
             urls.push(peer.url);
         }
         return urls.some((url: string) => this.isLocalhostURL(url));
