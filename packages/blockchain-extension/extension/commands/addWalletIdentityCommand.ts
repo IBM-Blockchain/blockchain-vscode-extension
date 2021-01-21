@@ -205,8 +205,16 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | FabricWalle
                 connectionProfile = yaml.safeLoad(connectionProfileFile);
             }
 
-            // Get a list of CAs
-            const caKeys: string[] = Object.keys(connectionProfile.certificateAuthorities);
+            // Get a list of CAs. If there are none, inform user and throw error.
+            let caKeys: string[];
+            if(connectionProfile.certificateAuthorities) {
+                caKeys = Object.keys(connectionProfile.certificateAuthorities);
+            }
+
+            if (!caKeys || caKeys.length === 0) {
+                throw new Error('No certificate authorities found in the connection profile');
+            }
+
             let caUrl: string;
             let caName: string;
 
