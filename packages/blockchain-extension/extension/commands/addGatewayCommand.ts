@@ -154,12 +154,13 @@ async function createGatewayFromCCP(gatewayName: string): Promise<FabricGatewayR
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = '';
-    fabricGatewayEntry.connectionProfilePath = connectionProfilePath;
 
+    // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
+    const finalCcpPath: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+    fabricGatewayEntry.connectionProfilePath = finalCcpPath;
+    
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);
-    // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
-    await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
 
     return fabricGatewayEntry;
 }
