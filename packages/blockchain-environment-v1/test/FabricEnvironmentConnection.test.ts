@@ -507,8 +507,8 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer2.getAllChannelNames.resolves(['channel2']);
 
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1);
-            connection['lifecycle']['peers'].set('Org2 Peer1', mockPeer2);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1 as unknown as LifecyclePeer);
+            connection['lifecycle']['peers'].set('Org2 Peer1', mockPeer2 as unknown as LifecyclePeer);
 
             mockPeer1.getChannelCapabilities.resolves(['V2_0']);
             mockPeer2.getChannelCapabilities.resolves(['V2_0']);
@@ -566,8 +566,8 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer1.getChannelCapabilities.resolves(['V2_0']);
             mockPeer3.getChannelCapabilities.resolves(['V1_4']);
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1);
-            connection['lifecycle']['peers'].set('Org3 Peer1', mockPeer3);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1 as unknown as LifecyclePeer);
+            connection['lifecycle']['peers'].set('Org3 Peer1', mockPeer3 as unknown as LifecyclePeer);
 
             getAllCommittedSmartContractsStub = mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts');
             getAllCommittedSmartContractsStub.resolves([
@@ -675,9 +675,9 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer3.getChannelCapabilities.resolves(['V1_4']);
 
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1);
-            connection['lifecycle']['peers'].set('Org2 Peer1', mockPeer2);
-            connection['lifecycle']['peers'].set('Org3 Peer1', mockPeer3);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer1 as unknown as LifecyclePeer);
+            connection['lifecycle']['peers'].set('Org2 Peer1', mockPeer2 as unknown as LifecyclePeer);
+            connection['lifecycle']['peers'].set('Org3 Peer1', mockPeer3 as unknown as LifecyclePeer);
 
             getAllCommittedSmartContractsStub = mySandBox.stub(LifecycleChannel.prototype, 'getAllCommittedSmartContracts');
             getAllCommittedSmartContractsStub.onFirstCall().resolves([
@@ -796,7 +796,7 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer = mySandBox.createStubInstance(LifecyclePeer);
 
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer as unknown as LifecyclePeer);
 
             mockPeer.getAllInstalledSmartContractsV1.resolves([
                 {
@@ -880,7 +880,7 @@ describe('FabricEnvironmentConnection', () => {
             mockPeer = mySandBox.createStubInstance(LifecyclePeer);
 
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer);
+            connection['lifecycle']['peers'].set('Org1 Peer1', mockPeer as unknown as LifecyclePeer);
 
             mockPeer.getAllInstalledSmartContracts.resolves([
                 {
@@ -1423,7 +1423,7 @@ describe('FabricEnvironmentConnection', () => {
             peerName = 'Org1 Peer1';
             mockPeer = mySandBox.createStubInstance(LifecyclePeer);
             connection['lifecycle']['peers'].clear();
-            connection['lifecycle']['peers'].set(peerName, mockPeer);
+            connection['lifecycle']['peers'].set(peerName, mockPeer as unknown as LifecyclePeer);
 
             mockPeer.getChannelCapabilities.resolves(['V2_0']);
         });
