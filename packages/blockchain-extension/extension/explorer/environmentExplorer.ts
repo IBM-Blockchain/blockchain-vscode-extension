@@ -317,7 +317,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                         const isRunning: boolean = await runtime.isRunning();
                         if (isRunning) {
                             treeItem.contextValue = 'blockchain-runtime-item-running';
-                            }
+                        }
 
                         treeItem.iconPath = {
                             light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'laptop.svg'),
@@ -342,6 +342,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'ibm-cloud.svg'),
                                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'ibm-cloud.svg')
                             };
+                            environmentTreeItem.contextValue = 'blockchain-ops-environment';
                         }
 
                         tree.push(environmentTreeItem);
