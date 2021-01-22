@@ -33,7 +33,7 @@ export interface OrdererOptions {
  */
 export class Lifecycle {
 
-    private peers: Map<string, LifecyclePeer> = new Map<string, LifecyclePeer>();
+    public peers: Map<string, LifecyclePeer> = new Map<string, LifecyclePeer>();
 
     private orderers: Map<string, ConnectOptions> = new Map<string, OrdererOptions>();
 
