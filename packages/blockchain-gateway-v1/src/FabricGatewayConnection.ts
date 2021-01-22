@@ -17,6 +17,7 @@ import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { IFabricGatewayConnection, OutputAdapter, LogType, ConnectionProfileUtil } from 'ibm-blockchain-platform-common';
 import { Network, Contract, Transaction, ContractListener } from 'fabric-network';
 import { Endorser } from 'fabric-common';
+import { EvaluateQueryHandler } from 'ibm-blockchain-platform-fabric-admin';
 
 export class FabricGatewayConnection extends FabricConnection implements IFabricGatewayConnection {
 
@@ -76,14 +77,18 @@ export class FabricGatewayConnection extends FabricConnection implements IFabric
             transaction.setTransient(transientData);
         }
 
+        let peerTargets: Endorser[];
         if (peerTargetNames && peerTargetNames.length > 0) {
-            const peerTargets: Endorser[] = await this.getChannelPeers(channelName, peerTargetNames);
+            peerTargets = await this.getChannelPeers(channelName, peerTargetNames);
             transaction.setEndorsingPeers(peerTargets);
         }
 
         let response: Buffer;
         if (evaluate) {
+            const allAvailablePeers: Endorser[] = EvaluateQueryHandler.getPeers();
+            EvaluateQueryHandler.setPeers(peerTargets);
             response = await transaction.evaluate(...args);
+            EvaluateQueryHandler.setPeers(allAvailablePeers);
         } else {
             response = await transaction.submit(...args);
         }
