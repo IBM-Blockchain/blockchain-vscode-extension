@@ -208,6 +208,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -231,6 +234,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -254,6 +260,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -277,6 +286,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -300,6 +312,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -323,6 +338,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -346,6 +364,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -369,6 +390,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });
@@ -392,6 +416,9 @@ describe('FabricConnection', () => {
                 },
                 eventHandlerOptions: {
                     commitTimeout: timeout
+                },
+                queryHandlerOptions: {
+                    strategy: sinon.match.any/*queryFactory.createQueryHandler*/
                 }
             });
         });

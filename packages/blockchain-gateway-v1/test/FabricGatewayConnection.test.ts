@@ -23,6 +23,7 @@ import { Gateway } from 'fabric-network';
 import { LogType, ConsoleOutputAdapter, FabricRuntimeUtil } from 'ibm-blockchain-platform-common';
 import { FabricWallet } from 'ibm-blockchain-platform-wallet';
 import { Endorser, Client } from 'fabric-common';
+import { EvaluateQueryHandler } from 'ibm-blockchain-platform-fabric-admin';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -375,6 +376,30 @@ describe('FabricGatewayConnection', () => {
             fabricTransactionStub.setEndorsingPeers.should.have.been.calledOnceWith(channelPeers);
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should evaluate a transaction and select target peers to be used by the custom query handler', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricTransactionStub.evaluate.resolves(buffer);
+
+            const peerTargetNames: string[] = ['peerOne', 'peerTwo'];
+            const channelPeers: Endorser[] = [{} as Endorser, {} as Endorser];
+            const evalQueryHandlerGetPeersStub: sinon.SinonStub = mySandBox.stub(EvaluateQueryHandler, 'getPeers').returns(undefined);
+            const evalQueryHandlerSetPeersStub: sinon.SinonStub = mySandBox.stub(EvaluateQueryHandler, 'setPeers').returns(undefined);
+
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, true, peerTargetNames);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            getChannelPeerStub.should.have.been.calledTwice;
+            getChannelPeerStub.getCall(0).should.have.been.calledWith(peerTargetNames[0]);
+            getChannelPeerStub.getCall(1).should.have.been.calledWith(peerTargetNames[1]);
+            evalQueryHandlerGetPeersStub.should.have.been.calledOnce;
+            evalQueryHandlerSetPeersStub.should.have.been.calledTwice;
+            evalQueryHandlerSetPeersStub.firstCall.should.have.been.calledWith(channelPeers);
+            evalQueryHandlerSetPeersStub.secondCall.should.have.been.calledWith(undefined);
+            fabricTransactionStub.setEndorsingPeers.should.have.been.calledOnceWith(channelPeers);
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
         });
 
