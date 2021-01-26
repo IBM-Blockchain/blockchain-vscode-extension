@@ -623,7 +623,7 @@ export class LifecycleChannel {
         return endorsers;
     }
 
-    private async discoverPeers(peerNames: string[], fabricClient: Client, channel: Channel, gateway: Gateway): Promise<Endorser[]> {
+    public async discoverChannel(peerNames: string[], fabricClient: Client, channel: Channel, gateway: Gateway): Promise<any> {
         const endorsers: Endorser[] = [];
         const asLocalHost: boolean = this.hasLocalhostURLs(peerNames);
 
@@ -650,23 +650,25 @@ export class LifecycleChannel {
         // do the three steps
         discoveryService.build(identityContext);
         discoveryService.sign(identityContext);
-        await discoveryService.send({
+        const result: {msps: any, orderers: any, peers_by_org: any, timestamp: number} = await discoveryService.send({
             asLocalhost: asLocalHost,
             targets: discoverers
         });
+
+        return result;
+    }
+
+    private async discoverPeers(peerNames: string[], fabricClient: Client, channel: Channel, gateway: Gateway): Promise<Endorser[]> {
+        await this.discoverChannel(peerNames, fabricClient, channel, gateway);
 
         const allEndorsers: Endorser[] = channel.getEndorsers();
         return allEndorsers;
     }
 
-    private async submitTransaction(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, functionName: string, requestTimeout?: number, smartContract: string = '_lifecycle', lcccSpecArgs?: string[]): Promise<void> {
+    public async submitTransaction(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, functionName: string, requestTimeout?: number, smartContract: string = '_lifecycle', lcccSpecArgs?: string[]): Promise<void> {
         if (!peerNames || peerNames.length === 0
         ) {
             throw new Error('parameter peers was missing or empty array');
-        }
-
-        if (!ordererName) {
-            throw new Error('parameter ordererName is missing');
         }
 
         if (!options) {
@@ -718,6 +720,26 @@ export class LifecycleChannel {
                 return this.lifecycle.peerExists(peerName);
             });
 
+            let channelDiscoveryResults: {msps: any, orderers: any, peers_by_org: any, timestamp: number};
+            if (!ordererName) {
+                // Discover channel msps, orderers, peers, etc.
+                channelDiscoveryResults = await this.discoverChannel(peerNames, fabricClient, channel, gateway);
+
+
+                if (channelDiscoveryResults.orderers && Object.keys(channelDiscoveryResults.orderers).length > 0){
+                    const orderers: any = Object.entries(channelDiscoveryResults.orderers);
+
+                    // Get first orderer
+                    ordererName = orderers[0][1].endpoints[0].host;
+
+                }
+
+                if (!ordererName){
+                    throw new Error('Unable to discover any orderers.');
+                }
+
+            }
+
             const allEndorsers: Endorser[] = await this.discoverPeers(alreadyKnownPeers, fabricClient, channel, gateway);
             for (const peerName of peerNames) {
                 const endorser: Endorser = allEndorsers.find((_endorser: Endorser) => {
@@ -730,7 +752,40 @@ export class LifecycleChannel {
                     endorsers.push(endorser);
                 }
             }
-            const ordererConnectOptions: ConnectOptions = this.lifecycle.getOrderer(ordererName);
+
+            let ordererConnectOptions: ConnectOptions = this.lifecycle.getOrderer(ordererName);
+            if (!ordererConnectOptions){
+                // If the user hasn't provided an orderer, try to manualy build the connection options.
+
+                const orderers: any = Object.entries(channelDiscoveryResults.orderers);
+
+                // Get first orderer's url - will be used for building connection options.
+                const _ordererUrl: string = orderers[0][1].endpoints[0].name
+
+                // Get first orderer's msp.
+                const _ordererMsp: any = channelDiscoveryResults.msps[orderers[0][0]]
+
+                const isGrpcs: boolean = endorsers[0].endpoint['protocol'] === 'grpcs' ? true : false;
+
+                // Initiate connection options.
+                ordererConnectOptions = {
+                    url: (isGrpcs) ? `grpcs://${_ordererUrl}` : `grpc://${_ordererUrl}`
+                };
+
+                if (isGrpcs){
+                    // Set pem
+                    if (_ordererMsp.tlsRootCerts && _ordererMsp.tlsIntermediateCerts){
+                        // Root and intermediate certs.
+                        ordererConnectOptions.pem = [_ordererMsp.tlsRootCerts, _ordererMsp.tlsIntermediateCerts].join('\n');
+                    } else {
+                        // Only a root cert.
+                        ordererConnectOptions.pem = _ordererMsp.tlsRootCerts;
+                    }
+                }
+
+            }
+
+
 
             committer = fabricClient.getCommitter(ordererName);
 
@@ -863,13 +918,17 @@ export class LifecycleChannel {
             Object.assign(peerConnectOptions, peer.apiOptions);
         }
 
-        const endpoint: Endpoint = fabricClient.newEndpoint(peerConnectOptions);
 
         // this will add the peer to the list of endorsers
         const endorser: Endorser = fabricClient.getEndorser(peer.name, peer.mspid);
-        endorser.setEndpoint(endpoint);
-        // @ts-ignore
-        await endorser.connect();
+
+        if (!endorser['connected']){
+            const endpoint: Endpoint = fabricClient.newEndpoint(peerConnectOptions);
+            endorser.setEndpoint(endpoint);
+            // @ts-ignore
+            await endorser.connect();
+        }
+
         return endorser;
     }
 

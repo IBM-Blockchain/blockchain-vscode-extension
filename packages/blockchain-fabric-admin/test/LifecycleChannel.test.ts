@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { Channel, Committer, Discoverer, DiscoveryService, Endorsement, Endorser, IdentityContext, Endpoint } from 'fabric-common';
+import { Channel, Committer, Discoverer, DiscoveryService, Endorsement, Endorser, IdentityContext, Endpoint, Client } from 'fabric-common';
 import * as protos from 'fabric-protos';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
@@ -118,6 +118,335 @@ describe('LifecycleChannel', () => {
 
     describe('fabric functions', () => {
 
+        describe('submitTransaction', () => {
+            let mysandbox: sinon.SinonSandbox;
+
+            // let gatewayConnectSpy: sinon.SinonSpy;
+
+            let transactionSetEndorsingPeersSpy: sinon.SinonSpy;
+            let transactionSubmitStub: sinon.SinonStub;
+
+            let addEndorserStub: sinon.SinonStub;
+            let addCommitterStub: sinon.SinonStub;
+            let getEndorsersStub: sinon.SinonStub;
+
+            let protoArgs: protos.lifecycle.IApproveChaincodeDefinitionForMyOrgArgs = {};
+
+            beforeEach(() => {
+                mysandbox = sinon.createSandbox();
+
+                mysandbox.stub(Endorser.prototype, 'connect').resolves();
+                mysandbox.stub(Discoverer.prototype, 'connect').resolves();
+                mysandbox.stub(Committer.prototype, 'connect').resolves();
+
+                protoArgs.name = 'myContract';
+                protoArgs.version = '0.0.1';
+                protoArgs.sequence = 1;
+
+                const local: protos.lifecycle.ChaincodeSource.Local = new protos.lifecycle.ChaincodeSource.Local();
+                local.package_id = 'myPackageId';
+
+                const source: protos.lifecycle.ChaincodeSource = new protos.lifecycle.ChaincodeSource();
+                source.local_package = local;
+                protoArgs.source = source;
+
+                // @ts-ignore
+
+                mysandbox.spy(Gateway.prototype, 'connect');
+                // @ts-ignore
+                getEndorsersStub = mysandbox.stub(Channel.prototype, 'getEndorsers').returns([{ name: 'myPeer' }, { name: 'myPeer2' }, { name: 'myPeer:7051' }, { name: 'peer0.org2.example.com:9051' }]);
+
+
+                mysandbox.stub(DiscoveryService.prototype, 'build');
+                mysandbox.stub(DiscoveryService.prototype, 'sign');
+                mysandbox.stub(DiscoveryService.prototype, 'send').resolves();
+
+                addEndorserStub = mysandbox.stub(Channel.prototype, 'addEndorser');
+                addCommitterStub = mysandbox.stub(Channel.prototype, 'addCommitter');
+
+                transactionSetEndorsingPeersSpy = mysandbox.spy(Transaction.prototype, 'setEndorsingPeers');
+                transactionSubmitStub = mysandbox.stub(Transaction.prototype, 'submit');
+            });
+
+            afterEach(() => {
+                mysandbox.restore();
+                protoArgs = {};
+            });
+
+            it('should handle no peerNames set', async () => {
+                // @ts-ignore
+                await channel.submitTransaction([], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                }).should.eventually.be.rejectedWith('parameter peers was missing or empty array');
+            });
+
+            it('should handle no orderer set (grpc)', async () => {
+
+                const newEndpointSpy: sinon.SinonSpy = mysandbox.spy(Client.prototype, 'newEndpoint');
+                // @ts-ignore
+                getEndorsersStub.returns([
+                    { name: 'myPeer', endpoint: {protocol: 'grpc'} },
+                    { name: 'myPeer2', endpoint: {protocol: 'grpc'} },
+                    { name: 'myPeer:7051', endpoint: {protocol: 'grpc'} },
+                    { name: 'peer0.org2.example.com:9051', endpoint: {protocol: 'grpc'} }] as Endorser[]);
+
+                const discoverChannelStub: sinon.SinonStub = mysandbox.stub(channel, 'discoverChannel').resolves(
+                    {
+                        msps: {
+                            osmsp: {
+                                tlsRootCerts: 'tlsRootCert',
+                                tlsIntermediateCerts: 'tlsIntermediateCert'
+                            },
+                            org1msp: {
+
+                            }
+                        },
+                        orderers: {
+                            osmsp: {
+                                endpoints: [
+                                    {
+                                        host: 'host',
+                                        name: 'host:1000',
+                                        port: 1000
+                                    }
+                                ]
+                            }
+
+                        },
+                        peers_by_org: {
+
+                        },
+                        timestamp: 123456789
+                    }
+                )
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], undefined, {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                }, 'approve');
+
+                discoverChannelStub.should.have.been.calledWith(['myPeer'])
+                newEndpointSpy.should.have.been.calledWithExactly({
+                    url: 'grpc://host:1000'
+                })
+            });
+
+            it('should handle no orderer set (grpcs with tlsIntermediate cert)', async () => {
+                const newEndpointSpy: sinon.SinonSpy = mysandbox.spy(Client.prototype, 'newEndpoint');
+                // @ts-ignore
+                getEndorsersStub.returns([
+                    { name: 'myPeer', endpoint: {protocol: 'grpcs'} },
+                    { name: 'myPeer2', endpoint: {protocol: 'grpcs'} },
+                    { name: 'myPeer:7051', endpoint: {protocol: 'grpcs'} },
+                    { name: 'peer0.org2.example.com:9051', endpoint: {protocol: 'grpcs'} }] as Endorser[]);
+
+                const discoverChannelStub: sinon.SinonStub = mysandbox.stub(channel, 'discoverChannel').resolves(
+                    {
+                        msps: {
+                            osmsp: {
+                                tlsRootCerts: 'tlsRootCert',
+                                tlsIntermediateCerts: 'tlsIntermediateCert'
+                            },
+                            org1msp: {
+
+                            }
+                        },
+                        orderers: {
+                            osmsp: {
+                                endpoints: [
+                                    {
+                                        host: 'host',
+                                        name: 'host:1000',
+                                        port: 1000
+                                    }
+                                ]
+                            }
+
+                        },
+                        peers_by_org: {
+
+                        },
+                        timestamp: 123456789
+                    }
+                )
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], undefined, {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                }, 'approve');
+
+                discoverChannelStub.should.have.been.calledWith(['myPeer'])
+                newEndpointSpy.should.have.been.calledWithExactly({
+                    url: 'grpcs://host:1000',
+                    pem: 'tlsRootCert\ntlsIntermediateCert'
+                })
+            });
+
+            it('should handle no orderer set (grpcs without tlsIntermediate cert)', async () => {
+                const newEndpointSpy: sinon.SinonSpy = mysandbox.spy(Client.prototype, 'newEndpoint');
+                // @ts-ignore
+                getEndorsersStub.returns([
+                    { name: 'myPeer', endpoint: {protocol: 'grpcs'} },
+                    { name: 'myPeer2', endpoint: {protocol: 'grpcs'} },
+                    { name: 'myPeer:7051', endpoint: {protocol: 'grpcs'} },
+                    { name: 'peer0.org2.example.com:9051', endpoint: {protocol: 'grpcs'} }] as Endorser[]);
+
+                const discoverChannelStub: sinon.SinonStub = mysandbox.stub(channel, 'discoverChannel').resolves(
+                    {
+                        msps: {
+                            osmsp: {
+                                tlsRootCerts: 'tlsRootCert',
+                                tlsIntermediateCerts: ''
+                            },
+                            org1msp: {
+
+                            }
+                        },
+                        orderers: {
+                            osmsp: {
+                                endpoints: [
+                                    {
+                                        host: 'host',
+                                        name: 'host:1000',
+                                        port: 1000
+                                    }
+                                ]
+                            }
+
+                        },
+                        peers_by_org: {
+
+                        },
+                        timestamp: 123456789
+                    }
+                );
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], undefined, {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                }, 'approve');
+
+                discoverChannelStub.should.have.been.calledWith(['myPeer'])
+                newEndpointSpy.should.have.been.calledWithExactly({
+                    url: 'grpcs://host:1000',
+                    pem: 'tlsRootCert'
+                })
+            });
+
+            it('should handle no orderers being discovered', async () => {
+                const newEndpointSpy: sinon.SinonSpy = mysandbox.spy(Client.prototype, 'newEndpoint');
+                // @ts-ignore
+                getEndorsersStub.returns([
+                    { name: 'myPeer', endpoint: {protocol: 'grpcs'} },
+                    { name: 'myPeer2', endpoint: {protocol: 'grpcs'} },
+                    { name: 'myPeer:7051', endpoint: {protocol: 'grpcs'} },
+                    { name: 'peer0.org2.example.com:9051', endpoint: {protocol: 'grpcs'} }] as Endorser[]);
+
+                    const discoverChannelStub: sinon.SinonStub = mysandbox.stub(channel, 'discoverChannel').resolves(
+                        {
+                            msps: {
+                                osmsp: {
+                                    tlsRootCerts: 'tlsRootCert',
+                                    tlsIntermediateCerts: ''
+                                },
+                                org1msp: {
+
+                                }
+                            },
+                            orderers: {
+
+
+                            },
+                            peers_by_org: {
+
+                            },
+                            timestamp: 123456789
+                        }
+                    );
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], undefined, {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                }, 'approve').should.be.rejectedWith(/Unable to discover any orderers./);
+
+                discoverChannelStub.should.have.been.calledWith(['myPeer'])
+                newEndpointSpy.should.not.have.been.calledWithExactly({
+                    url: 'grpcs://host:1000',
+                    pem: 'tlsRootCert'
+                })
+            });
+
+            it('should handle no options set', async () => {
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], 'myOrderer', undefined).should.eventually.be.rejectedWith('parameter options is missing');
+            });
+
+            it('should handle no sequence set', async () => {
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1',
+                }).should.eventually.be.rejectedWith('missing option sequence');
+            });
+
+            it('should handle no smartContractName set', async () => {
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractVersion: '0.0.1',
+                }).should.eventually.be.rejectedWith('missing option smartContractName');
+            });
+
+            it('should handle no smartContractVersion set', async () => {
+                // @ts-ignore
+                await channel.submitTransaction(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                }).should.eventually.be.rejectedWith('missing option smartContractVersion');
+            });
+
+            it('should handle error from submit', async () => {
+                transactionSubmitStub.rejects({ message: 'some error' });
+
+                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
+
+                await channel.submitTransaction(['myPeer'], 'myOrderer', {
+                    packageId: 'myPackageId',
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1'
+                }, 'approve').should.eventually.be.rejectedWith('Could not approve smart contract definition, received error: some error');
+
+                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
+                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
+
+                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
+                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
+            });
+
+            it('should handle error from not finding peer', async () => {
+                await channel.approveSmartContractDefinition(['myPeer', 'peer.does.not.exist:5060'], 'myOrderer', {
+                    sequence: 1,
+                    smartContractName: 'myContract',
+                    smartContractVersion: '0.0.1'
+                }).should.eventually.be.rejectedWith('Could not approve smart contract definition, received error: Could not find peer peer.does.not.exist:5060 in discovered peers');
+            });
+
+        });
         describe('approveSmartContractDefinition', () => {
 
             let mysandbox: sinon.SinonSandbox;
@@ -356,75 +685,6 @@ describe('LifecycleChannel', () => {
                 transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
-            it('should handle no peerNames set', async () => {
-                await channel.approveSmartContractDefinition([], 'myOrderer', {
-                    packageId: 'myPackageId',
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('parameter peers was missing or empty array');
-            });
-
-            it('should handle no orderer set', async () => {
-                // @ts-ignore
-                await channel.approveSmartContractDefinition(['myPeer'], undefined, {
-                    packageId: 'myPackageId',
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('parameter ordererName is missing');
-            });
-
-            it('should handle no options set', async () => {
-                // @ts-ignore
-                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', undefined).should.eventually.be.rejectedWith('parameter options is missing');
-            });
-
-            it('should handle no sequence set', async () => {
-                // @ts-ignore
-                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
-                    packageId: 'myPackageId',
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('missing option sequence');
-            });
-
-            it('should handle no smartContractName set', async () => {
-                // @ts-ignore
-                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
-                    packageId: 'myPackageId',
-                    sequence: 1,
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('missing option smartContractName');
-            });
-
-            it('should handle no smartContractVersion set', async () => {
-                // @ts-ignore
-                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
-                    packageId: 'myPackageId',
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                }).should.eventually.be.rejectedWith('missing option smartContractVersion');
-            });
-
-            it('should handle error from submit', async () => {
-                transactionSubmitStub.rejects({ message: 'some error' });
-
-                const arg: Uint8Array = protos.lifecycle.ApproveChaincodeDefinitionForMyOrgArgs.encode(protoArgs).finish();
-
-                await channel.approveSmartContractDefinition(['myPeer'], 'myOrderer', {
-                    packageId: 'myPackageId',
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1'
-                }).should.eventually.be.rejectedWith('Could not approve smart contract definition, received error: some error');
-
-                addEndorserStub.should.have.been.calledWith(sinon.match.instanceOf(Endorser));
-                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
-
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }]);
-                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
-            });
         });
 
         describe('commitSmartContractDefinition', () => {
@@ -642,75 +902,6 @@ describe('LifecycleChannel', () => {
                 transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
             });
 
-            it('should handle no peerNames set', async () => {
-                await channel.commitSmartContractDefinition([], 'myOrderer', {
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('parameter peers was missing or empty array');
-            });
-
-            it('should handle no orderer set', async () => {
-                // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], undefined, {
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('parameter ordererName is missing');
-            });
-
-            it('should handle no options set', async () => {
-                // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', undefined).should.eventually.be.rejectedWith('parameter options is missing');
-            });
-
-            it('should handle no sequence set', async () => {
-                // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('missing option sequence');
-            });
-
-            it('should handle no smartContractName set', async () => {
-                // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
-                    sequence: 1,
-                    smartContractVersion: '0.0.1',
-                }).should.eventually.be.rejectedWith('missing option smartContractName');
-            });
-
-            it('should handle no smartContractVersion set', async () => {
-                // @ts-ignore
-                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                }).should.eventually.be.rejectedWith('missing option smartContractVersion');
-            });
-
-            it('should handle error from submit', async () => {
-                transactionSubmitStub.rejects({ message: 'some error' });
-                const arg: Uint8Array = protos.lifecycle.CommitChaincodeDefinitionArgs.encode(protoArgs).finish();
-                await channel.commitSmartContractDefinition(['myPeer', 'peer0.org2.example.com:9051'], 'myOrderer', {
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1'
-                }).should.eventually.be.rejectedWith('Could not commit smart contract definition, received error: some error');
-
-                addEndorserStub.should.have.been.calledOnce;
-                addCommitterStub.should.have.been.calledWith(sinon.match.instanceOf(Committer));
-
-                transactionSetEndorsingPeersSpy.should.have.been.calledWith([{ name: 'myPeer' }, { name: 'peer0.org2.example.com:9051' }]);
-                transactionSubmitStub.should.have.been.calledWith(Buffer.from(arg));
-            });
-
-            it('should handle error from not finding peer', async () => {
-                await channel.commitSmartContractDefinition(['myPeer', 'peer.does.not.exist:5060'], 'myOrderer', {
-                    sequence: 1,
-                    smartContractName: 'myContract',
-                    smartContractVersion: '0.0.1'
-                }).should.eventually.be.rejectedWith('Could not commit smart contract definition, received error: Could not find peer peer.does.not.exist:5060 in discovered peers');
-            });
         });
 
         describe('instantiateOrUpgradeSmartContractDefinition', () => {
