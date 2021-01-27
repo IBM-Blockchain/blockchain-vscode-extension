@@ -156,10 +156,10 @@ describe('environmentExplorer', () => {
                 ibmCloudItems.length.should.equal(2);
                 ibmCloudItems[0].label.should.equal(opsToolsEnv.name);
                 ibmCloudItems[0].tooltip.should.equal(opsToolsEnv.name);
-                ibmCloudItems[0].contextValue.should.equal('blockchain-environment-item');
+                ibmCloudItems[0].contextValue.should.equal('blockchain-ops-environment');
                 ibmCloudItems[1].label.should.equal(saasEnv.name);
                 ibmCloudItems[1].tooltip.should.equal(saasEnv.name);
-                ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+                ibmCloudItems[1].contextValue.should.equal('blockchain-ops-environment');
             });
 
             it(`should correctly group 'other' environments`, async () => {
@@ -277,10 +277,10 @@ describe('environmentExplorer', () => {
                 opsToolsItems.length.should.equal(2);
                 opsToolsItems[0].label.should.equal(opsToolsEnv.name);
                 opsToolsItems[0].tooltip.should.equal(opsToolsEnv.name);
-                opsToolsItems[0].contextValue.should.equal('blockchain-environment-item');
+                opsToolsItems[0].contextValue.should.equal('blockchain-ops-environment');
                 opsToolsItems[1].label.should.equal(saasEnv.name);
                 opsToolsItems[1].tooltip.should.equal(saasEnv.name);
-                opsToolsItems[1].contextValue.should.equal('blockchain-environment-item');
+                opsToolsItems[1].contextValue.should.equal('blockchain-ops-environment');
 
                 const otherItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
                 otherItems.length.should.equal(2);
@@ -432,7 +432,7 @@ describe('environmentExplorer', () => {
                 });
                 ibmCloudItems[1].label.should.equal(opsToolsEnv.name);
                 ibmCloudItems[1].tooltip.should.equal(opsToolsEnv.name);
-                ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+                ibmCloudItems[1].contextValue.should.equal('blockchain-ops-environment');
 
                 loggedInStub.should.have.been.calledOnce;
                 accountSelectedStub.should.have.been.calledOnce;
@@ -466,7 +466,7 @@ describe('environmentExplorer', () => {
                 });
                 ibmCloudItems[1].label.should.equal(opsToolsEnv.name);
                 ibmCloudItems[1].tooltip.should.equal(opsToolsEnv.name);
-                ibmCloudItems[1].contextValue.should.equal('blockchain-environment-item');
+                ibmCloudItems[1].contextValue.should.equal('blockchain-ops-environment');
 
                 loggedInStub.should.have.been.calledOnce;
                 accountSelectedStub.should.have.been.calledOnce;

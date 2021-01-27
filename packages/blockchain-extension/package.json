@@ -907,7 +907,7 @@
                 },
                 {
                     "command": "environmentExplorer.deleteEnvironmentEntryShort",
-                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item-running || view == environmentExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item-running || view == environmentExplorer && viewItem == blockchain-runtime-item || view == environmentExplorer && viewItem == blockchain-ops-environment"
                 },
                 {
                     "command": "environmentExplorer.startFabricRuntimeShort",
@@ -959,7 +959,7 @@
                 },
                 {
                     "command": "environmentExplorer.openConsoleInBrowserEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-ops-environment"
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
