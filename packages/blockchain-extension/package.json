@@ -81,6 +81,7 @@
         "onCommand:environmentExplorer.upgradeSmartContractEntry",
         "onCommand:environmentExplorer.createNewIdentityEntry",
         "onCommand:environmentExplorer.openConsoleInBrowserEntry",
+        "onCommand:environmentExplorer.openCouchDbInBrowserEntry",
         "onCommand:walletExplorer.refreshEntry",
         "onCommand:walletExplorer.addWalletEntry",
         "onCommand:walletExplorer.addWalletIdentityEntry",
@@ -158,6 +159,7 @@
             "environmentExplorer.upgradeSmartContractEntry",
             "environmentExplorer.createNewIdentityEntry",
             "environmentExplorer.openConsoleInBrowserEntry",
+            "environmentExplorer.openCouchDbInBrowserEntry",
             "walletExplorer.refreshEntry",
             "walletExplorer.addWalletEntry",
             "walletExplorer.addWalletIdentityEntry",
@@ -555,6 +557,10 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "environmentExplorer.openCouchDbInBrowserEntry",
+                "title": "Open CouchDB in browser",
+                "category": "IBM Blockchain Platform"
+            },            {
                 "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
                 "title": "Delete Package",
                 "category": "IBM Blockchain Platform"
@@ -866,6 +872,11 @@
                     "group": "blockchain"
                 },
                 {
+                    "command": "environmentExplorer.openCouchDbInBrowserEntry",
+                    "when": "view == environmentExplorer && blockchain-runtime-connected || view == environmentExplorer && blockchain-microfab-connected",
+                    "group": "blockchain"
+                },
+                {
                     "command": "walletExplorer.refreshEntry",
                     "when": "view == walletExplorer",
                     "group": "navigation"
@@ -907,7 +918,7 @@
                 },
                 {
                     "command": "environmentExplorer.deleteEnvironmentEntryShort",
-                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item-running || view == environmentExplorer && viewItem == blockchain-runtime-item || view == environmentExplorer && viewItem == blockchain-ops-environment"
+                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item || view == environmentExplorer && viewItem == blockchain-runtime-item-running || view == environmentExplorer && viewItem == blockchain-runtime-item || view == environmentExplorer && viewItem == blockchain-ops-environment || view == environmentExplorer && viewItem == blockchain-microfab-item"
                 },
                 {
                     "command": "environmentExplorer.startFabricRuntimeShort",
@@ -960,6 +971,10 @@
                 {
                     "command": "environmentExplorer.openConsoleInBrowserEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-ops-environment"
+                },
+                {
+                    "command": "environmentExplorer.openCouchDbInBrowserEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-item-running || view == environmentExplorer && viewItem == blockchain-runtime-item || view == environmentExplorer && viewItem == blockchain-microfab-item"
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
@@ -1553,7 +1568,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.2.21",
+        "generator-fabric": "0.2.22",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
         "ibm-blockchain-platform-common": "^2.0.1",
