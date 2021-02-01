@@ -166,12 +166,13 @@ describe('environmentExplorer', () => {
                 const anyResourcesStub: sinon.SinonStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountAnyIbpResources');
 
                 const otherEnvOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                otherEnvOne.name = 'myFabric';
+                otherEnvOne.name = 'myFabric2';
                 otherEnvOne.managedRuntime = false;
+                otherEnvOne.environmentType = EnvironmentType.ENVIRONMENT;
 
                 const otherEnvTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                otherEnvTwo.name = 'myFabric2';
-                otherEnvTwo.environmentType = EnvironmentType.ENVIRONMENT;
+                otherEnvTwo.name = 'myMicrofab';
+                otherEnvTwo.environmentType = EnvironmentType.MICROFAB_ENVIRONMENT;
                 otherEnvTwo.managedRuntime = false;
 
                 await FabricEnvironmentRegistry.instance().clear();
@@ -196,7 +197,7 @@ describe('environmentExplorer', () => {
                 otherItems[0].contextValue.should.equal('blockchain-environment-item');
                 otherItems[1].label.should.equal(otherEnvTwo.name);
                 otherItems[1].tooltip.should.equal(otherEnvTwo.name);
-                otherItems[1].contextValue.should.equal('blockchain-environment-item');
+                otherItems[1].contextValue.should.equal('blockchain-microfab-item');
 
                 const ibmCloudItems: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
                 ibmCloudItems.length.should.equal(1);
@@ -224,8 +225,9 @@ describe('environmentExplorer', () => {
                 registryEntryOne.managedRuntime = false;
 
                 const registryEntryTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                registryEntryTwo.name = 'myFabric2';
+                registryEntryTwo.name = 'myMicrofab';
                 registryEntryTwo.managedRuntime = false;
+                registryEntryTwo.environmentType = EnvironmentType.MICROFAB_ENVIRONMENT;
 
                 const opsToolsEnv: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 opsToolsEnv.name = 'opsToolsEnv';
@@ -289,9 +291,11 @@ describe('environmentExplorer', () => {
                 otherItems[0].contextValue.should.equal('blockchain-environment-item');
                 otherItems[1].label.should.equal(registryEntryTwo.name);
                 otherItems[1].tooltip.should.equal(registryEntryTwo.name);
-                otherItems[1].contextValue.should.equal('blockchain-environment-item');
+                otherItems[1].contextValue.should.equal('blockchain-microfab-item');
 
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', false);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-microfab-connected', false);
 
                 ensureRuntimeLocalSpy.should.have.been.calledOnce;
             });
@@ -967,6 +971,24 @@ describe('environmentExplorer', () => {
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: myFabric`);
 
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+            });
+
+            it('should set correct context if imported microfab', async () => {
+                const otherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                otherEnvironmentRegistry.name = 'myMicrofab';
+                otherEnvironmentRegistry.managedRuntime = false;
+                otherEnvironmentRegistry.environmentType = EnvironmentType.MICROFAB_ENVIRONMENT;
+
+                environmentStub.returns(otherEnvironmentRegistry);
+
+                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+
+                const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
+                connectedTo.label.should.equal(`Connected to environment: myMicrofab`);
+
+                executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-microfab-connected', true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-environment-connected', true);
                 executeCommandStub.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
             });

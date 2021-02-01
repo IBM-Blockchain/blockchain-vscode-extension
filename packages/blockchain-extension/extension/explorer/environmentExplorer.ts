@@ -109,6 +109,9 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (environmentRegistryEntry.managedRuntime) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
+            } else if (environmentRegistryEntry.environmentType === EnvironmentType.MICROFAB_ENVIRONMENT) {
+                await vscode.commands.executeCommand('setContext', 'blockchain-microfab-connected', true);
+                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             } else {
                 if (environmentRegistryEntry.environmentType === EnvironmentType.OPS_TOOLS_ENVIRONMENT || environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                     if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
@@ -125,6 +128,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 }
 
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
+                await vscode.commands.executeCommand('setContext', 'blockchain-microfab-connected', false);
             }
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
@@ -138,6 +142,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
+            await vscode.commands.executeCommand('setContext', 'blockchain-microfab-connected', false);
 
             this.tree = await this.createConnectionTree();
         }
@@ -343,6 +348,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'ibm-cloud.svg')
                             };
                             environmentTreeItem.contextValue = 'blockchain-ops-environment';
+                        } else if(environment.environmentType === EnvironmentType.MICROFAB_ENVIRONMENT) {
+                            environmentTreeItem.contextValue = 'blockchain-microfab-item';
                         }
 
                         tree.push(environmentTreeItem);
