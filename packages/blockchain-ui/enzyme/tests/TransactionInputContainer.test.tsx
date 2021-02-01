@@ -126,12 +126,27 @@ describe('TransactionInputContainer component', () => {
         name: 'transactionThree',
     };
 
+    const transactionFour: ITransaction = {
+        ...transactionOne,
+        name: 'transactionFour',
+        parameters: [{
+            description: '',
+            name: 'name1',
+            schema: {}
+        },
+        {
+            description: '',
+            name: 'name2',
+            schema: {}
+        }]
+    };
+
     const greenContract: ISmartContract = {
         name: 'greenContract',
         version: '0.0.1',
         channel: 'mychannel',
         label: 'greenContract@0.0.1',
-        transactions: [transactionOne, transactionTwo, transactionThree],
+        transactions: [transactionOne, transactionTwo, transactionThree, transactionFour],
         namespace: 'GreenContract',
         contractName: 'GreenContract',
         peerNames: ['peer1', 'peer2']
@@ -415,6 +430,28 @@ describe('TransactionInputContainer component', () => {
                     peerTargetNames: greenContract.peerNames,
                     smartContract: 'greenContract',
                     transactionName: 'transactionOne',
+                    transientData: '',
+                    txDataFile: undefined,
+                }
+            });
+            setTransactionSubmittedStub.should.have.been.calledOnce;
+        });
+
+        it('should attempt to submit a transaction when the submit button is clicked and arguments in wrong order', () => {
+            component = updateManualInputValues(component, 'transactionFour', '{"name2": {\"anotherKey\":\"anotherValue\"}, "name1": "Green"}', undefined);
+
+            component.find('#submit-button').at(0).simulate('click');
+
+            postToVSCodeStub.should.have.been.calledOnceWithExactly({
+                command: ExtensionCommands.SUBMIT_TRANSACTION,
+                data: {
+                    args: ['Green', '{"anotherKey":"anotherValue"}'],
+                    channelName: 'mychannel',
+                    evaluate: false,
+                    namespace: 'GreenContract',
+                    peerTargetNames: greenContract.peerNames,
+                    smartContract: 'greenContract',
+                    transactionName: 'transactionFour',
                     transientData: '',
                     txDataFile: undefined,
                 }
