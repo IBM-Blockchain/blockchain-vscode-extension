@@ -117,6 +117,7 @@ import { defaultDependencies, Dependencies } from '../dependencies/Dependencies'
 import { LocalMicroEnvironmentManager } from '../fabric/environments/LocalMicroEnvironmentManager';
 import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 import { SampleGalleryView } from '../webview/SampleGalleryView';
+import { openCouchDbInBrowser} from '../commands/openCouchDbInBrowserCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -266,6 +267,7 @@ export class ExtensionUtil {
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.LOG_IN_AND_DISCOVER, () => logInAndDiscover()));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_CONSOLE_IN_BROWSER, (environment?: FabricEnvironmentTreeItem ) => openConsoleInBrowser(environment)));
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_DIRECTORY, () => deleteExtensionDirectory()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_COUCHDB_IN_BROWSER, (environment?: FabricEnvironmentTreeItem ) => openCouchDbInBrowser(environment)));
 
         context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
             const homeView: HomeView = new HomeView(context);
