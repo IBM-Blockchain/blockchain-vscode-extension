@@ -102,6 +102,7 @@ describe('OpenTransactionViewCommand', () => {
     let executeCommandStub: sinon.SinonStub;
     let getConnectionStub: sinon.SinonStub;
     let showInstantiatedSmartContractQuickPickStub: sinon.SinonStub;
+    let showChannelFromGatewayQuickPickBoxStub: sinon.SinonStub;
 
     let fabricConnectionManager: FabricGatewayConnectionManager;
 
@@ -131,6 +132,7 @@ describe('OpenTransactionViewCommand', () => {
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);
+            map.set('otherChannel', ['otherPeer']);
             fabricClientConnectionMock.createChannelMap.resolves(map);
             fabricClientConnectionMock.getChannelCapabilityFromPeer.resolves([UserInputUtil.V2_0]);
             fabricConnectionManager = FabricGatewayConnectionManager.instance();
@@ -197,6 +199,9 @@ describe('OpenTransactionViewCommand', () => {
                     }
                 }
             );
+
+            showChannelFromGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showChannelFromGatewayQuickPickBox');
+            showChannelFromGatewayQuickPickBoxStub.resolves({label: 'myChannel'});
 
             showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick');
             showInstantiatedSmartContractQuickPickStub.resolves({
@@ -507,6 +512,17 @@ describe('OpenTransactionViewCommand', () => {
             logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
             showInstantiatedSmartContractQuickPickStub.should.not.have.been.called;
+            openViewStub.should.not.have.been.called;
+        });
+
+        it('should handle cancellation when choosing a channel', async () => {
+            showChannelFromGatewayQuickPickBoxStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE);
+
+            logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Open Transaction View`);
+            showChannelFromGatewayQuickPickBoxStub.should.have.been.calledOnce;
+            showInstantiatedSmartContractQuickPickStub.should.have.not.been.called;
             openViewStub.should.not.have.been.called;
         });
 

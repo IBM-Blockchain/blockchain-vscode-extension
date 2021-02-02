@@ -299,7 +299,7 @@ export class ExtensionUtil {
             await fabric2View.openView(true, vscode.ViewColumn.Beside);
         }));
 
-        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, (treeItem: InstantiatedTreeItem, selectedTransactionName: string) => {
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TRANSACTION_PAGE, (treeItem: InstantiatedTreeItem | ContractTreeItem, selectedTransactionName: string) => {
             return openTransactionView(treeItem, selectedTransactionName);
         }));
 

@@ -174,12 +174,12 @@ describe('deployCommand', () => {
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
             orgMap.set('Org2MSP', ['peerTwo', 'peerThree']);
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'myChannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'myChannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
             logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
         });
@@ -187,12 +187,12 @@ describe('deployCommand', () => {
         it('should deploy the smart contract through the command with endorsement policy', async () => {
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId', `OutOf(1, 'Org1.member', 'Org2.member')`));
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId', `OutOf(1, 'Org1.member', 'Org2.member')`));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'myChannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId', `OutOf(1, 'Org1.member', 'Org2.member')`));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'myChannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId', `OutOf(1, 'Org1.member', 'Org2.member')`));
             logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
         });
@@ -200,11 +200,11 @@ describe('deployCommand', () => {
         it('should deploy the smart contract through the command but not commit', async () => {
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, false, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, false, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'myChannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT);
             logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Partially deployed smart contract - commit not performed');
@@ -215,7 +215,7 @@ describe('deployCommand', () => {
             orgMap.set('Org1MSP', ['peerOne']);
             environmentConnectionStub.returns(undefined);
 
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
@@ -227,7 +227,7 @@ describe('deployCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves([undefined, 'other']);
             const error: Error = new Error('Package was not installed. No packageId was returned');
 
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
@@ -242,12 +242,12 @@ describe('deployCommand', () => {
             installApproveMap.set('Org1MSP', ['peerOne']);
             commitMap.set('Org1MSP', ['peerOne']);
             commitMap.set('Org2MSP', ['peerTwo', 'peerThree']);
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', installApproveMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1), commitMap);
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', installApproveMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1), commitMap);
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, installApproveMap, packageRegistryEntry);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', installApproveMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', commitMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'myChannel', installApproveMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'myChannel', commitMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
             logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
         });
@@ -278,12 +278,12 @@ describe('deployCommand', () => {
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
             orgMap.set('Org2MSP', ['peerTwo', 'peerThree']);
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1));
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT, orgMap, packageRegistryEntry);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'myChannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.COMMIT_SMART_CONTRACT, 'myOrderer', 'myChannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
             logSpy.should.have.been.calledWith(LogType.INFO, 'Deploy Smart Contract');
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully deployed smart contract');
             getConnectionStub.should.have.been.called;
@@ -328,7 +328,7 @@ describe('deployCommand', () => {
             getConnectionStub.returns(undefined);
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
         });
 
         it('should call the CONNECT_TO_GATEWAY command if not already connected and submit a smart contract using the connected gateway when the Transaction View is open', async () => {
@@ -354,7 +354,7 @@ describe('deployCommand', () => {
 
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
-            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'mychannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
+            await vscode.commands.executeCommand(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, environmentRegistryEntry, 'myOrderer', 'myChannel', orgMap, packageRegistryEntry, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, undefined, `OutOf(1, 'Org1.member', 'Org2.member')`));
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
             getSmartContractStub.should.have.been.calledWith('anotherGateway');
         });

@@ -39,7 +39,11 @@ const TransactionDataInput: FunctionComponent<IProps> = ({ smartContract, associ
     };
 
     const displayChooseOption: IDataFileTransaction = { transactionName: 'Select the transaction name', transactionLabel: '', txDataFile: '', arguments: [], transientData: {} };
-    const activeAssociatedTxData: { channelName: string, transactionDataPath: string, transactions: IDataFileTransaction[] } | undefined = smartContract && associatedTxdata && associatedTxdata[smartContract.name];
+    let activeAssociatedTxData: { channelName: string, transactionDataPath: string, transactions: IDataFileTransaction[] } | undefined;
+    if (smartContract && associatedTxdata && associatedTxdata[smartContract.name] && associatedTxdata[smartContract.name].channelName === smartContract.channel) {
+        activeAssociatedTxData = associatedTxdata[smartContract.name];
+    }
+
     return (
         <>
             <div className='associate-tx-data'>
