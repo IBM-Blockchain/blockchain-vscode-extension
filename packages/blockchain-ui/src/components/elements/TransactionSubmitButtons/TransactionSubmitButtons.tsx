@@ -1,13 +1,15 @@
 import React, { FunctionComponent } from 'react';
 import './TransactionSubmitButtons.scss';
 import { Button, FormGroup } from 'carbon-components-react';
+import ITransaction from '../../../interfaces/ITransaction';
 
 interface IProps {
-    submitTransaction: (evaluate: boolean) => void;
+    transaction: ITransaction;
+    submitTransaction: (evaluate: boolean, transaction: ITransaction) => void;
     shouldDisableButtons: boolean;
 }
 
-const TransactionInputContainer: FunctionComponent<IProps> = ({ submitTransaction, shouldDisableButtons }) => {
+const TransactionInputContainer: FunctionComponent<IProps> = ({ transaction, submitTransaction, shouldDisableButtons }) => {
     return (
         <FormGroup legendText='' id='submit-and-evaluate-buttons'>
             <div className='submit-txn-button-container'>
@@ -17,7 +19,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ submitTransactio
                     className='submit-txn-button'
                     id='evaluate-button'
                     disabled={shouldDisableButtons}
-                    onClick={() => submitTransaction(true)}
+                    onClick={() => submitTransaction(true, transaction)}
                 >
                         Evaluate transaction
                 </Button>
@@ -27,7 +29,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ submitTransactio
                     className='submit-txn-button'
                     id='submit-button'
                     disabled={shouldDisableButtons}
-                    onClick={() => submitTransaction(false)}
+                    onClick={() => submitTransaction(false, transaction)}
                 >
                         Submit transaction
                 </Button>

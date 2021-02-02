@@ -40,12 +40,21 @@ const areTransactionArgsValid: (t: string) => boolean = (transactionArguments: s
     }
 };
 
-const convertJSONToArgs: (t: string) => Array<string> = (transactionArguments: string) => {
+const convertJSONToArgs: (t: string, tr: ITransaction) => Array<string> = (transactionArguments: string, transaction: ITransaction) => {
     if (!transactionArguments) {
         return [];
     }
     const args: { [key: string]: any } = JSON.parse(transactionArguments);
-    const array: Array<any> = Object.keys(args).map((key: string) => typeof args[key] === 'object' && args[key] !== null ? JSON.stringify(args[key]) : `${args[key]}`);
+    let argKeys: string[] = Object.keys(args);
+    if (transaction !== emptyTransaction && transaction.parameters && transaction.parameters.length > 0) {
+        // Typos in the arg names will lead to missing parameters, which is confusing
+        // from a user perspective. Only use default order if there are no typos.
+        const argNames: string[] = transaction.parameters.map((entry: any) => entry.name).filter((name: string) => argKeys.includes(name));
+        if (argKeys.length === argNames.length) {
+            argKeys = argNames;
+        }
+    }
+    const array: Array<any> = argKeys.map((key: string) => typeof args[key] === 'object' && args[key] !== null ? JSON.stringify(args[key]) : `${args[key]}`);
     return array;
 };
 
@@ -124,10 +133,10 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
         }
     }, [preselectedTransaction, currentPreselectedTransaction, setManualActiveTransaction]);
 
-    const submitTransaction: any = (evaluate: boolean): void => {
+    const submitTransaction: any = (evaluate: boolean, activeTransaction: ITransaction): void => {
         const command: string = evaluate ? ExtensionCommands.EVALUATE_TRANSACTION : ExtensionCommands.SUBMIT_TRANSACTION;
 
-        const args: Array<string> = isManual ? convertJSONToArgs(manualInputState.transactionArguments) : dataInputTransaction.arguments;
+        const args: Array<string> = isManual ? convertJSONToArgs(manualInputState.transactionArguments, activeTransaction) : dataInputTransaction.arguments;
 
         const data: any = {
             evaluate,
@@ -161,6 +170,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
     const shouldDisableManual: boolean = !manualInputState.activeTransaction.name || !transactionArgumentsAreValid;
     const shouldDisableDataFile: boolean = dataInputTransaction.transactionName === '';
     const shouldDisableButtons: boolean = (isManual && shouldDisableManual) || (!isManual && shouldDisableDataFile) || (peerTargetNames && peerTargetNames.length === 0);
+    const transaction: ITransaction = manualInputState.activeTransaction;
 
     // tslint:disable-next-line: no-console
     const ignoreEvent: any = (e: any) => console.log('event ignored', e);
@@ -200,6 +210,7 @@ const TransactionInputContainer: FunctionComponent<IProps> = ({ smartContract, a
                     disabled={!smartContract}
                 />
                 <TransactionSubmitButtons
+                    transaction={transaction}
                     shouldDisableButtons={shouldDisableButtons}
                     submitTransaction={submitTransaction}
                 />
