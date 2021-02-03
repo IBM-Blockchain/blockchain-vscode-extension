@@ -78,7 +78,7 @@ describe('Transaction page', () => {
 
     const associatedTxdata: IAssociatedTxdata = {
         [greenContract.name]: {
-            channelName: 'channelName',
+            channelName: 'mychannel',
             transactionDataPath: 'transactionDataPath',
             transactions: txdataTransactions,
         }

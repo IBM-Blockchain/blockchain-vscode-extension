@@ -173,7 +173,7 @@ describe('TransactionInputContainer component', () => {
 
     const associatedTxdata: IAssociatedTxdata = {
         [greenContract.name]: {
-            channelName: 'channelName',
+            channelName: 'mychannel',
             transactionDataPath: 'transactionDataPath',
             transactions: txdataTransactions,
         }
@@ -800,6 +800,20 @@ describe('TransactionInputContainer component', () => {
                         channel,
                     }
                 });
+            });
+
+            it('should not show the transaction dropdown as enabled because directory is associated with contract in wrong channel', () => {
+                const wrongChannelContract: ISmartContract = {
+                    ...greenContract,
+                    channel: 'otherChannel'
+                };
+            
+                component = mount(<TransactionInputContainer smartContract={wrongChannelContract} associatedTxdata={associatedTxdata} preselectedTransaction={preselectedTransaction} setTransactionSubmitted={setTransactionSubmittedStub}/>);
+                component = toggleContentSwitcher(component);
+
+                const dropdown: any = component.find(transactionNameSelector);
+                expect(dropdown.prop('disabled')).toBeTruthy();
+                expect(dropdown.prop('items')).toEqual([]);
             });
 
             it('should show the transaction dropdown as enabled and display the txdataTransactions as a directory is associated', () => {

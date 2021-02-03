@@ -77,7 +77,7 @@ export async function deploySmartContract(requireCommit: boolean, fabricEnvironm
                     }
                 }
 
-                const smartContracts: ISmartContract[] = await getSmartContracts(gatewayConnection, smartContractDefinition.name);
+                const smartContracts: ISmartContract[] = await getSmartContracts(gatewayConnection, smartContractDefinition.name, channelName);
                 await TransactionView.updateSmartContracts(smartContracts);
             }
         });
