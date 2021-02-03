@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.0
-_Release date: January 19th 2021_
+# IBM Blockchain Platform Extension updated to v2.0.1
+_Release date: February 4th 2021_
 
 Announcements
 ---
@@ -8,26 +8,18 @@ Announcements
 
 Features & Enhancements
 ---
-* Support for Fabric v2.0 lifecycle.
- > This extension now support all operations required to deploy smart contracts to a Fabric V2 channel.
- >
- > When creating a new local environment, you now have the option to specify the capabilities of the channel to be created.
- >
- > To use the new Fabric v2.0 lifecycle you need to create a local environment which has V2 capabilities.
- >
- > Be sure to check out the updated 'Basic tutorials' to find out how to use the new lifecycle.
-* New 'Deploy Smart Contract' command
- > We've included a new 'Deploy Smart Contract' command which is callable from the command palette.
- >
- > This command allows you to easily install and instantiate a smart contract (if using a V1 channel), or install, approve and commit a smart contract (if using a V2 channel) - using a single action.
-* New 'Transact with Smart Contract' command
- > We've included a new 'Transact with Smart Contract' command which makes it easier to submit/evaluate transactions.
+* Added command to view CouchDB instance in browser [#2937](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2937)
+* Improved transaction argument handling [#2923](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2923)
 
 Fixes
 ---
-* No longer need to rebuild gRPC [#1621](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1621)
-
-Be sure to take a look at our previous 2.0.0-beta.x releases in the changelog to see the full list of changes made.
+* Fixed deleting or moving connection profile bug [#2919](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2919)
+* Improved enrolment error message if no CA present [#2909](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2909)
+* Fixed evaluating transaction not using selected peers [#2707](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2907)
+* Fixed access denied when deploying contract [#2905](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2905)
+* Fixed open console in browser command [#2802](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2802)
+* Improved fallback for no orderer present in environment [#2904](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2904)
+* Fixed contract handling if deployed to multiple channels [#2854](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2854)
 
 Notes
 ---
@@ -35,6 +27,6 @@ Notes
 
 This release's Conga Comic:	
 ---	
-<img src="https://congacomic.github.io/assets/img/blockheight-83.jpg" width="800">	
+<img src="https://congacomic.github.io/assets/img/blockheight-84.jpg" width="800">	
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
