@@ -22,6 +22,7 @@ import { TransactionView } from '../webview/TransactionView';
 import { getSmartContracts } from './openTransactionViewCommand';
 import { FabricGatewayConnectionManager } from '../fabric/FabricGatewayConnectionManager';
 import ISmartContract from '../interfaces/ISmartContract';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function deploySmartContract(requireCommit: boolean, fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, ordererName: string, channelName: string, installApproveMap: Map<string, string[]>, chosenPackage: PackageRegistryEntry, smartContractDefinition: FabricSmartContractDefinition, commitMap?: Map<string, string[]>): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -52,14 +53,15 @@ export async function deploySmartContract(requireCommit: boolean, fabricEnvironm
             smartContractDefinition.packageId = packageId;
 
             progress.report({ message: `Approving Smart Contract` });
-            await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, ordererName, channelName, installApproveMap, smartContractDefinition);
+            await ExtensionUtil.executeCommandInternal(ExtensionCommands.APPROVE_SMART_CONTRACT, ordererName, channelName, installApproveMap, smartContractDefinition);
 
             if (requireCommit) {
                 progress.report({ message: `Committing Smart Contract` });
                 if (!commitMap) {
                     commitMap = installApproveMap;
                 }
-                await vscode.commands.executeCommand(ExtensionCommands.COMMIT_SMART_CONTRACT, ordererName, channelName, commitMap, smartContractDefinition);
+                await ExtensionUtil.executeCommandInternal(ExtensionCommands.COMMIT_SMART_CONTRACT, ordererName, channelName, commitMap, smartContractDefinition);
+ 
                 outputAdapter.log(LogType.SUCCESS, 'Successfully deployed smart contract');
             } else {
                 outputAdapter.log(LogType.SUCCESS, 'Partially deployed smart contract - commit not performed');

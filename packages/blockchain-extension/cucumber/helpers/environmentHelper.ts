@@ -214,7 +214,7 @@ export class EnvironmentHelper {
         const environmentRegistryEntry: FabricEnvironmentRegistryEntry = await FabricEnvironmentRegistry.instance().get(environmentName);
         this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({label: environmentName, data: environmentRegistryEntry});
         this.userInputUtilHelper.opsToolsNodeQuickPickStub.resolves(nodesToImport);
-        await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+        await ExtensionUtil.executeCommandInternal(ExtensionCommands.EDIT_NODE_FILTERS, undefined, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
 
         const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(environmentRegistryEntry);
         const nodes: FabricNode[] = await environment.getNodes();

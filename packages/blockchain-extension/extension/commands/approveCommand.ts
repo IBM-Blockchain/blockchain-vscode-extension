@@ -21,7 +21,7 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, 
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { SettingConfigurations } from '../configurations';
 
-export async function approveSmartContract(ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
+export async function approveSmartContract(ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition): Promise<void | Error> {
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'approveSmartContract');
@@ -75,6 +75,7 @@ export async function approveSmartContract(ordererName: string, channelName: str
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error approving smart contract: ${error.message}`, `Error approving smart contract: ${error.toString()}`);
-        throw error;
+
+        return error;
     }
 }

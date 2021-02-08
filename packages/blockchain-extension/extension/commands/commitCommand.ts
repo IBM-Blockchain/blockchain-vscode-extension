@@ -27,7 +27,7 @@ import {
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { SettingConfigurations } from '../configurations';
 
-export async function commitSmartContract(ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition): Promise<void> {
+export async function commitSmartContract(ordererName: string, channelName: string, orgMap: Map<string, string[]>, smartContractDefinition: FabricSmartContractDefinition): Promise<void | Error> {
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'commitSmartContract');
@@ -76,6 +76,6 @@ export async function commitSmartContract(ordererName: string, channelName: stri
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error committing smart contract: ${error.message}`, `Error committing smart contract: ${error.toString()}`);
-        throw error;
+        return error;
     }
 }

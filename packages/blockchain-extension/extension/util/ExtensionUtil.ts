@@ -827,6 +827,21 @@ export class ExtensionUtil {
 
     }
 
+    /**
+     * In VS Code 1.53 and greater, executeCommand handles errors differently and does not bubble thrown errors from the command code back up.
+     *
+     * The executeCommand function now displays it's own error, e.g "Running the contributed command:'environmentExplorer.approveSmartContractEntry' failed"
+     *
+     * Now, we should return errors in addition to using this function to handle them.
+     */
+    public static async executeCommandInternal(command: string, ...args: any[]): Promise<any> {
+        const result: any = await vscode.commands.executeCommand(command, ...args);
+        if (result instanceof Error) {
+            throw result;
+        }
+        return result;
+    }
+
     public static isChe(): boolean {
         return 'CHE_WORKSPACE_ID' in process.env;
     }
