@@ -7,13 +7,14 @@ Feature: Smart Contracts packages
         When I package the contract as a tar.gz
         Then a new package should be created with the name <name> and version <version>
         And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel
-        And the tree item should have a tooltip equal to '<packagedName> (<extension>)\nFile size: <size> KB'
+        And the tree item should have a tooltip including to '<packagedName> (<extension>)\nFile size:'
+        And the file size should be greater than '<size>' KB
         Examples:
         | language   | assetType | name               | packagedName             | size     | version | extension |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 39       | 0.0.1   | .tar.gz   |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 37       | 0.0.1   | .tar.gz   |
         | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 55       | 0.0.1   | .tar.gz   |
-        | Go         | Conga     | GoContract         | GoContract@0.0.1         | 2418     | 0.0.1   | .tar.gz   |
+        | Go         | Conga     | GoContract         | GoContract@0.0.1         | 2414     | 0.0.1   | .tar.gz   |
 
     Scenario Outline: Inspect smart contract contents for a targz contract
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
