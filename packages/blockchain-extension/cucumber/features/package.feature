@@ -13,7 +13,7 @@ Feature: Smart Contracts packages
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 39       | 0.0.1   | .tar.gz   |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 37       | 0.0.1   | .tar.gz   |
         | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 55       | 0.0.1   | .tar.gz   |
-        | Go         | Conga     | GoContract         | GoContract@0.0.1         | 2418     | 0.0.1   | .tar.gz   |
+        | Go         | Conga     | GoContract         | GoContract@0.0.1         | 2414     | 0.0.1   | .tar.gz   |
 
     Scenario Outline: Inspect smart contract contents for a targz contract
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
