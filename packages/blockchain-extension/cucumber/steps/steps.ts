@@ -141,9 +141,21 @@ module.exports = function(): any {
         });
     });
 
-    this.Then(/the tree item should have a tooltip equal to '(.*)'/, this.timeout, async (tooltipValue: string) => {
+    this.Then(/the tree item should have a tooltip (equal|including) to '(.*)'/, this.timeout, async (operator: string, tooltipValue: string) => {
         tooltipValue = tooltipValue.replace(/\\n/g, `\n`); // Add line breaks
-        this.treeItem.tooltip.should.equal(tooltipValue);
+        if (operator === 'equal') {
+            this.treeItem.tooltip.should.equal(tooltipValue);
+        } else if (operator === 'including') {
+            this.treeItem.tooltip.includes(tooltipValue).should.equal(true);
+        } else {
+            throw new Error('Unknown operator for step.');
+        }
+    });
+
+    this.Then(/the file size should be greater than '(.*)' KB/, this.timeout, async (value: string) => {
+        const regex: RegExp = /File size: (.*?) KB/;
+        const fileSize: string = this.treeItem.tooltip.match(regex)[1];
+        (fileSize >= value).should.equal(true);
     });
 
     this.Then("the logger should have been called with '{string}', '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string, outputMessage: string) => {

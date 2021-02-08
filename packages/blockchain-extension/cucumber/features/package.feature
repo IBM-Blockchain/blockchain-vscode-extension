@@ -7,7 +7,8 @@ Feature: Smart Contracts packages
         When I package the contract as a tar.gz
         Then a new package should be created with the name <name> and version <version>
         And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel
-        And the tree item should have a tooltip equal to '<packagedName> (<extension>)\nFile size: <size> KB'
+        And the tree item should have a tooltip including to '<packagedName> (<extension>)\nFile size:'
+        And the file size should be greater than '<size>' KB
         Examples:
         | language   | assetType | name               | packagedName             | size     | version | extension |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 39       | 0.0.1   | .tar.gz   |
