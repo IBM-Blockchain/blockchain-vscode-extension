@@ -22,7 +22,7 @@ Feature: Upgrade Smart Contracts
     Then there should be a committed smart contract tree item with a label '<committedName>' in the 'Fabric Environments' panel for item mychannel
     And the tree item should have a tooltip equal to '<committedName>'
     And the log should have been called with 'SUCCESS' and 'Successfully approved smart contract definition'
-    And the log should have been called with 'ERROR' and 'Failed to deploy smart contract, Could not commit smart contract definition'
+    # And the log should have been called with 'ERROR' and 'Failed to deploy smart contract, Could not commit smart contract definition' - TODO re-enable on insiders fix.
     Examples:
       | language   | assetType | name               | assetType2 | version | committedName            |
       | JavaScript | Conga     | JavaScriptContract | CongaTwo   | 0.0.1   | JavaScriptContract@0.0.1 |
