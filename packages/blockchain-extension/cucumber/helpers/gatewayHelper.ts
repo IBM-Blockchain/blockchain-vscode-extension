@@ -43,7 +43,7 @@ export class GatewayHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createGateway(name: string, fromEnvironment: boolean, environmentName?: string): Promise<void> {
+    public async createGateway(name: string, fromEnvironment: boolean, environmentName?: string, mspId?: string, caName?: string): Promise<void> {
         const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const treeItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
@@ -65,17 +65,31 @@ export class GatewayHelper {
                 const environment: FabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
                 const nodes: FabricNode[] = await environment.getNodes();
 
-                const peerNode: FabricNode = nodes.find((_node: FabricNode) => {
-                    return _node.type === FabricNodeType.PEER;
-                });
+                let peerNode: FabricNode;
+                if (mspId) {
+                    peerNode = nodes.find((_node: FabricNode) => {
+                        return _node.type === FabricNodeType.PEER && _node.msp_id === mspId;
+                    });
+                } else {
+                    peerNode = nodes.find((_node: FabricNode) => {
+                        return _node.type === FabricNodeType.PEER;
+                    });
+                }
 
                 this.userInputUtilHelper.showOrgQuickPickStub.resolves({ label: peerNode.msp_id, data: peerNode });
 
-                const caNode: FabricNode = nodes.find((_node: FabricNode) => {
-                    return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY;
-                });
+                let caNode: FabricNode;
+                if (caName) {
+                    caNode = nodes.find((_node: FabricNode) => {
+                        return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY && _node.name === caName;
+                    });
+                } else {
+                    caNode = nodes.find((_node: FabricNode) => {
+                        return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY;
+                    });
+                }
 
-                this.userInputUtilHelper.showNodesInEnvironmentQuickPickStub({ label: caNode.name, data: caNode });
+                this.userInputUtilHelper.showNodesInEnvironmentQuickPickStub.resolves({ label: caNode.name, data: caNode });
             }
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -111,6 +125,14 @@ export class GatewayHelper {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
             gatewayEntry.associatedWallet = 'Org1';
+        }
+
+        // If software or saas instance.
+        if (process.env.OPSTOOLS_FABRIC) {
+            this.userInputUtilHelper.showChannelFromGatewayQuickPickBoxStub.withArgs('Choose a channel to select a smart contract from').resolves({
+                label: channel,
+                data: ['Org1 Peer', 'Org2 Peer']
+            });
         }
 
         if (gatewayEntry.transactionDataDirectories) {

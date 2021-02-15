@@ -39,7 +39,7 @@ module.exports = function(): any {
         await this.gatewayHelper.createGateway(gateway);
     });
 
-    this.Given(/I have created a gateway '(.*)' from an? '(.*)'/, this.timeout, async (gateway: string, method: string) => {
+    this.Given(/I have created a gateway '(.*)' from an? '(.*)'(?: with an msp "(.*)" and CA name "(.*)")?/, this.timeout, async (gateway: string, method: string, mspName?: string, caName?: string) => {
         this.gateway = gateway;
 
         let fromEnvironment: boolean = false;
@@ -48,7 +48,7 @@ module.exports = function(): any {
 
         }
 
-        await this.gatewayHelper.createGateway(gateway, fromEnvironment, this.environmentName);
+        await this.gatewayHelper.createGateway(gateway, fromEnvironment, this.environmentName, mspName, caName);
     });
 
     this.Given(/I'm connected to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {
