@@ -147,7 +147,7 @@ func Test<%=capsTransactionName%>_fv(t *testing.T) {
     t.Run("Submit<%=capsTransactionName%>Test", func(t *testing.T) {
 		contract, teardown := setup(t)
 		defer teardown(t)
-        <%_ let params = ['']; _%>
+        <%_ let params = []; _%>
         <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
         // TODO: populate transaction parameters
             <%_ transaction.parameters.forEach((parameter) => { _%>
@@ -155,18 +155,18 @@ func Test<%=capsTransactionName%>_fv(t *testing.T) {
                     <%_ let type = ''; _%>
                     <%_ if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) { _%>
                         <%_ type = getType(parameter.schema.items); _%>
-                        <%_ params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`); _%>
+                        <%_ params.push(`fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`); _%>
         <%=parameter.name.replace(`"`, '')%> := []<%=type%>{}
                     <%_ } else { _%>
                         <%_ type = getType(parameter.schema); _%>
                         <%_ const hasDefaultValue = typeof defaults[type] !== 'undefined'; _%>
                         <%_ const value = hasDefaultValue ? defaults[type] : `new(${type})`; _%>
                         <%_ if (type === 'string') { _%>
-                            <%_ params.push(` ${parameter.name.replace(`"`, '')}`); _%>
+                            <%_ params.push(`${parameter.name.replace(`"`, '')}`); _%>
                         <%_ } else if (!hasDefaultValue) { _%>
-                            <%_ params.push(` string(${parameter.name.replace(`"`, '')}json)`); _%>
+                            <%_ params.push(`string(${parameter.name.replace(`"`, '')}json)`); _%>
                         <%_ } else { _%>
-                            <%_ params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`); _%>
+                            <%_ params.push(`fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`); _%>
                         <%_ } _%>
                         <%_ if (type === 'interface') { _%>
         var <%=parameter.name.replace(`"`, '')%> <%-value.replace(/^\'/, '').replace(/\'$/, '')%>
@@ -180,8 +180,20 @@ func Test<%=capsTransactionName%>_fv(t *testing.T) {
                 <%_ } _%>
             <%_ }) _%>
         <%_ } _%>
+        <%_ if (isPrivateData) { _%>
+        // TODO: populate or delete transientData as appropriate
+        transientData := make(map[string][]byte)
 
-        result, err := contract.SubmitTransaction("<%=transaction.name%>"<%-params%>)
+        transaction, err := contract.CreateTransaction("<%=transaction.name%>", gw.WithTransient(transientData))
+		if err != nil {
+			t.Fatalf("Failed to create transaction: %s\n", err)
+		}
+
+        result, err := transaction.Submit(<%-params%>)
+        <%_ } else { _%>
+
+        result, err := contract.SubmitTransaction("<%=transaction.name%>", <%-params%>)
+        <%_ } _%>
 		if err != nil {
 			t.Fatalf("Failed to submit transaction: %s\n", err)
         }

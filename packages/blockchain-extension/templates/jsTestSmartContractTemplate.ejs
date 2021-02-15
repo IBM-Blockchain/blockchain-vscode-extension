@@ -101,10 +101,17 @@ describe('<%=chaincodeLabel%>' , () => {
             // TODO: Update with parameters of transaction
             const args = [];
             <%_ } _%>
+            <%_ if (isPrivateData) {-%>
+            // TODO: populate or delete transientData as appropriate
+            const transientData = {};
+
+            const response = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData); // Returns buffer of transaction return value
+            <%_ } else { _%>
 
             const response = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway); // Returns buffer of transaction return value
+            <%_ } _%>
             // TODO: Update with return value of transaction
-            // assert.equal(JSON.parse(response.toString()), undefined);
+            // assert.strictEqual(JSON.parse(response.toString()), undefined);
         }).timeout(10000);
     });
 <% }) %>

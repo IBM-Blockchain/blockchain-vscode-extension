@@ -15,6 +15,7 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+// GetConnectionProfile reads the connection profile
 func GetConnectionProfile(connectionProfilePath string) ([]byte, error) {
 	data, err := ioutil.ReadFile(connectionProfilePath)
 	if err != nil {
@@ -23,7 +24,7 @@ func GetConnectionProfile(connectionProfilePath string) ([]byte, error) {
 	return data, nil
 }
 
-// Checks if URL is localhost
+// IsLocalhostURL checks if URL is localhost
 func IsLocalhostURL(urlToCheck string) bool {
 	localhosts := [2]string{"localhost", "127.0.0.1"}
 	parsedURL, _ := url.Parse(urlToCheck)
@@ -38,7 +39,7 @@ func IsLocalhostURL(urlToCheck string) bool {
 	return false
 }
 
-// Used for determining whether to set SERVICE_DISCOVER_AS_LOCALHOST
+// HasLocalhostURLs determines whether to set SERVICE_DISCOVER_AS_LOCALHOST
 func HasLocalhostURLs(connectionProfilePath string) (bool, error) {
 	data, err := GetConnectionProfile(connectionProfilePath)
 	if err != nil {
@@ -52,11 +53,11 @@ func HasLocalhostURLs(connectionProfilePath string) (bool, error) {
 	if strings.HasSuffix(connectionProfilePath, ".json") {
 		err = json.Unmarshal(data, &obj)
 	} else if strings.HasSuffix(connectionProfilePath, ".yml") {
-		ymlToJsonData, err := yaml.YAMLToJSON(data)
+		ymlToJSONData, err := yaml.YAMLToJSON(data)
 		if err != nil {
 			return false, err
 		}
-		err = json.Unmarshal(ymlToJsonData, &obj)
+		err = json.Unmarshal(ymlToJSONData, &obj)
 	}
 	if err != nil {
 		return false, err
@@ -89,6 +90,7 @@ func HasLocalhostURLs(connectionProfilePath string) (bool, error) {
 	return false, nil
 }
 
+// SetDiscoverAsLocalHost sets DISCOVERY_AS_LOCALHOST
 func SetDiscoverAsLocalHost(isLocalhost bool) error {
 	return os.Setenv("DISCOVERY_AS_LOCALHOST", fmt.Sprintf("%t", isLocalhost))
 }
