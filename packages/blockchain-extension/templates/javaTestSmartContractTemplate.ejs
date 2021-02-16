@@ -25,11 +25,18 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 <%_ } _%>
 import java.util.concurrent.TimeoutException;
+<%_ if (isPrivateData) { _%>
+import java.util.HashMap;
+import java.util.Map;
+<%_ } _%>
 
 import org.hyperledger.fabric.gateway.Contract;
 import org.hyperledger.fabric.gateway.ContractException;
 import org.hyperledger.fabric.gateway.Gateway;
 import org.hyperledger.fabric.gateway.Network;
+<%_ if (isPrivateData) { _%>
+import org.hyperledger.fabric.gateway.Transaction;
+<%_ } _%>
 import org.hyperledger.fabric.gateway.Wallet;
 import org.hyperledger.fabric.gateway.Wallets;
 import org.junit.jupiter.api.AfterEach;
@@ -175,8 +182,17 @@ public final class Fv<%=capsChaincodeLabelForJava%>Test {
             // TODO: Update with parameters of transaction
             String[] args = new String[0];
             <%_ } _%>
+            <%_ if (isPrivateData) { _%>
+            // TODO: populate or delete transientData as appropriate
+            Map<String, byte[]> transientData = new HashMap<>();
+            Transaction transaction = contract.createTransaction("<%=transaction.name%>");
+            transaction.setTransient(transientData);
+    
+            byte[] response = transaction.submit(args);
+            <%_ } else { _%>
 
             byte[] response = contract.submitTransaction("<%=transaction.name%>", args);
+            <%_ } _%>
             // submitTransaction returns buffer of transaction return value
             // TODO: Update with return value of transaction
             assertThat(true).isEqualTo(true);

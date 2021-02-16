@@ -32,6 +32,25 @@ class SmartContractUtil {
         }
     }
 
+    <%_ if (isPrivateData) {-%>
+    static async submitTransaction(contractName, functionName, args, gateway, transient) {
+        // Submit transaction
+        const network = await gateway.getNetwork('<%=channelName%>');
+        let contract;
+        if (contractName !== '') {
+            contract = await network.getContract('<%=chaincodeName%>', contractName);
+        } else {
+            contract = await network.getContract('<%=chaincodeName%>');
+        }
+        const transaction = contract.createTransaction(functionName);
+        if (transient) {
+            transaction.setTransient(transient);
+        }
+
+        const responseBuffer = await transaction.submit(...args);
+        return responseBuffer;
+    }
+    <%_ } else { _%>
     static async submitTransaction(contractName, functionName, args, gateway) {
         // Submit transaction
         const network = await gateway.getNetwork('<%=channelName%>');
@@ -44,6 +63,7 @@ class SmartContractUtil {
         const responseBuffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;
     }
+    <%_ } _%>
 
     // Checks if URL is localhost
     static isLocalhostURL(url) {

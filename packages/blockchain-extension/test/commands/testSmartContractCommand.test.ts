@@ -81,6 +81,7 @@ describe('testSmartContractCommand', () => {
     let sendCommandStub: sinon.SinonStub;
     let sendCommandWithOutputStub: sinon.SinonStub;
     let showLanguageQuickPickStub: sinon.SinonStub;
+    let showQuickPickYesNoStub: sinon.SinonStub;
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     let walletRegistryEntry: FabricWalletRegistryEntry;
     let getGatewayRegistryStub: sinon.SinonStub;
@@ -667,6 +668,7 @@ describe('testSmartContractCommand', () => {
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves('some npm install output');
             sendCommandWithOutputStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').callThrough();
             showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+            showQuickPickYesNoStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').withArgs('Is this a private data contract?').resolves(UserInputUtil.NO);
             workspaceConfigurationUpdateStub = mySandBox.stub();
             workspaceConfigurationGetStub = mySandBox.stub();
             // Stubs required for user selection of project to create automated tests for
@@ -766,6 +768,66 @@ describe('testSmartContractCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
+        it('should generate a javascript test file for a selected instantiated private smart contract', async () => {
+            showQuickPickYesNoStub.resolves(UserInputUtil.YES);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', 'js-smart-contract-util.js');
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+            const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
+            openTextDocumentStub.should.have.been.calledTwice;
+            showTextDocumentStub.should.have.been.calledTwice;
+            const templateData: string = mockEditBuilderReplaceSpy.args[1][1];
+            templateData.should.not.equal('');
+            templateData.includes(smartContractLabel).should.be.true;
+            templateData.includes(transactionOne.name).should.be.true;
+            templateData.includes(transactionTwo.name).should.be.true;
+            templateData.includes(transactionThree.name).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('homedir').should.be.false;
+            templateData.includes('walletPath').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
+            templateData.includes('const transientData = {};').should.be.true;
+            templateData.includes(', args, gateway, transientData);').should.be.true;
+            templateData.includes('require').should.be.true;
+            templateData.includes(`const args = [];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = 'EXAMPLE';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')} = 0;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')} = true;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[5].name.replace(`"`, '')} = [];`).should.be.true;
+            templateData.includes(`const args = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')}), JSON.stringify(${transactionOne.parameters[5].name.replace(`"`, '')})];`).should.be.true;
+            templateData.includes(`const transientData = {};`).should.be.true;
+            templateData.includes('Admin').should.be.true;
+            templateData.includes('assert.strictEqual').should.be.true;
+            const functionTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            functionTemplateData.should.not.equal('');
+            functionTemplateData.includes('getConnectionProfile').should.be.true;
+            functionTemplateData.includes('submitTransaction').should.be.true;
+            functionTemplateData.includes('isLocalhostURL').should.be.true;
+            functionTemplateData.includes('hasLocalhostURLs').should.be.true;
+            functionTemplateData.includes('const transaction = contract.createTransaction').should.be.true;
+            functionTemplateData.includes('const responseBuffer = await transaction.submit(...args);').should.be.true;
+            fsCopyStub.should.not.have.been.called;
+            readFileStub.should.not.have.been.calledWith(gradleFilePath.fsPath);
+            writeFileStub.should.not.have.been.called;
+            fsMoveStub.should.not.have.been.called;
+            fsRemoveStub.should.not.have.been.called;
+            sendCommandStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
+        });
+
         it('should generate a typescript test file for a selected instantiated smart contract', async () => {
             workspaceConfigurationGetStub.onCall(0).returns('some command');
             getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
@@ -810,6 +872,66 @@ describe('testSmartContractCommand', () => {
             functionTemplateData.includes('submitTransaction').should.be.true;
             functionTemplateData.includes('isLocalhostURL').should.be.true;
             functionTemplateData.includes('hasLocalhostURLs').should.be.true;
+            sendCommandStub.should.have.been.calledOnce;
+            workspaceConfigurationUpdateStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
+        });
+
+        it('should generate a typescript test file for a selected instantiated private smart contract', async () => {
+            showQuickPickYesNoStub.resolves(UserInputUtil.YES);
+            workspaceConfigurationGetStub.onCall(0).returns('some command');
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
+            const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', 'ts-smart-contract-util.ts');
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+            const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
+            showTextDocumentStub.should.have.been.calledTwice;
+            const templateData: string = mockEditBuilderReplaceSpy.args[1][1];
+            templateData.should.not.equal('');
+            templateData.includes(smartContractLabel).should.be.true;
+            templateData.includes(transactionOne.name).should.be.true;
+            templateData.includes(transactionTwo.name).should.be.true;
+            templateData.includes(transactionThree.name).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('walletPath').should.be.true;
+            templateData.includes('homedir').should.be.false;
+            templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
+            templateData.includes('const transientData: fabricNetwork.TransientMap = {};').should.be.true;
+            templateData.includes(', args, gateway, transientData);').should.be.true;
+            templateData.includes(`const args: string[] = [];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')}: ${transactionOne.parameters[0].schema.type.replace(`"`, '')} = 'EXAMPLE';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')}: ${transactionOne.parameters[1].schema.type.replace(`""`, '')} = 0;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')}: any = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')}: ${transactionOne.parameters[3].schema.type.replace(`"`, '')} = true;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')}: any = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[5].name.replace(`"`, '')}: any[] = [];`).should.be.true;
+            templateData.includes(`const args: string[] = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')}), JSON.stringify(${transactionOne.parameters[5].name.replace(`"`, '')})`).should.be.true;
+            templateData.includes('Admin').should.be.true;
+            templateData.includes('assert.strictEqual').should.be.true;
+            const functionTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            functionTemplateData.should.not.equal('');
+            functionTemplateData.includes('getConnectionProfile').should.be.true;
+            functionTemplateData.includes('submitTransaction').should.be.true;
+            functionTemplateData.includes('isLocalhostURL').should.be.true;
+            functionTemplateData.includes('hasLocalhostURLs').should.be.true;
+            functionTemplateData.includes('const transaction: fabricNetwork.Transaction = contract.createTransaction(functionName);').should.be.true;
+            functionTemplateData.includes('const responseBuffer: Buffer = await transaction.submit(...args);').should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -1086,6 +1208,90 @@ describe('testSmartContractCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Java'});
         });
 
+        it('should generate a java test file for a selected instantiated java private smart contract (gradle)', async () => {
+            showQuickPickYesNoStub.resolves(UserInputUtil.YES);
+            showLanguageQuickPickStub.resolves({ label: 'Java', type: LanguageType.CONTRACT });
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            pathExistsStub.onCall(0).resolves(false);
+            pathExistsStub.onCall(1).resolves(true); // find build.gradle
+            pathExistsStub.onCall(5).resolves(true); // find build.gradle
+            pathExistsStub.onCall(7).resolves(true); // find build.gradle.tmp
+
+            showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves( { label: javaSmartContractLabel, data: { name: javaSmartContractName, uri: vscode.Uri.file(testFileDir) }});
+            fabricClientConnectionMock.getMetadata.resolves(javaFakeMetadata);
+
+            const capsJavaSmartContractLabel: string = javaSmartContractLabel[0].toUpperCase() + javaSmartContractLabel.slice(1).replace(/\./g, '').replace('@', '');
+            const testFilePath: string = path.join(testFileDir, 'src', 'test', 'java', 'org', 'example', `FvMyJavaContract${capsJavaSmartContractLabel}Test.java`);
+            const testFunctionFilePath: string = path.join(testFileDir, 'src', 'test', 'java', 'org', 'example', 'JavaSmartContractUtil.java');
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+            const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedJavaSmartContract);
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
+            showTextDocumentStub.should.have.been.calledTwice;
+            const templateData: string = mockEditBuilderReplaceSpy.args[1][1];
+            templateData.should.not.equal('');
+            templateData.includes(capsJavaSmartContractLabel).should.be.true;
+            templateData.includes(javaTransactionOne.name).should.be.true;
+            templateData.includes(javaTransactionTwo.name).should.be.true;
+            templateData.includes(javaTransactionThree.name).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('walletPath').should.be.true;
+            templateData.includes('homedir').should.be.false;
+            templateData.includes('builder.connect').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
+            templateData.includes('Admin').should.be.true;
+            templateData.includes('Map<String, byte[]> transientData = new HashMap<>();').should.be.true;
+            templateData.includes('Transaction transaction = contract.createTransaction').should.be.true;
+            templateData.includes('byte[] response = transaction.submit(args);').should.be.true;
+            const params: string[] = [];
+            javaTransactionOne.parameters.forEach((parameter: any) => {
+                let output: string = '';
+                if (parameter.hasOwnProperty('schema') && (parameter.schema.type || parameter.schema.$ref)) {
+                    let type: string = '';
+                    if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) {
+                        type = getTypeJava(parameter.schema.items);
+                        params.push(` Arrays.toString(${parameter.name.replace(`"`, '')})`);
+                        output = `${type}[] ${parameter.name.replace(`"`, '')} = {};`;
+                    } else {
+                        type = getTypeJava(parameter.schema);
+                        const isJavaPrim: boolean = typeof javaPrimitiveDefault[type] !== 'undefined';
+                        const value: any = isJavaPrim ?  javaPrimitiveDefault[type] : type === 'String' ? '"EXAMPLE"' : `new ${type}()`;
+                        if (type === 'String') {
+                            params.push(` ${parameter.name.replace(`"`, '')}`);
+                        } else if (isJavaPrim || type === 'Object') {
+                            params.push(` String.valueOf(${parameter.name.replace(`"`, '')})`);
+                        } else {
+                            params.push(` ${parameter.name.replace(`"`, '')}.toString()`);
+                        }
+                        output = `${type} ${parameter.name.replace(`"`, '')} = ${value.replace(/^\'/, '').replace(/\'$/, '')};`;
+                    }
+                }
+                templateData.includes(output).should.be.true;
+            });
+            if (params.length > 0) {
+                templateData.includes(`String[] args = new String[]{${params} };`).should.be.true;
+            } else {
+                templateData.includes('String[] args = new String[0];').should.be.true;
+            }
+
+            const functionTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            functionTemplateData.should.not.equal('');
+            functionTemplateData.includes('submitTransaction').should.be.false;
+            functionTemplateData.includes('setDiscoverAsLocalHost').should.be.true;
+            fsCopyStub.should.have.been.calledWith(gradleFilePath.fsPath, `${gradleFilePath.fsPath}.tmp`);
+            readFileStub.should.have.been.calledWith(gradleFilePath.fsPath);
+            writeFileStub.should.have.been.calledWith(gradleFilePath.fsPath);
+            fsMoveStub.should.not.have.been.called;
+            fsRemoveStub.should.have.been.calledWith(`${gradleFilePath.fsPath}.tmp`);
+            sendCommandStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Java'});
+        });
+
         it('should generate a go test file for a selected instantiated go smart contract (golang)', async () => {
             showLanguageQuickPickStub.resolves({ label: 'Golang', type: LanguageType.CONTRACT });
             pathExistsStub.onCall(0).resolves(false);
@@ -1114,25 +1320,25 @@ describe('testSmartContractCommand', () => {
             templateData.includes('gw.Connect').should.be.true;
             templateData.includes('SubmitTransaction').should.be.true;
             templateData.includes('Admin').should.be.true;
-            const params: string[] = [''];
+            const params: string[] = [];
             goTransactionOne.parameters.forEach((parameter: any) => {
                 let output: string = '';
                 if (parameter.hasOwnProperty('schema') && (parameter.schema.type || parameter.schema.$ref)) {
                     let type: string = '';
                     if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) {
                         type = getTypeGo(parameter.schema.items);
-                        params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
+                        params.push(`fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
                         output = `${parameter.name.replace(/"/, '')} := []${type}{}`;
                     } else {
                         type = getTypeGo(parameter.schema);
                         const hasDefaultValue: boolean = typeof goPrimitiveDefault[type] !== 'undefined';
                         const value: any = hasDefaultValue ? goPrimitiveDefault[type] : `new(${type})`;
                         if (type === 'string') {
-                            params.push(` ${parameter.name.replace(`"`, '')}`);
+                            params.push(`${parameter.name.replace(`"`, '')}`);
                         } else if (!hasDefaultValue) {
-                            params.push(` string(${parameter.name.replace(`"`, '')}json)`);
+                            params.push(`string(${parameter.name.replace(`"`, '')}json)`);
                         } else {
-                            params.push(` fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
+                            params.push(`fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
                         }
                         if (type === 'interface') {
                             output = `var ${parameter.name.replace(/"/, '')} ${value.replace(/^\'/, '').replace(/\'$/, '')}`;
@@ -1143,19 +1349,103 @@ describe('testSmartContractCommand', () => {
                 }
                 templateData.includes(output).should.be.true;
             });
-            templateData.includes(`result, err := contract.SubmitTransaction("${goTransactionOne.name}"${params})`).should.be.true;
+            templateData.includes(`result, err := contract.SubmitTransaction("${goTransactionOne.name}", ${params})`).should.be.true;
 
             const functionTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
             functionTemplateData.should.not.equal('');
             functionTemplateData.includes('SubmitTransaction').should.be.false;
             functionTemplateData.includes('SetDiscoverAsLocalHost').should.be.true;
             sendCommandStub.should.not.have.been.called;
-            sendCommandWithOutputStub.should.have.been.calledTwice;
+            sendCommandWithOutputStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Running 'go mod vendor' in ${testFileDir}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Golang'});
+        });
+
+        it('should generate a go test file for a selected instantiated go private smart contract (golang)', async () => {
+            showQuickPickYesNoStub.resolves(UserInputUtil.YES);
+            showLanguageQuickPickStub.resolves({ label: 'Golang', type: LanguageType.CONTRACT });
+            pathExistsStub.onCall(0).resolves(false);
+            sendCommandWithOutputStub.resolves();
+
+            fabricClientConnectionMock.getMetadata.resolves(goFakeMetadata);
+
+            const testFilePath: string = path.join(testFileDir, `fv-MyGoContract-${goSmartContractLabel}_test.go`);
+            const testFunctionFilePath: string = path.join(testFileDir, 'go-smart-contract-util.go');
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+            const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedGoSmartContract);
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
+            showTextDocumentStub.should.have.been.calledTwice;
+            const templateData: string = mockEditBuilderReplaceSpy.args[1][1];
+            templateData.should.not.equal('');
+            templateData.includes('package main').should.be.true;
+            templateData.includes(goTransactionOne.name).should.be.true;
+            templateData.includes(goTransactionTwo.name).should.be.true;
+            templateData.includes(goTransactionThree.name).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('walletPath').should.be.true;
+            templateData.includes('homedir').should.be.false;
+            templateData.includes('gw.Connect').should.be.true;
+            templateData.includes('SubmitTransaction').should.be.true;
+            templateData.includes('Admin').should.be.true;
+            templateData.includes('transientData := make(map[string][]byte)').should.be.true;
+            templateData.includes('transaction, err := contract.CreateTransaction').should.be.true;
+            const params: string[] = [];
+            goTransactionOne.parameters.forEach((parameter: any) => {
+                let output: string = '';
+                if (parameter.hasOwnProperty('schema') && (parameter.schema.type || parameter.schema.$ref)) {
+                    let type: string = '';
+                    if (parameter.schema.type === 'array' && parameter.schema.hasOwnProperty('items')) {
+                        type = getTypeGo(parameter.schema.items);
+                        params.push(`fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
+                        output = `${parameter.name.replace(/"/, '')} := []${type}{}`;
+                    } else {
+                        type = getTypeGo(parameter.schema);
+                        const hasDefaultValue: boolean = typeof goPrimitiveDefault[type] !== 'undefined';
+                        const value: any = hasDefaultValue ? goPrimitiveDefault[type] : `new(${type})`;
+                        if (type === 'string') {
+                            params.push(`${parameter.name.replace(`"`, '')}`);
+                        } else if (!hasDefaultValue) {
+                            params.push(`string(${parameter.name.replace(`"`, '')}json)`);
+                        } else {
+                            params.push(`fmt.Sprintf("%v", ${parameter.name.replace(`"`, '')})`);
+                        }
+                        if (type === 'interface') {
+                            output = `var ${parameter.name.replace(/"/, '')} ${value.replace(/^\'/, '').replace(/\'$/, '')}`;
+                        } else {
+                            output = `${parameter.name.replace(`"`, '')} := ${value.replace(/^\'/, '').replace(/\'$/, '')}`;
+                        }
+                    }
+                }
+                templateData.includes(output).should.be.true;
+            });
+            templateData.includes(`transaction, err := contract.CreateTransaction("${goTransactionOne.name}", gw.WithTransient(transientData))`).should.be.true;
+            templateData.includes(`result, err := transaction.Submit(${params})`).should.be.true;
+
+            const functionTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            functionTemplateData.should.not.equal('');
+            functionTemplateData.includes('SubmitTransaction').should.be.false;
+            functionTemplateData.includes('SetDiscoverAsLocalHost').should.be.true;
+            functionTemplateData.includes('ymlToJSONData').should.be.true;
+            sendCommandStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Running 'go mod vendor' in ${testFileDir}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Golang'});
+        });
+
+        it('should exit if user cancels selection of contract type (private data yes/no)', async () => {
+            showQuickPickYesNoStub.resolves();
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            should.not.exist(logSpy.getCall(1));
         });
 
         it('should show an error if the go mod vendor fails (golang)', async () => {
@@ -1174,27 +1464,6 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Running 'go mod vendor' in ${testFileDir}`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Error running 'go mod vendor' in ${testFileDir}: ${error.message}`, `Error running 'go mod vendor' in ${testFileDir}: ${error.toString()}`);
-            sendTelemetryEventStub.should.not.have.been.called;
-        });
-
-        // TODO: remove when go sdk is tagged at 1.0
-        it('should show an error if the go get sdk@commit fails (golang)', async () => {
-            showLanguageQuickPickStub.resolves({ label: 'Golang', type: LanguageType.CONTRACT });
-            pathExistsStub.onCall(0).resolves(false);
-            fabricClientConnectionMock.getMetadata.resolves(goFakeMetadata);
-
-            const testFilePath: string = path.join(testFileDir, `fv-MyGoContract-${goSmartContractLabel}_test.go`);
-
-            const error: Error = new Error('horrible error');
-            sendCommandWithOutputStub.onCall(0).resolves();
-            sendCommandWithOutputStub.onCall(1).rejects(error);
-
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedGoSmartContract);
-            sendCommandWithOutputStub.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Running 'go mod vendor' in ${testFileDir}`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${testFileDir}: ${error.message}`, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${testFileDir}: ${error.toString()}`);
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
@@ -1237,7 +1506,7 @@ describe('testSmartContractCommand', () => {
             openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
             openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
             showTextDocumentStub.should.have.been.calledTwice;
-            sendCommandWithOutputStub.should.have.been.calledTwice;
+            sendCommandWithOutputStub.should.have.been.calledOnce;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'Golang'});
         });

@@ -21,6 +21,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { CommandUtil } from '../../extension/util/CommandUtil';
 import { SmartContractHelper, LanguageType } from './smartContractHelper';
 import { FabricGatewayRegistryEntry, FabricGatewayRegistry } from 'ibm-blockchain-platform-common';
+import { UserInputUtil } from '../../extension/commands/UserInputUtil';
 
 export class GeneratedTestsHelper {
     mySandBox: sinon.SinonSandbox;
@@ -60,6 +61,7 @@ export class GeneratedTestsHelper {
         const contractDirectory: string = this.smartContractHelper.getContractDirectory(name);
         const workspaceFolder: vscode.WorkspaceFolder = this.getWorkspaceFolder(name, contractDirectory);
         this.userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
+        this.userInputUtilHelper.showYesNoQuickPick.withArgs('Is this a private data contract?').resolves(UserInputUtil.NO);
         this.userInputUtilHelper.showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves({ label: `${name}@${version}`, data: workspaceFolder });
 
         const packageJSONPath: string = path.join(contractDirectory, 'package.json');

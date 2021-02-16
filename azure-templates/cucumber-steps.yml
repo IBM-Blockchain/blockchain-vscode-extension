@@ -22,65 +22,65 @@ steps:
     displayName: Setup Fabric
     condition: and(succeeded(), eq(variables['OTHER_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: OrderingServiceCAAdmin
-    inputs:
-      secureFile: OrderingServiceCAAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: OrderingServiceCAAdmin
+  #   inputs:
+  #     secureFile: OrderingServiceCAAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: OrderingServiceMSPAdmin
-    inputs:
-      secureFile: OrderingServiceMSPAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: OrderingServiceMSPAdmin
+  #   inputs:
+  #     secureFile: OrderingServiceMSPAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: Org1CAAdmin
-    inputs:
-      secureFile: Org1CAAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: Org1CAAdmin
+  #   inputs:
+  #     secureFile: Org1CAAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: Org1MSPAdmin
-    inputs:
-      secureFile: Org1MSPAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: Org1MSPAdmin
+  #   inputs:
+  #     secureFile: Org1MSPAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: Org2CAAdmin
-    inputs:
-      secureFile: Org2CAAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: Org2CAAdmin
+  #   inputs:
+  #     secureFile: Org2CAAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: Org2MSPAdmin
-    inputs:
-      secureFile: Org2MSPAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: Org2MSPAdmin
+  #   inputs:
+  #     secureFile: Org2MSPAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: SaaSOrderingServiceCAAdmin
-    inputs:
-      secureFile: SaaSOrderingServiceCAAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: SaaSOrderingServiceCAAdmin
+  #   inputs:
+  #     secureFile: SaaSOrderingServiceCAAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: SaaSOrderingServiceMSPAdmin
-    inputs:
-      secureFile: SaaSOrderingServiceMSPAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: SaaSOrderingServiceMSPAdmin
+  #   inputs:
+  #     secureFile: SaaSOrderingServiceMSPAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: SaaSOrg1CAAdmin
-    inputs:
-      secureFile: SaaSOrg1CAAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: SaaSOrg1CAAdmin
+  #   inputs:
+  #     secureFile: SaaSOrg1CAAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
-  - task: DownloadSecureFile@1
-    name: SaaSOrg1MSPAdmin
-    inputs:
-      secureFile: SaaSOrg1MSPAdmin.json
-    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+  # - task: DownloadSecureFile@1
+  #   name: SaaSOrg1MSPAdmin
+  #   inputs:
+  #     secureFile: SaaSOrg1MSPAdmin.json
+  #   condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - bash: |
       set -ev

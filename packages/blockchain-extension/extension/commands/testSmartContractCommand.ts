@@ -161,6 +161,14 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     }
     testFileSuffix = languagesToSuffixes[testLang];
 
+    let isPrivateData: boolean = false;
+    const userPrivateData: string = await UserInputUtil.showQuickPickYesNo('Is this a private data contract?');
+    if (userPrivateData === undefined) {
+        return;
+    } else if (userPrivateData === UserInputUtil.YES) {
+        isPrivateData = true;
+    }
+
     const fabricConnectionManager: FabricGatewayConnectionManager = FabricGatewayConnectionManager.instance();
     const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = await fabricConnectionManager.getGatewayRegistryEntry();
     const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricConnectionManager.getConnectionWallet();
@@ -216,7 +224,8 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             chaincodeVersion: chaincodeVersion,
             channelName: channelName,
             identityName: connectionIdentityName,
-            conProfileHome: conProfileHome
+            conProfileHome: conProfileHome,
+            isPrivateData: isPrivateData
         };
 
         const utilTemplateData: any = {
@@ -224,7 +233,8 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             chaincodeName: chaincodeName,
             channelName: channelName,
             walletHome: walletHome,
-            conProfileHome: conProfileHome
+            conProfileHome: conProfileHome,
+            isPrivateData: isPrivateData
         };
 
         // Create data to write to file from template engine
@@ -408,13 +418,6 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
              await CommandUtil.sendCommandWithOutput('go', ['mod', 'vendor'], chosenPackageFolder.uri.fsPath);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error running 'go mod vendor' in ${chosenPackageFolder.uri.fsPath}: ${error.message}`, `Error running 'go mod vendor' in ${chosenPackageFolder.uri.fsPath}: ${error.toString()}`);
-            return;
-        }
-        // TODO: remove when go sdk is tagged at 1.0
-        try {
-            await CommandUtil.sendCommandWithOutput('go', ['get', 'github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac'], chosenPackageFolder.uri.fsPath);
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${chosenPackageFolder.uri.fsPath}: ${error.message}`, `Error running 'go get github.com/hyperledger/fabric-sdk-go@163bbe66b3291e8b5e8bae7ea27d921e73156dac' in ${chosenPackageFolder.uri.fsPath}: ${error.toString()}`);
             return;
         }
     } else {
