@@ -36,6 +36,7 @@ export class UserInputUtilHelper {
     showPeersQuickPickStub: sinon.SinonStub;
     showInstallableStub: sinon.SinonStub;
     showChannelStub: sinon.SinonStub;
+    showChannelFromGatewayQuickPickBoxStub: sinon.SinonStub;
     showChaincodeAndVersionStub: sinon.SinonStub;
     showYesNoQuickPick: sinon.SinonStub;
     getWorkspaceFoldersStub: sinon.SinonStub;
@@ -83,6 +84,7 @@ export class UserInputUtilHelper {
         this.showPeersQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox').callThrough();
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').callThrough();
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').callThrough();
+        this.showChannelFromGatewayQuickPickBoxStub = this.mySandBox.stub(UserInputUtil, 'showChannelFromGatewayQuickPickBox').callThrough();
         this.showChaincodeAndVersionStub = this.mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').callThrough();
         this.showYesNoQuickPick = this.mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').callThrough();
         this.getWorkspaceFoldersStub = this.mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');

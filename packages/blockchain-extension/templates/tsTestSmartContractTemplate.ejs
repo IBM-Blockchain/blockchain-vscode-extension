@@ -99,12 +99,19 @@ describe('<%=chaincodeLabel%>' , () => {
             // TODO: Update with parameters of transaction
             const args: string[] = [];
             <%_ } _%>
+            <%_ if (isPrivateData) {-%>
+            // TODO: populate or delete transientData as appropriate
+            const transientData: fabricNetwork.TransientMap = {};
+    
+            const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData);
+            <%_ } else { _%>
 
             const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway);
+            <%_ } _%>
             // submitTransaction returns buffer of transcation return value
             // TODO: Update with return value of transaction
-            assert.equal(true, true);
-            // assert.equal(JSON.parse(response.toString()), undefined);
+            assert.strictEqual(true, true);
+            // assert.strictEqual(JSON.parse(response.toString()), undefined);
         }).timeout(10000);
     });
 <% }) %>

@@ -173,6 +173,21 @@ export class SmartContractHelper {
             orgMap.set('Org1MSP', ['Org1 Peer']);
             orgMap.set('Org2MSP', ['Org2 Peer']);
             orderer = 'Orderer';
+        } else if (process.env.OPSTOOLS_FABRIC) {
+            if (environmentRegistryEntry.name === 'mySaaSOpsToolsFabric') {
+                // saas
+                peers = ['Org1 Peer Saas', 'Org2 Peer Saas'];
+                orgMap.set('Org1MSP', ['Org1 Peer Saas']);
+                orgMap.set('Org2MSP', ['Org2 Peer Saas']);
+                orderer = 'Ordering Service Saas_1';
+            } else {
+                // software
+                peers = ['Org1 Peer', 'Org2 Peer'];
+                orgMap.set('Org1MSP', ['Org1 Peer']);
+                orgMap.set('Org2MSP', ['Org2 Peer']);
+                orderer = 'Ordering Service_1';
+            }
+
         } else {
             // local fabric 1 org
             peers = ['Org1 Peer'];

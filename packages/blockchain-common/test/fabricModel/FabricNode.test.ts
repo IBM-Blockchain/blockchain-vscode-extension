@@ -103,15 +103,6 @@ describe('FabricNode', () => {
             }
         });
 
-        it('should throw an error if doesn\'t have a name', () => {
-            try {
-                peerNode.name = undefined;
-                FabricNode.validateNode(peerNode);
-            } catch (error) {
-                error.message.should.equal('A node should have a name property');
-            }
-        });
-
         it('should throw an error if doesn\'t have a type', () => {
             try {
                 peerNode.type = undefined;

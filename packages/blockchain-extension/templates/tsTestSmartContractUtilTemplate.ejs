@@ -31,6 +31,26 @@ export class SmartContractUtil {
         }
     }
 
+    <%_ if (isPrivateData) {-%>
+    public static async submitTransaction(contractName: string, functionName: string, args: string[], gateway, transient?: fabricNetwork.TransientMap): Promise<Buffer> {
+        // Submit transaction
+        const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
+        let contract: fabricNetwork.Contract;
+        if (contractName !== '') {
+            contract = await network.getContract('<%=chaincodeName%>', contractName);
+        } else {
+            contract = await network.getContract('<%=chaincodeName%>');
+        }
+
+        const transaction: fabricNetwork.Transaction = contract.createTransaction(functionName);
+        if (transient) {
+            transaction.setTransient(transient);
+        }
+
+        const responseBuffer: Buffer = await transaction.submit(...args);
+        return responseBuffer;
+    }
+    <%_ } else { _%>
     public static async submitTransaction(contractName: string, functionName: string, args: string[], gateway): Promise<Buffer> {
         // Submit transaction
         const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
@@ -44,6 +64,7 @@ export class SmartContractUtil {
         const responseBuffer: Buffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;
     }
+    <%_ } _%>
 
     // Checks if URL is localhost
     public static isLocalhostURL(url: string): boolean {

@@ -23,63 +23,75 @@ steps:
     condition: and(succeeded(), eq(variables['OTHER_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: OrderingServiceCAAdmin
+    name: Ordering_Org_Admin
     inputs:
-      secureFile: OrderingServiceCAAdmin.json
+      secureFile: Ordering_Org_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: OrderingServiceMSPAdmin
+    name: Ordering_Org_CA_Admin
     inputs:
-      secureFile: OrderingServiceMSPAdmin.json
+      secureFile: Ordering_Org_CA_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: Org1CAAdmin
+    name: Ordering_Org_Saas_Admin
     inputs:
-      secureFile: Org1CAAdmin.json
+      secureFile: Ordering_Org_Saas_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: Org1MSPAdmin
+    name: Ordering_Org_Saas_CA_Admin
     inputs:
-      secureFile: Org1MSPAdmin.json
+      secureFile: Ordering_Org_Saas_CA_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: Org2CAAdmin
+    name: Org1_Admin
     inputs:
-      secureFile: Org2CAAdmin.json
+      secureFile: Org1_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: Org2MSPAdmin
+    name: Org1_CA_Admin
     inputs:
-      secureFile: Org2MSPAdmin.json
+      secureFile: Org1_CA_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: SaaSOrderingServiceCAAdmin
+    name: Org1_CA_Saas_Admin
     inputs:
-      secureFile: SaaSOrderingServiceCAAdmin.json
+      secureFile: Org1_CA_Saas_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: SaaSOrderingServiceMSPAdmin
+    name: Org1Saas_Admin
     inputs:
-      secureFile: SaaSOrderingServiceMSPAdmin.json
+      secureFile: Org1Saas_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: SaaSOrg1CAAdmin
+    name: Org2_Admin
     inputs:
-      secureFile: SaaSOrg1CAAdmin.json
+      secureFile: Org2_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - task: DownloadSecureFile@1
-    name: SaaSOrg1MSPAdmin
+    name: Org2_CA_Admin
     inputs:
-      secureFile: SaaSOrg1MSPAdmin.json
+      secureFile: Org2_CA_Admin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: Org2_CA_Saas_Admin
+    inputs:
+      secureFile: Org2_CA_Saas_Admin.json
+    condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
+
+  - task: DownloadSecureFile@1
+    name: Org2Saas_Admin
+    inputs:
+      secureFile: Org2Saas_Admin.json
     condition: and(succeeded(), eq(variables['OPSTOOLS_FABRIC'], 'true'))
 
   - bash: |
