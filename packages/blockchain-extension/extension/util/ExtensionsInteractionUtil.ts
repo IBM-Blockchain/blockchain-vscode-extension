@@ -156,6 +156,7 @@ export class ExtensionsInteractionUtil {
                 outputAdapter.log(LogType.ERROR, `Error fetching IBP resources: ${error.message}`, `Error fetching IBP resources: ${error.toString()}`);
             }
         }
+
         return ibpResources;
     }
 

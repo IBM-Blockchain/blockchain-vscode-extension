@@ -120,18 +120,20 @@ module.exports = function(): any {
         const nodeMap: Map<string, string> = new Map<string, string>();
         let wallet: string;
         if (environmentType === 'software') {
-            nodeMap.set('Ordering Service CA', 'OrderingServiceCAAdmin');
-            nodeMap.set('Ordering Service_1', 'OrderingServiceMSPAdmin');
-            nodeMap.set('Org1 CA', 'Org1CAAdmin');
-            nodeMap.set('Org2 CA', 'Org2CAAdmin');
-            nodeMap.set('Peer Org1', 'Org1MSPAdmin');
-            nodeMap.set('Peer Org2', 'Org2MSPAdmin');
+            nodeMap.set('Ordering Org CA', 'Ordering Org CA Admin');
+            nodeMap.set('Ordering Service_1', 'Ordering Org Admin');
+            nodeMap.set('Org1 CA', 'Org1 CA Admin');
+            nodeMap.set('Org2 CA', 'Org2 CA Admin');
+            nodeMap.set('Org1 Peer', 'Org1 Admin');
+            nodeMap.set('Org2 Peer', 'Org2 Admin');
             wallet = 'opsToolsWallet';
         } else if (environmentType === 'SaaS') {
-            nodeMap.set('Ordering Service CA', 'SaaSOrderingServiceCAAdmin');
-            nodeMap.set('Ordering Service_1', 'SaaSOrderingServiceMSPAdmin');
-            nodeMap.set('Org1 CA', 'SaaSOrg1CAAdmin');
-            nodeMap.set('Peer Org1', 'SaaSOrg1MSPAdmin');
+            nodeMap.set('Ordering Org Saas CA', 'Ordering Org Saas CA Admin');
+            nodeMap.set('Ordering Service Saas_1', 'Ordering Org Saas Admin');
+            nodeMap.set('Org1 CA Saas', 'Org1 CA Saas Admin');
+            nodeMap.set('Org2 CA Saas', 'Org2 CA Saas Admin');
+            nodeMap.set('Org1 Peer Saas', 'Org1Saas Admin');
+            nodeMap.set('Org2 Peer Saas', 'Org2Saas Admin');
             wallet = 'SaaSOpsToolsWallet';
         }
 
