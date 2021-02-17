@@ -91,7 +91,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
                 informOfChanges = false;
             }
             try {
-                await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges, showSuccess, true);
+                await ExtensionUtil.executeCommandInternal(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentRegistryEntry, false, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS, informOfChanges, showSuccess, true);
             } catch (error) {
                 if (error.message.match(/might be out of date/) !== null) {
                     startRefresh = false;

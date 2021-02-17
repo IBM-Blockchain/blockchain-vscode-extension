@@ -28,7 +28,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SecureStore } from '../util/SecureStore';
 import { SecureStoreFactory } from '../util/SecureStoreFactory';
 
-export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true, fromConnectEnvironment: boolean = false): Promise<boolean> {
+export async function importNodesToEnvironment(environmentRegistryEntry: FabricEnvironmentRegistryEntry, fromAddEnvironment: boolean = false, createMethod?: string, informOfChanges: boolean = false, showSuccess: boolean = true, fromConnectEnvironment: boolean = false): Promise<boolean | Error> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     const methodMessageString: string = createMethod !== UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS ? 'import' : 'filter';
     if (showSuccess) {
@@ -360,11 +360,11 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
 
     } catch (error) {
         if (fromConnectEnvironment) {
-            throw error;
+            return error;
         }
         outputAdapter.log(LogType.ERROR, `Error ${methodMessageString}ing nodes: ${error.message}`);
         if (fromAddEnvironment) {
-            throw error;
+            return error;
         }
     }
 }
