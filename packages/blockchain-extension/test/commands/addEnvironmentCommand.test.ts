@@ -92,6 +92,7 @@ describe('AddEnvironmentCommand', () => {
     let urlSaaS: string;
     let accessToken: string;
     let selectCapabilitiesStub: sinon.SinonStub;
+    let executeCommandInternalStub: sinon.SinonStub;
 
     before(async () => {
         mySandBox = sinon.createSandbox();
@@ -122,8 +123,9 @@ describe('AddEnvironmentCommand', () => {
             selectCapabilitiesStub = mySandBox.stub(UserInputUtil, 'selectCapabilities');
             selectCapabilitiesStub.resolves(UserInputUtil.V2_0);
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
-            executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(true);
-            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
+            executeCommandInternalStub = mySandBox.stub(ExtensionUtil, 'executeCommandInternal').callThrough();
+            executeCommandInternalStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(true);
+            executeCommandInternalStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_ENVIRONMENTS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_GATEWAYS).resolves();
             executeCommandStub.withArgs(ExtensionCommands.REFRESH_WALLETS).resolves();
@@ -218,7 +220,7 @@ describe('AddEnvironmentCommand', () => {
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -254,7 +256,7 @@ describe('AddEnvironmentCommand', () => {
                 environmentType: EnvironmentType.ENVIRONMENT
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -290,7 +292,7 @@ describe('AddEnvironmentCommand', () => {
                 environmentType: EnvironmentType.ENVIRONMENT
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -333,7 +335,7 @@ describe('AddEnvironmentCommand', () => {
 
         it('should handle errors when adding nodes to an environment', async () => {
             const error: Error = new Error('some error');
-            executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).rejects(error);
+            executeCommandInternalStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -352,7 +354,7 @@ describe('AddEnvironmentCommand', () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
             const error: Error = new Error('some error');
-            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).rejects(error);
+            executeCommandInternalStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -382,7 +384,7 @@ describe('AddEnvironmentCommand', () => {
                 environmentType: EnvironmentType.ENVIRONMENT
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.not.have.been.called;
@@ -410,7 +412,7 @@ describe('AddEnvironmentCommand', () => {
                 environmentType: EnvironmentType.ENVIRONMENT
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             deleteEnvironmentSpy.should.not.have.been.called;
@@ -438,7 +440,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should add environment but warn if nodes are not valid', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(false);
+            executeCommandInternalStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(false);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -449,7 +451,7 @@ describe('AddEnvironmentCommand', () => {
                 environmentType: EnvironmentType.ENVIRONMENT
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -463,7 +465,7 @@ describe('AddEnvironmentCommand', () => {
         });
 
         it('should cancel environment creation if no nodes have been added', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(undefined);
+            executeCommandInternalStub.withArgs(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT).resolves(undefined);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
 
@@ -511,7 +513,7 @@ describe('AddEnvironmentCommand', () => {
 
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
@@ -651,7 +653,7 @@ describe('AddEnvironmentCommand', () => {
         it('should create environment without nodes if user does not choose any nodes from a new Ops Tool instance', async () => {
             chooseMethodStub.resolves({data: UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS});
             chooseNameStub.onFirstCall().resolves('myOpsToolsEnvironment');
-            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
+            executeCommandInternalStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
             getNodesStub.onFirstCall().resolves([]);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
@@ -680,7 +682,7 @@ describe('AddEnvironmentCommand', () => {
                 environmentType: EnvironmentType.ENVIRONMENT
             });
 
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_NODES);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -723,7 +725,7 @@ describe('AddEnvironmentCommand', () => {
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
 
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
@@ -775,7 +777,7 @@ describe('AddEnvironmentCommand', () => {
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
 
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
@@ -817,7 +819,7 @@ describe('AddEnvironmentCommand', () => {
             initializeStub.should.have.been.calledWith(envName, 2, UserInputUtil.V2_0);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC, envEntry);
 
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
@@ -846,7 +848,7 @@ describe('AddEnvironmentCommand', () => {
             showInputBoxStub.should.not.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeSpy.should.not.have.been.called;
 
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
@@ -895,7 +897,7 @@ describe('AddEnvironmentCommand', () => {
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
 
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.been.calledOnceWithExactly(envName, true);
             removeRuntimeSpy.should.have.been.calledOnceWithExactly(envName);
@@ -942,7 +944,7 @@ describe('AddEnvironmentCommand', () => {
             showQuickPickItemStub.should.have.been.calledWithExactly('Choose a configuration for a new local network', [{label: UserInputUtil.ONE_ORG_TEMPLATE, data: 1}, {label: UserInputUtil.TWO_ORG_TEMPLATE, data: 2}, {label: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS, data: UserInputUtil.CREATE_ADDITIONAL_LOCAL_NETWORKS_DATA}]);
             chooseNameStub.should.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeStub.should.have.been.calledWith(envName, 1, UserInputUtil.V2_0);
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             deleteEnvironmentSpy.should.been.calledOnceWithExactly(envName, true);
             removeRuntimeSpy.should.have.been.calledOnceWithExactly(envName);
@@ -965,7 +967,7 @@ describe('AddEnvironmentCommand', () => {
             showInputBoxStub.should.not.have.been.calledOnceWithExactly('Enter a name for the environment', '');
             initializeSpy.should.not.have.been.called;
 
-            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
+            executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
             const extPath: string = ExtensionUtil.getExtensionPath();
             const tutorialPath: string = path.join(extPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
@@ -995,7 +997,7 @@ describe('AddEnvironmentCommand', () => {
             chooseBlockchainStub.should.have.not.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
         });
@@ -1022,7 +1024,7 @@ describe('AddEnvironmentCommand', () => {
             chooseBlockchainStub.should.have.not.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -1049,7 +1051,7 @@ describe('AddEnvironmentCommand', () => {
             deleteEnvironmentSpy.should.have.not.been.called;
             chooseNameStub.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
@@ -1071,7 +1073,7 @@ describe('AddEnvironmentCommand', () => {
             deleteEnvironmentSpy.should.have.not.been.called;
             chooseNameStub.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
         });
@@ -1104,7 +1106,7 @@ describe('AddEnvironmentCommand', () => {
             chooseBlockchainStub.should.have.not.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -1142,7 +1144,7 @@ describe('AddEnvironmentCommand', () => {
             chooseBlockchainStub.should.have.not.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${noBlockchainError.message}`, `Failed to add a new environment: ${noBlockchainError.toString()}`);
@@ -1197,7 +1199,7 @@ describe('AddEnvironmentCommand', () => {
             chooseBlockchainStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -1238,7 +1240,7 @@ describe('AddEnvironmentCommand', () => {
             chooseBlockchainStub.should.have.been.calledOnce;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
         });
@@ -1265,7 +1267,7 @@ describe('AddEnvironmentCommand', () => {
             chooseBlockchainStub.should.have.not.been.called;
             deleteEnvironmentSpy.should.have.not.been.called;
             removeRuntimeSpy.should.not.have.been.called;
-            executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
+            executeCommandInternalStub.should.have.not.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS, sinon.match.instanceOf(FabricEnvironmentRegistryEntry), true, UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS);
             executeCommandStub.should.have.not.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${deploymentError.message}`, `Failed to add a new environment: ${deploymentError.toString()}`);

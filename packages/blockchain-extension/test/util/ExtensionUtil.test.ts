@@ -241,7 +241,7 @@ describe('ExtensionUtil Tests', () => {
             const allCommands: Array<string> = await vscode.commands.getCommands();
 
             const commands: Array<string> = allCommands.filter((command: string) => {
-                if (command.endsWith('.focus') || command.endsWith('.resetViewLocation')) {
+                if (command.endsWith('.focus') || command.endsWith('.resetViewLocation') || command.endsWith('.toggleVisibility') || command.endsWith('.removeView')) {
                     // VSCode creates commands for tree views, so ignore those.
                     return false;
                 }
@@ -2318,4 +2318,20 @@ describe('ExtensionUtil Tests', () => {
 
     });
 
+    describe('executeCommandInternal', () => {
+        it('should return result', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves('something');
+            const result: any = await ExtensionUtil.executeCommandInternal('mycommand', 'arg0', 'arg1', 'arg2');
+            result.should.equal('something');
+            executeCommandStub.should.have.been.calledOnceWithExactly('mycommand', 'arg0', 'arg1', 'arg2');
+        });
+
+        it('should handle errors', async () => {
+            const error: Error = new Error('something has gone wrong');
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves(error);
+            await ExtensionUtil.executeCommandInternal('mycommand', 'arg0', 'arg1', 'arg2').should.be.rejectedWith(/something has gone wrong/);
+            executeCommandStub.should.have.been.calledOnceWithExactly('mycommand', 'arg0', 'arg1', 'arg2');
+        });
+
+    });
 });

@@ -34,14 +34,14 @@ async function main(): Promise<void> {
         await downloadAndUnzipVSCode(version);
 
         // Download VS Code, unzip it and run the integration test
-        console.log('setting up tests');
+        console.log('setting up tests, running against VS Code version:', version);
 
         await runTests({ extensionDevelopmentPath, extensionTestsPath, version: version });
 
         // need to make sure the tests actually ran properly
         const pathToCheck: string = path.resolve(__dirname, '..', '..', 'coverage', 'coverage.json');
         const exists: boolean = await fs.pathExists(pathToCheck);
-        if (!exists) {
+        if (!exists && version !== 'insiders') {
             throw new Error('coverage does not exist so tests failed');
         }
 

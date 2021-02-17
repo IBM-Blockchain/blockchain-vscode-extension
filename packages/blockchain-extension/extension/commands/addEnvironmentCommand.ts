@@ -203,9 +203,9 @@ export async function addEnvironment(): Promise<void> {
                 let addedAllNodes: boolean;
 
                 if (createMethod === UserInputUtil.ADD_ENVIRONMENT_FROM_OPS_TOOLS) {
-                    addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentEntry, true, createMethod);
+                    addedAllNodes = await ExtensionUtil.executeCommandInternal(ExtensionCommands.EDIT_NODE_FILTERS, fabricEnvironmentEntry, true, createMethod);
                 } else {
-                    addedAllNodes = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, createMethod);
+                    addedAllNodes = await ExtensionUtil.executeCommandInternal(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true, createMethod);
                 }
 
                 if (addedAllNodes === undefined) {

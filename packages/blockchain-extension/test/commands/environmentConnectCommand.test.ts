@@ -79,6 +79,7 @@ describe('EnvironmentConnectCommand', () => {
 
         let executeCommandStub: sinon.SinonStub;
         let warningNoNodesEditFilterStub: sinon.SinonStub;
+        let executeCommandInternalStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
@@ -96,6 +97,7 @@ describe('EnvironmentConnectCommand', () => {
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand').callThrough();
+            executeCommandInternalStub = mySandBox.stub(ExtensionUtil, 'executeCommandInternal').callThrough();
 
             environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = 'myFabric';
@@ -127,7 +129,7 @@ describe('EnvironmentConnectCommand', () => {
             opsToolsEnvRegistryEntry.managedRuntime = false;
             opsToolsEnvRegistryEntry.url = '/some/cloud:port';
             opsToolsEnvRegistryEntry.environmentType = EnvironmentType.OPS_TOOLS_ENVIRONMENT;
-            executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
+            executeCommandInternalStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).resolves(true);
 
             microfabEnvRegistryEntry = new FabricEnvironmentRegistryEntry({
                 environmentType: EnvironmentType.MICROFAB_ENVIRONMENT,
@@ -258,7 +260,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 getNodesStub.should.have.been.calledOnce;
                 warningNoNodesEditFilterStub.should.have.been.calledOnce;
-                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -273,7 +275,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 getNodesStub.should.have.been.calledTwice;
                 warningNoNodesEditFilterStub.should.have.been.calledOnce;
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -289,7 +291,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 getNodesStub.should.have.been.calledTwice;
                 warningNoNodesEditFilterStub.should.have.not.been.called;
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
                 disconnectManagerSpy.should.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
             });
@@ -306,7 +308,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 getNodesStub.should.have.been.calledTwice;
                 warningNoNodesEditFilterStub.should.have.been.calledOnce;
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
                 mockConnection.connect.should.have.been.called;
             });
 
@@ -320,8 +322,8 @@ describe('EnvironmentConnectCommand', () => {
 
                 getNodesStub.should.have.been.calledTwice;
                 warningNoNodesEditFilterStub.should.have.not.been.called;
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
-                executeCommandStub.getCalls().filter((call: any) => call.args[0] === ExtensionCommands.EDIT_NODE_FILTERS && call.args[4] === true).should.not.deep.equal([]);
+                executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandInternalStub.getCalls().filter((call: any) => call.args[0] === ExtensionCommands.EDIT_NODE_FILTERS && call.args[4] === true).should.not.deep.equal([]);
                 mockConnection.connect.should.have.been.called;
             });
 
@@ -329,7 +331,7 @@ describe('EnvironmentConnectCommand', () => {
                 requireSetupStub.resolves(false);
                 chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
                 const consoleConnectError: Error = new Error(`Nodes in ${opsToolsEnvRegistryEntry.name} might be out of date. Unable to connect to the IBM Blockchain Platform Console with error: some error`);
-                executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).throws(consoleConnectError);
+                executeCommandInternalStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).throws(consoleConnectError);
 
                 getNodesStub.resolves([ordererNode, caNode]);
 
@@ -337,9 +339,9 @@ describe('EnvironmentConnectCommand', () => {
 
                 getNodesStub.should.have.been.calledTwice;
                 warningNoNodesEditFilterStub.should.have.not.been.called;
-                executeCommandStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
+                executeCommandInternalStub.should.have.been.calledWith(ExtensionCommands.EDIT_NODE_FILTERS);
                 connectManagerSpy.should.have.been.calledWith(mockConnection, opsToolsEnvRegistryEntry, ConnectedState.CONNECTING, false);
-                executeCommandStub.getCalls().filter((call: any) => call.args[0] === ExtensionCommands.EDIT_NODE_FILTERS && call.args[4] === true).should.not.deep.equal([]);
+                executeCommandInternalStub.getCalls().filter((call: any) => call.args[0] === ExtensionCommands.EDIT_NODE_FILTERS && call.args[4] === true).should.not.deep.equal([]);
                 mockConnection.connect.should.have.been.called;
             });
 
@@ -347,7 +349,7 @@ describe('EnvironmentConnectCommand', () => {
                 requireSetupStub.resolves(false);
                 chooseEnvironmentQuickPick.resolves({ label: 'myOpsToolsFabric', data: opsToolsEnvRegistryEntry });
                 const someError: Error = new Error('some error');
-                executeCommandStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).throws(someError);
+                executeCommandInternalStub.withArgs(ExtensionCommands.EDIT_NODE_FILTERS).throws(someError);
 
                 getNodesStub.resolves([ordererNode, caNode]);
 

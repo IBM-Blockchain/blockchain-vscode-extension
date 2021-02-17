@@ -26,6 +26,7 @@ import { Reporter } from '../../extension/util/Reporter';
 import { FabricEnvironmentManager, ConnectedState } from '../../extension/fabric/environments/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry, FabricRuntimeUtil, LogType, EnvironmentType, FabricSmartContractDefinition } from 'ibm-blockchain-platform-common';
 import { SettingConfigurations } from '../../extension/configurations';
+import { ExtensionUtil } from '../../extension/util/ExtensionUtil';
 
 chai.use(sinonChai);
 
@@ -193,9 +194,9 @@ describe('ApproveCommand', () => {
             orgMap.set('Org1MSP', ['peerOne']);
             const error: Error = new Error('some error');
 
-            fabricRuntimeMock.approveSmartContractDefinition.rejects(error);
+            fabricRuntimeMock.approveSmartContractDefinition.throws(error);
 
-            await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId')).should.eventually.be.rejectedWith('some error');
+            await ExtensionUtil.executeCommandInternal(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId')).should.eventually.be.rejectedWith(/some error/);
 
             fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
 
