@@ -25,7 +25,7 @@ steps:
 
   - bash: |
       set -ev
-      docker pull ibmcom/ibp-microfab:0.0.7
+      docker pull ibmcom/ibp-microfab:0.0.10
     displayName: Pull microfab image
     condition: succeeded()
 
