@@ -1,27 +1,27 @@
-import { Gateway, Wallets, ContractListener } from 'fabric-network';
+import { Gateway, Wallets, ContractListener, Wallet, Network, Contract } from 'fabric-network';
 import * as path from 'path';
 import * as fs from 'fs';
 
-async function main() {
+async function main(): Promise<void> {
   try {
 
     // Create a new file system based wallet for managing identities.
-    const walletPath = path.join(process.cwd(), 'Org1Wallet');
-    const wallet = await Wallets.newFileSystemWallet(walletPath);
+    const walletPath: string = path.join(process.cwd(), 'Org1Wallet');
+    const wallet: Wallet = await Wallets.newFileSystemWallet(walletPath);
     console.log(`Wallet path: ${walletPath}`);
 
     // Create a new gateway for connecting to our peer node.
-    const gateway = new Gateway();
-    const connectionProfilePath = path.resolve(__dirname, '..', 'connection.json');
+    const gateway: Gateway = new Gateway();
+    const connectionProfilePath: string = path.resolve(__dirname, '..', 'connection.json');
     const connectionProfile: any = JSON.parse(fs.readFileSync(connectionProfilePath, 'utf8')); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-    const connectionOptions = { wallet, identity: 'Org1 Admin', discovery: { enabled: true, asLocalhost: true }};
+    const connectionOptions: any = { wallet, identity: 'Org1 Admin', discovery: { enabled: true, asLocalhost: true }};
     await gateway.connect(connectionProfile, connectionOptions);
 
     // Get the network (channel) our contract is deployed to.
-    const network = await gateway.getNetwork('mychannel');
+    const network: Network = await gateway.getNetwork('mychannel');
 
     // Get the contract from the network.
-    const contract = network.getContract('demo-contract');
+    const contract: Contract = network.getContract('demo-contract');
 
     // Listen for myEvent publications
     const listener: ContractListener = async (event) => {    // eslint-disable-line @typescript-eslint/require-await
@@ -30,7 +30,7 @@ async function main() {
       }
     };
 
-    const finished = false;
+    const finished: boolean = false;
     await contract.addContractListener(listener);
 
     console.log('Listening for myEvent events...');
@@ -45,8 +45,8 @@ async function main() {
   }
 }
 
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+function sleep(ms: number): Promise<any> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 void main();
