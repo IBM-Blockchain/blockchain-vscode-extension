@@ -50,9 +50,42 @@ export class SmartContractUtil {
         const responseBuffer: Buffer = await transaction.submit(...args);
         return responseBuffer;
     }
+
+    public static async evaluateTransaction(contractName: string, functionName: string, args: string[], gateway, transient?: fabricNetwork.TransientMap): Promise<Buffer> {
+        // Evaluate transaction
+        const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
+        let contract: fabricNetwork.Contract;
+        if (contractName !== '') {
+            contract = await network.getContract('<%=chaincodeName%>', contractName);
+        } else {
+            contract = await network.getContract('<%=chaincodeName%>');
+        }
+
+        const transaction: fabricNetwork.Transaction = contract.createTransaction(functionName);
+        if (transient) {
+            transaction.setTransient(transient);
+        }
+
+        const responseBuffer: Buffer = await transaction.evaluate(...args);
+        return responseBuffer;
+    }
     <%_ } else { _%>
     public static async submitTransaction(contractName: string, functionName: string, args: string[], gateway): Promise<Buffer> {
         // Submit transaction
+        const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
+        let contract: fabricNetwork.Contract;
+        if (contractName !== '') {
+            contract = await network.getContract('<%=chaincodeName%>', contractName);
+        } else {
+            contract = await network.getContract('<%=chaincodeName%>');
+        }
+
+        const responseBuffer: Buffer = await contract.submitTransaction(functionName, ...args);
+        return responseBuffer;
+    }
+
+    public static async evaluateTransaction(contractName: string, functionName: string, args: string[], gateway): Promise<Buffer> {
+        // Evaluate transaction
         const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
         let contract: fabricNetwork.Contract;
         if (contractName !== '') {

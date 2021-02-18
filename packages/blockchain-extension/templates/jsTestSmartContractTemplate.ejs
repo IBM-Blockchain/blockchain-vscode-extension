@@ -72,7 +72,11 @@ describe('<%=chaincodeLabel%>' , () => {
     });
 <% transactions.forEach((transaction) => { %>
     describe('<%=transaction.name%>', () =>{
+        <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+        it('should evaluate <%=transaction.name%> transaction', async () => {
+        <%_ } else { _%>
         it('should submit <%=transaction.name%> transaction', async () => {
+        <%_ } _%> 
             <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
             // TODO: populate transaction parameters
                 <%_ let params = []; _%>
@@ -104,11 +108,19 @@ describe('<%=chaincodeLabel%>' , () => {
             <%_ if (isPrivateData) {-%>
             // TODO: populate or delete transientData as appropriate
             const transientData = {};
-
+                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+            const response = await SmartContractUtil.evaluateTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData); // Returns buffer of transaction return value
+                <%_ } else { _%>
             const response = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData); // Returns buffer of transaction return value
-            <%_ } else { _%>
+                <%_ } _%>
 
+            <%_ } else { _%>
+                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+            const response = await SmartContractUtil.evaluateTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway); // Returns buffer of transaction return value
+                <%_ } else { _%>
             const response = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway); // Returns buffer of transaction return value
+                <%_ } _%>
+            
             <%_ } _%>
             // TODO: Update with return value of transaction
             // assert.strictEqual(JSON.parse(response.toString()), undefined);

@@ -98,6 +98,8 @@ describe('testSmartContractCommand', () => {
     let transactionOne: any;
     let transactionTwo: any;
     let transactionThree: any;
+    let transactionFour: any;
+    let transactionFive: any;
     let javaTransactionOne: any;
     let javaTransactionTwo: any;
     let javaTransactionThree: any;
@@ -274,6 +276,14 @@ describe('testSmartContractCommand', () => {
                             },
                             {
                                 name: 'transaction2'
+                            },
+                            {
+                                name: 'readTransaction',
+                                parameters: []
+                            },
+                            {
+                                name: 'myAssetExists',
+                                parameters: []
                             }
                         ]
                     }
@@ -557,6 +567,8 @@ describe('testSmartContractCommand', () => {
             transactionOne = fakeMetadata.contracts['my-contract'].transactions[0];
             transactionTwo = fakeMetadata.contracts['my-contract'].transactions[1];
             transactionThree = fakeMetadata.contracts['my-contract'].transactions[2];
+            transactionFour = fakeMetadata.contracts['my-contract'].transactions[3];
+            transactionFive = fakeMetadata.contracts['my-contract'].transactions[4];
             javaTransactionOne = javaFakeMetadata.contracts.MyJavaContract.transactions[0];
             javaTransactionTwo = javaFakeMetadata.contracts.MyJavaContract.transactions[1];
             javaTransactionThree = javaFakeMetadata.contracts.MyJavaContract.transactions[2];
@@ -733,11 +745,14 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionOne.name).should.be.true;
             templateData.includes(transactionTwo.name).should.be.true;
             templateData.includes(transactionThree.name).should.be.true;
+            templateData.includes(transactionFour.name).should.be.true;
+            templateData.includes(transactionFive.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('homedir').should.be.false;
             templateData.includes('walletPath').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            templateData.includes('evaluateTransaction').should.be.true;
             templateData.includes('require').should.be.true;
             templateData.includes(`const args = [];`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = 'EXAMPLE';`).should.be.true;
@@ -1349,7 +1364,7 @@ describe('testSmartContractCommand', () => {
                 }
                 templateData.includes(output).should.be.true;
             });
-            templateData.includes(`result, err := contract.SubmitTransaction("${goTransactionOne.name}", ${params})`).should.be.true;
+            templateData.includes(`result, err := transaction.Submit(${params}`).should.be.true;
 
             const functionTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
             functionTemplateData.should.not.equal('');
