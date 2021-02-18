@@ -347,7 +347,13 @@ export class LocalMicroEnvironment extends MicrofabEnvironment {
     }
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('start', [], outputAdapter);
+        const startArgs: string[] = [];
+        const enableCustomImage: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_ENABLE_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE);
+        if (enableCustomImage) {
+            const image: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE_VALUE);
+            startArgs.push(image);
+        }
+        await this.execute('start', startArgs, outputAdapter);
     }
 
     private async killChaincodeInner(args: string[], outputAdapter?: OutputAdapter): Promise<void> {

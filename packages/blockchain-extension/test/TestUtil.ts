@@ -42,6 +42,8 @@ export class TestUtil {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_LOCAL_FABRIC, true, vscode.ConfigurationTarget.Global);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_NEXT_ACTIVATION, false, vscode.ConfigurationTarget.Global);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FEATURE_FLAGS, {}, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_ENABLE_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE, false, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE_VALUE, 'ibmcom/ibp-microfab:latest', vscode.ConfigurationTarget.Global);
 
             if (!sandbox) {
                 sandbox = sinon.createSandbox();
