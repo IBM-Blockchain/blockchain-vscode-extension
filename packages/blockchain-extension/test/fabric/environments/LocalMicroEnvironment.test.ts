@@ -88,6 +88,8 @@ describe('LocalMicroEnvironment', () => {
         localSetting[FabricRuntimeUtil.LOCAL_FABRIC] = 8080;
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, localSetting,  vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_ENABLE_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE, false, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE_VALUE, 'ibmcom/ibp-microfab:latest', vscode.ConfigurationTarget.Global);
 
         stopLogsStub = sandbox.stub(LocalMicroEnvironment.prototype, 'stopLogs').returns(undefined);
 
@@ -626,6 +628,25 @@ describe('LocalMicroEnvironment', () => {
                 });
 
             }
+        });
+    });
+
+    describe('#start', () => {
+        it('should use custom image to start local environments', async () => {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_ENABLE_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE, true, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_CUSTOM_LOCAL_ENVIRONMENT_START_IMAGE_VALUE, 'ibmcom/ibp-microfab:latest', vscode.ConfigurationTarget.Global);
+            const createStub: sinon.SinonStub = sandbox.stub(environment, 'create');
+
+            sandbox.stub(child_process, 'spawn').callsFake(() => {
+                return mockSuccessCommand();
+            });
+
+            const executeSpy: sinon.SinonSpy = sandbox.spy(LocalMicroEnvironment.prototype, 'execute');
+
+            await environment.start();
+            executeSpy.should.have.been.calledWithExactly('start', ['ibmcom/ibp-microfab:latest'], sinon.match.any);
+            createStub.should.not.have.been.called;
+
         });
     });
 

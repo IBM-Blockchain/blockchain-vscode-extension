@@ -287,6 +287,16 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Enable or disable automatic discovery of IBM Cloud environments in the IBM Blockchain Platform extension"
+                },
+                "ibm-blockchain-platform.ext.enableCustomLocalEnvironmentStartImage": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable passing a custom image and version to start local environments with.\n\nIf you toggle this setting on, a custom image and version can be provided in the 'Custom Local Environment Start Image' setting.\n\nYou will need to teardown and start your local environment network for this setting to take place."
+                },
+                "ibm-blockchain-platform.ext.customLocalEnvironmentStartImage": {
+                    "type": "string",
+                    "default": "ibmcom/ibp-microfab:latest",
+                    "description": "Custom image to use for starting local environments. The 'Enable Custom Local Environment Start Image' setting must be toggled on for this setting to be applied."
                 }
             }
         },
@@ -1569,7 +1579,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.2.23",
+        "generator-fabric": "0.2.25",
         "handlebars": "^4.5.3",
         "home-dir": "1.0.0",
         "ibm-blockchain-platform-common": "^2.0.2",
