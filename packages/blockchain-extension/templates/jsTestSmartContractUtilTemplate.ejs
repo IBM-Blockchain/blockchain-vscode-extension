@@ -50,6 +50,24 @@ class SmartContractUtil {
         const responseBuffer = await transaction.submit(...args);
         return responseBuffer;
     }
+
+    static async evaluateTransaction(contractName, functionName, args, gateway, transient) {
+        // Evaluate transaction
+        const network = await gateway.getNetwork('<%=channelName%>');
+        let contract;
+        if (contractName !== '') {
+            contract = await network.getContract('<%=chaincodeName%>', contractName);
+        } else {
+            contract = await network.getContract('<%=chaincodeName%>');
+        }
+        const transaction = contract.createTransaction(functionName);
+        if (transient) {
+            transaction.setTransient(transient);
+        }
+
+        const responseBuffer = await transaction.evaluate(...args);
+        return responseBuffer;
+    }
     <%_ } else { _%>
     static async submitTransaction(contractName, functionName, args, gateway) {
         // Submit transaction
@@ -61,6 +79,19 @@ class SmartContractUtil {
             contract = await network.getContract('<%=chaincodeName%>');
         }
         const responseBuffer = await contract.submitTransaction(functionName, ...args);
+        return responseBuffer;
+    }
+
+    static async evaluateTransaction(contractName, functionName, args, gateway) {
+        // Evaluate transaction
+        const network = await gateway.getNetwork('<%=channelName%>');
+        let contract;
+        if (contractName !== '') {
+            contract = await network.getContract('<%=chaincodeName%>', contractName);
+        } else {
+            contract = await network.getContract('<%=chaincodeName%>');
+        }
+        const responseBuffer = await contract.evaluate(functionName, ...args);
         return responseBuffer;
     }
     <%_ } _%>

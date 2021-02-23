@@ -188,7 +188,7 @@ module.exports = function(): any {
                     testFileContents.includes('gateway.connect').should.be.true;
                 }
                 testFileContents.startsWith('/*').should.be.true;
-                testFileContents.includes(testLanguage === 'Golang' ? 'SubmitTransaction' : 'submitTransaction').should.be.true;
+                testFileContents.includes(testLanguage === 'Golang' ? 'transaction.Submit' : (testLanguage === 'Java' ? 'transaction.submit' : 'submitTransaction')).should.be.true;
                 testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
                 testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
                 testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;

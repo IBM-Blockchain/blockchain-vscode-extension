@@ -34,9 +34,7 @@ import org.hyperledger.fabric.gateway.Contract;
 import org.hyperledger.fabric.gateway.ContractException;
 import org.hyperledger.fabric.gateway.Gateway;
 import org.hyperledger.fabric.gateway.Network;
-<%_ if (isPrivateData) { _%>
 import org.hyperledger.fabric.gateway.Transaction;
-<%_ } _%>
 import org.hyperledger.fabric.gateway.Wallet;
 import org.hyperledger.fabric.gateway.Wallets;
 import org.junit.jupiter.api.AfterEach;
@@ -151,7 +149,11 @@ public final class Fv<%=capsChaincodeLabelForJava%>Test {
     @Nested
     class <%=capsTransactionName%> {
         @Test
+        <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+        public void evaluate<%=capsTransactionName%>Test() throws ContractException, TimeoutException, InterruptedException {
+        <%_ } else { _%>
         public void submit<%=capsTransactionName%>Test() throws ContractException, TimeoutException, InterruptedException {
+        <%_ } _%> 
             <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
             // TODO: populate transaction parameters
                 <%_ let params = []; _%>
@@ -188,10 +190,18 @@ public final class Fv<%=capsChaincodeLabelForJava%>Test {
             Transaction transaction = contract.createTransaction("<%=transaction.name%>");
             transaction.setTransient(transientData);
     
+                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+            byte[] response = transaction.evaluate(args);
+                <%_ } else { _%>
             byte[] response = transaction.submit(args);
+                <%_ } _%> 
             <%_ } else { _%>
-
-            byte[] response = contract.submitTransaction("<%=transaction.name%>", args);
+            Transaction transaction = contract.createTransaction("<%=transaction.name%>");
+                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+            byte[] response = transaction.evaluate(args);
+                <%_ } else { _%>
+            byte[] response = transaction.submit(args);
+                <%_ } _%> 
             <%_ } _%>
             // submitTransaction returns buffer of transaction return value
             // TODO: Update with return value of transaction

@@ -144,7 +144,11 @@ func setup(t *testing.T) (*gw.Contract, func(t *testing.T)) {
     <%_ const capsTransactionName = transaction.name[0].toUpperCase() + transaction.name.slice(1); _%>
 
 func Test<%=capsTransactionName%>_fv(t *testing.T) {
+    <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+    t.Run("Evaluate<%=capsTransactionName%>Test", func(t *testing.T) {
+    <%_ } else { _%>
     t.Run("Submit<%=capsTransactionName%>Test", func(t *testing.T) {
+    <%_ } _%> 
 		contract, teardown := setup(t)
 		defer teardown(t)
         <%_ let params = []; _%>
@@ -188,11 +192,23 @@ func Test<%=capsTransactionName%>_fv(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create transaction: %s\n", err)
 		}
-
+            <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+        result, err := transaction.Evaluate(<%-params%>)
+            <%_ } else { _%>
         result, err := transaction.Submit(<%-params%>)
+            <%_ } _%> 
+        
         <%_ } else { _%>
-
-        result, err := contract.SubmitTransaction("<%=transaction.name%>", <%-params%>)
+        transaction, err := contract.CreateTransaction("<%=transaction.name%>")
+		if err != nil {
+			t.Fatalf("Failed to create transaction: %s\n", err)
+		}
+            <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+        result, err := transaction.Evaluate(<%-params%>)
+            <%_ } else { _%>
+        result, err := transaction.Submit(<%-params%>)
+            <%_ } _%> 
+        
         <%_ } _%>
 		if err != nil {
 			t.Fatalf("Failed to submit transaction: %s\n", err)

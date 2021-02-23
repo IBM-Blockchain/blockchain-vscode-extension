@@ -70,7 +70,11 @@ describe('<%=chaincodeLabel%>' , () => {
     });
 <% transactions.forEach((transaction) => { %>
     describe('<%=transaction.name%>', () => {
+        <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+        it('should evaluate <%=transaction.name%> transaction', async () => {
+        <%_ } else { _%>
         it('should submit <%=transaction.name%> transaction', async () => {
+        <%_ } _%> 
             <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
             // TODO: populate transaction parameters
                 <%_ let params = []; _%>
@@ -102,11 +106,18 @@ describe('<%=chaincodeLabel%>' , () => {
             <%_ if (isPrivateData) {-%>
             // TODO: populate or delete transientData as appropriate
             const transientData: fabricNetwork.TransientMap = {};
-    
+                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+            const response: Buffer = await SmartContractUtil.evaluate('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData);
+                <%_ } else { _%>
             const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData);
+                <%_ } _%>
             <%_ } else { _%>
-
+                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+            const response: Buffer = await SmartContractUtil.evaluateTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway);
+                <%_ } else { _%>
             const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway);
+                <%_ } _%>
+            
             <%_ } _%>
             // submitTransaction returns buffer of transcation return value
             // TODO: Update with return value of transaction
