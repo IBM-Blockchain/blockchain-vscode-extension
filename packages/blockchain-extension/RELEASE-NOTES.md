@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.1
-_Release date: February 9th 2021_
+# IBM Blockchain Platform Extension updated to v2.0.2
+_Release date: February 25th 2021_
 
 Announcements
 ---
@@ -8,18 +8,14 @@ Announcements
 
 Features & Enhancements
 ---
-* Added command to view CouchDB instance in browser [#2937](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2937)
-* Improved transaction argument handling [#2923](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2923)
+* Added ability to generate functional tests for private data smart contracts [#2167](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2167)
+* Enabled use of custom local environment start images [#2975](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2975)
 
 Fixes
 ---
-* Fixed deleting or moving connection profile bug [#2919](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2919)
-* Improved enrolment error message if no CA present [#2909](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2909)
-* Fixed evaluating transaction not using selected peers [#2707](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2907)
-* Fixed access denied when deploying contract [#2905](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2905)
-* Fixed open console in browser command [#2802](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2802)
-* Improved fallback for no orderer present in environment [#2904](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2904)
-* Fixed contract handling if deployed to multiple channels [#2854](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2854)
+* Improved code examples used in tutorials [#2732](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2732)
+* Updated functional tests to evaluate transactions where appropriate [#1628](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1628)
+* Fixed CouchDB indexes for local environments [#2966](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2966)
 
 Notes
 ---
@@ -27,6 +23,6 @@ Notes
 
 This release's Conga Comic:	
 ---	
-<img src="https://congacomic.github.io/assets/img/blockheight-84.jpg" width="800">	
+<img src="https://congacomic.github.io/assets/img/blockheight-85.jpg" width="800">	
 
 For the full history of all releases, see the [change log](https://marketplace.visualstudio.com/items/IBMBlockchain.ibm-blockchain-platform/changelog).
