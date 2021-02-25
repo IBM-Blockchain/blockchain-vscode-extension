@@ -1,5 +1,29 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 2.0.2: February 25th 2021
+
+Announcements
+---
+
+* **VS Code v1.40 or greater is now the minimum version required for using the v2.0.0 version of the extension.**
+
+Features & Enhancements
+---
+* Added ability to generate functional tests for private data smart contracts [#2167](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2167)
+* Enabled use of custom local environment start images [#2975](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2975)
+
+Fixes
+---
+* Improved code examples used in tutorials [#2732](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2732)
+* Updated functional tests to evaluate transactions where appropriate [#1628](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1628)
+* Fixed CouchDB indexes for local environments [#2966](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2966)
+
+Notes
+---
+* Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-85.jpg)
+
 ## 2.0.1: February 9th 2021
 
 Announcements

@@ -107,7 +107,7 @@ describe('<%=chaincodeLabel%>' , () => {
             // TODO: populate or delete transientData as appropriate
             const transientData: fabricNetwork.TransientMap = {};
                 <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
-            const response: Buffer = await SmartContractUtil.evaluate('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData);
+            const response: Buffer = await SmartContractUtil.evaluateTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData);
                 <%_ } else { _%>
             const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData);
                 <%_ } _%>
