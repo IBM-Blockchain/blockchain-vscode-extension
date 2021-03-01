@@ -23,6 +23,7 @@ interface StepOneState {
     packageVersion: string;
     nameInvalid: boolean;
     versionInvalid: boolean;
+    chosenWorkspaceName: string | undefined;
 }
 
 class DeployStepOne extends Component<IProps, StepOneState> {
@@ -37,7 +38,8 @@ class DeployStepOne extends Component<IProps, StepOneState> {
             packageName: '',
             packageVersion: '',
             nameInvalid: false,
-            versionInvalid: false
+            versionInvalid: false,
+            chosenWorkspaceName: ''
         };
 
         this.formatAllEntries = this.formatAllEntries.bind(this);
@@ -47,6 +49,7 @@ class DeployStepOne extends Component<IProps, StepOneState> {
         this.packageWorkspace = this.packageWorkspace.bind(this);
         this.handlePackageNameChange = this.handlePackageNameChange.bind(this);
         this.handlePackageVersionChange = this.handlePackageVersionChange.bind(this);
+        this.handleWorkspaceNameChange = this.handleWorkspaceNameChange.bind(this);
 
     }
 
@@ -153,6 +156,16 @@ class DeployStepOne extends Component<IProps, StepOneState> {
         });
     }
 
+    handleWorkspaceNameChange(workspaceName: string | undefined): void {
+        if (workspaceName && workspaceName !== this.state.chosenWorkspaceName) {
+            this.setState({
+                chosenWorkspaceName: workspaceName,
+                packageVersion: '',
+                packageName: ''
+            });
+        }
+    }
+
     packageWorkspace(): void {
         // should not be able to package without chosenWorkspaceData so casting it to not be undefined
         const chosenWorkspaceData: { language: string, name: string, version: string } = this.props.chosenWorkspaceData as { language: string, name: string, version: string };
@@ -172,15 +185,17 @@ class DeployStepOne extends Component<IProps, StepOneState> {
         let packageInputsJSX: JSX.Element = <></>;
 
         if (this.props.chosenWorkspaceData) {
+            this.handleWorkspaceNameChange(this.props.selectedWorkspace);
+
             let nameInput: JSX.Element;
             let versionInput: JSX.Element;
 
             if (this.props.chosenWorkspaceData.language === 'node') {
-                nameInput = (<TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.state.nameInvalid} id='nameInput' labelText='Package name' defaultValue={this.props.chosenWorkspaceData.name} disabled={true}></TextInput>);
-                versionInput = (<TextInput invalidText={'Version cannot be empty'} invalid={this.state.versionInvalid} id='versionInput' labelText='Package version' defaultValue={this.props.chosenWorkspaceData.version} disabled={true}></TextInput>);
+                nameInput = (<TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.state.nameInvalid} id='nameInput' labelText='Package name' value={this.props.chosenWorkspaceData.name} disabled={true}></TextInput>);
+                versionInput = (<TextInput invalidText={'Version cannot be empty'} invalid={this.state.versionInvalid} id='versionInput' labelText='Package version' value={this.props.chosenWorkspaceData.version} disabled={true}></TextInput>);
             } else {
-                nameInput = (<TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.state.nameInvalid} id='nameInput' labelText='Package name' onChange={this.handlePackageNameChange} defaultValue={''}></TextInput>);
-                versionInput = (<TextInput invalidText={'Version cannot be empty'} invalid={this.state.versionInvalid} id='versionInput' labelText='Package version' onChange={this.handlePackageVersionChange} defaultValue={''}></TextInput>);
+                nameInput = (<TextInput invalidText={`Name can only contain alphanumeric, '_' and '-' characters.`} invalid={this.state.nameInvalid} id='nameInput' labelText='Package name' value={this.state.packageName} onChange={this.handlePackageNameChange}></TextInput>);
+                versionInput = (<TextInput invalidText={'Version cannot be empty'} invalid={this.state.versionInvalid} id='versionInput' labelText='Package version' value={this.state.packageVersion} onChange={this.handlePackageVersionChange}></TextInput>);
             }
 
             const disablePackage: boolean = this.shouldDisablePackageButton(this.props.chosenWorkspaceData.language);
