@@ -72,7 +72,7 @@ describe('<%=chaincodeLabel%>' , () => {
     });
 <% transactions.forEach((transaction) => { %>
     describe('<%=transaction.name%>', () =>{
-        <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+        <%_ if(transaction.tag && transaction.tag.length == 0){ -%>
         it('should evaluate <%=transaction.name%> transaction', async () => {
         <%_ } else { _%>
         it('should submit <%=transaction.name%> transaction', async () => {
@@ -108,14 +108,14 @@ describe('<%=chaincodeLabel%>' , () => {
             <%_ if (isPrivateData) {-%>
             // TODO: populate or delete transientData as appropriate
             const transientData = {};
-                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+                <%_ if(transaction.tag && transaction.tag.length == 0){ -%>
             const response = await SmartContractUtil.evaluateTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData); // Returns buffer of transaction return value
                 <%_ } else { _%>
             const response = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway, transientData); // Returns buffer of transaction return value
                 <%_ } _%>
 
             <%_ } else { _%>
-                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+                <%_ if(transaction.tag && transaction.tag.length == 0){ -%>
             const response = await SmartContractUtil.evaluateTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway); // Returns buffer of transaction return value
                 <%_ } else { _%>
             const response = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway); // Returns buffer of transaction return value
