@@ -17,12 +17,12 @@ import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType, FabricCollectionDefinition } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
-export async function upgradeSmartContract(channelName: string, peerNames: Array<string>, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string[], endorsementPolicy: any, collectionConfigPath: string): Promise<void> {
+export async function upgradeSmartContract(channelName: string, peerNames: Array<string>, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string[], endorsementPolicy: any, collectionConfig: FabricCollectionDefinition[]): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'upgradeSmartContract');
     let smartContractName: string;
@@ -70,7 +70,7 @@ export async function upgradeSmartContract(channelName: string, peerNames: Array
                 VSCodeBlockchainDockerOutputAdapter.instance(fabricEnvironmentRegistryEntry.name).show();
             }
 
-            await connection.upgradeChaincode(smartContractName, smartContractVersion, peerNames, channelName, instantiateFunctionName, instantiateFunctionArgs, collectionConfigPath, endorsementPolicy);
+            await connection.upgradeChaincode(smartContractName, smartContractVersion, peerNames, channelName, instantiateFunctionName, instantiateFunctionArgs, collectionConfig, endorsementPolicy);
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');
 

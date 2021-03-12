@@ -206,7 +206,7 @@ export class SmartContractHelper {
             });
         }
 
-        let collectionConfig: FabricCollectionDefinition[];
+        let collectionConfig: FabricCollectionDefinition[] = [];
         if (privateData) {
             const collectionPath: string = path.join(__dirname, '../../../cucumber/data/collection.json');
             collectionConfig = await fs.readJSON(collectionPath);
@@ -246,12 +246,12 @@ export class SmartContractHelper {
             return packageEntry.name === name && packageEntry.version === version;
         });
 
-        let collectionConfigPath: string;
+        let collectionConfig: FabricCollectionDefinition[] = [];
         if (privateData) {
-            collectionConfigPath = path.join(__dirname, '../../../cucumber/data/collection.json');
+            collectionConfig = await fs.readJSON(path.join(__dirname, '../../../cucumber/data/collection.json'));
         }
 
-        await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfigPath);
+        await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfig);
     }
 
     public async upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean, channel: string): Promise<void> {
@@ -265,11 +265,11 @@ export class SmartContractHelper {
             return packageEntry.name === name && packageEntry.version === version;
         });
 
-        let collectionConfigPath: string;
+        let collectionConfig: FabricCollectionDefinition[] = [];
         if (privateData) {
-            collectionConfigPath = path.join(__dirname, '../../../cucumber/data/collection.json');
+            collectionConfig = await fs.readJSON(path.join(__dirname, '../../../cucumber/data/collection.json'));
         }
 
-        await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfigPath);
+        await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfig);
     }
 }

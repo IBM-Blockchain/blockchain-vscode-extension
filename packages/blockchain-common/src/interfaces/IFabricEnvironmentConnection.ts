@@ -52,9 +52,9 @@ export interface IFabricEnvironmentConnection {
 
     installSmartContract(pathToPackage: string, peerName: string, label: string, defaultTimeout?: number): Promise<string>;
 
-    instantiateChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<void>;
+    instantiateChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionConfig: FabricCollectionDefinition[], contractEP: any): Promise<void>;
 
-    upgradeChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string, contractEP: any): Promise<void>;
+    upgradeChaincode(chaincodeName: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionConfig: FabricCollectionDefinition[], contractEP: any): Promise<void>;
 
     enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{ certificate: string, privateKey: string }>;
 

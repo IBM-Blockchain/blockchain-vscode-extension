@@ -18,11 +18,11 @@ import { PackageRegistryEntry } from '../registries/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType } from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, LogType, EnvironmentType, FabricCollectionDefinition } from 'ibm-blockchain-platform-common';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { FabricInstalledSmartContract } from 'ibm-blockchain-platform-common/build/src/fabricModel/FabricInstalledSmartContract';
 
-export async function instantiateSmartContract(channelName: string, peerNames: Array<string>, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string[], endorsementPolicy: any, collectionConfigPath: string): Promise<void> {
+export async function instantiateSmartContract(channelName: string, peerNames: Array<string>, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string[], endorsementPolicy: any, collectionConfig: FabricCollectionDefinition[]): Promise<void> {
 
     let smartContractName: string;
     let smartContractVersion: string;
@@ -71,7 +71,7 @@ export async function instantiateSmartContract(channelName: string, peerNames: A
                 VSCodeBlockchainDockerOutputAdapter.instance(fabricEnvironmentRegistryEntry.name).show();
             }
 
-            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, instantiateFunctionName, instantiateFunctionArgs, collectionConfigPath, endorsementPolicy);
+            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, instantiateFunctionName, instantiateFunctionArgs, collectionConfig, endorsementPolicy);
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 

@@ -38,6 +38,22 @@ class Utils {
         }
     }
 
+    static readJsonFileAsync(blob: Blob): Promise<JSON> {
+        return new Promise((resolve, reject) => {
+            const reader: FileReader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const json: JSON = JSON.parse(reader.result as string);
+                    resolve(json);
+                } catch (err) {
+                    reject(err);
+                }
+             };
+
+            reader.onerror = reject;
+            reader.readAsText(blob, 'UTF-8');
+        });
+    }
 }
 
 export default Utils;

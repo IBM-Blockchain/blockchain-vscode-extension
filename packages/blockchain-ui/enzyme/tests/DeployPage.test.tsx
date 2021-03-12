@@ -250,7 +250,7 @@ describe('DeployPage component', () => {
 
         describe('handleDeploy - v2', () => {
 
-            it('should send deploy message', () => {
+            it('should send deploy message', async () => {
                 postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
                 const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
@@ -267,7 +267,7 @@ describe('DeployPage component', () => {
                     selectedPeers: ['Org1Peer1', 'Org2Peer1']
                 });
 
-                instance.handleDeploy();
+                await instance.handleDeploy();
 
                 postToVscodeStub.should.have.been.calledOnceWithExactly({
                     command: 'deploy',
@@ -278,15 +278,27 @@ describe('DeployPage component', () => {
                         definitionName: packageTwo.name,
                         definitionVersion: packageTwo.version,
                         commitSmartContract: undefined,
-                        collectionConfigPath: undefined,
+                        collectionConfig: [],
                         endorsementPolicy: undefined,
                         selectedPeers: ['Org1Peer1', 'Org2Peer1']
                     }
                 });
             });
 
-            it('should send deploy message with collection path if set', () => {
+            it('should send deploy message with collection path if set', async () => {
                 postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+                const collection: any = [
+                    {
+                        "name": "CollectionOne",
+                        "policy": "OR('Org1MSP.member')",
+                        "requiredPeerCount": 1,
+                        "maxPeerCount": 1,
+                        "blockToLive": 0,
+                        "memberOnlyRead": true
+                    }
+                ];
+                mySandBox.stub(Utils, 'readJsonFileAsync').returns(collection);
 
                 const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
                 const instance: DeployPage = component.instance() as DeployPage;
@@ -306,7 +318,7 @@ describe('DeployPage component', () => {
                     selectedPeers: ['Org1Peer1', 'Org2Peer1']
                 });
 
-                instance.handleDeploy();
+                await await instance.handleDeploy();
 
                 postToVscodeStub.should.have.been.calledOnceWithExactly({
                     command: 'deploy',
@@ -317,14 +329,14 @@ describe('DeployPage component', () => {
                         definitionName: packageTwo.name,
                         definitionVersion: packageTwo.version,
                         commitSmartContract: undefined,
-                        collectionConfigPath: '/some/path',
+                        collectionConfig: collection,
                         endorsementPolicy: undefined,
                         selectedPeers: ['Org1Peer1', 'Org2Peer1']
                     }
                 });
             });
 
-            it('should send deploy message with endorsement policy if set', () => {
+            it('should send deploy message with endorsement policy if set', async () => {
                 postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
                 const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
@@ -342,7 +354,7 @@ describe('DeployPage component', () => {
                     selectedPeers: ['Org1Peer1', 'Org2Peer1']
                 });
 
-                instance.handleDeploy();
+                await instance.handleDeploy();
 
                 postToVscodeStub.should.have.been.calledOnceWithExactly({
                     command: 'deploy',
@@ -353,7 +365,7 @@ describe('DeployPage component', () => {
                         definitionName: packageTwo.name,
                         definitionVersion: packageTwo.version,
                         commitSmartContract: undefined,
-                        collectionConfigPath: undefined,
+                        collectionConfig: [],
                         endorsementPolicy: 'OR("Org1MSP.member")',
                         selectedPeers: ['Org1Peer1', 'Org2Peer1']
                     }
@@ -367,7 +379,7 @@ describe('DeployPage component', () => {
                 deployData.hasV1Capabilities = true;
             });
 
-            it('should send instantiate message', () => {
+            it('should send instantiate message', async () => {
                 postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
                 const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
@@ -380,7 +392,7 @@ describe('DeployPage component', () => {
                     selectedPackage: packageTwo,
                 });
 
-                instance.handleDeploy();
+                await instance.handleDeploy();
 
                 postToVscodeStub.should.have.been.calledOnceWithExactly({
                     command: 'instantiate',
@@ -391,14 +403,26 @@ describe('DeployPage component', () => {
                         selectedPackage: packageTwo,
                         instantiateFunctionName: '',
                         instantiateFunctionArgs: '',
-                        collectionConfigPath: undefined,
+                        collectionConfig: [],
                         endorsementPolicy: undefined,
                     }
                 });
             });
 
-            it('should send instantiate message with collection path if set', () => {
+            it('should send instantiate message with collection path if set', async () => {
                 postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+                const collection: any = [
+                    {
+                        "name": "CollectionOne",
+                        "policy": "OR('Org1MSP.member')",
+                        "requiredPeerCount": 1,
+                        "maxPeerCount": 1,
+                        "blockToLive": 0,
+                        "memberOnlyRead": true
+                    }
+                ];
+                mySandBox.stub(Utils, 'readJsonFileAsync').resolves(collection);
 
                 const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
                 const instance: DeployPage = component.instance() as DeployPage;
@@ -414,7 +438,7 @@ describe('DeployPage component', () => {
                     currentCollectionFile: file
                 });
 
-                instance.handleDeploy();
+                await instance.handleDeploy();
 
                 postToVscodeStub.should.have.been.calledOnceWithExactly({
                     command: 'instantiate',
@@ -425,13 +449,13 @@ describe('DeployPage component', () => {
                         selectedPackage: packageTwo,
                         instantiateFunctionName: '',
                         instantiateFunctionArgs: '',
-                        collectionConfigPath: '/some/path',
+                        collectionConfig: collection,
                         endorsementPolicy: undefined,
                     }
                 });
             });
 
-            it('should send instantiate message with endorsement policy if set', () => {
+            it('should send instantiate message with endorsement policy if set', async () => {
                 postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
                 const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
@@ -445,7 +469,7 @@ describe('DeployPage component', () => {
                     endorsementPolicy: 'OR("Org1MSP.member")'
                 });
 
-                instance.handleDeploy();
+                await instance.handleDeploy();
 
                 postToVscodeStub.should.have.been.calledOnceWithExactly({
                     command: 'instantiate',
@@ -456,13 +480,13 @@ describe('DeployPage component', () => {
                         selectedPackage: packageTwo,
                         instantiateFunctionName: '',
                         instantiateFunctionArgs: '',
-                        collectionConfigPath: undefined,
+                        collectionConfig: [],
                         endorsementPolicy: 'OR("Org1MSP.member")',
                     }
                 });
             });
 
-            it('should send upgrade message', () => {
+            it('should send upgrade message', async () => {
                 postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
                 deployData.committedDefinitions = ['othercontract@0.0.2'];
@@ -478,7 +502,7 @@ describe('DeployPage component', () => {
                     definitionName: packageTwo.name
                 });
 
-                instance.handleDeploy();
+                await instance.handleDeploy();
 
                 postToVscodeStub.should.have.been.calledOnceWithExactly({
                     command: 'upgrade',
@@ -489,7 +513,7 @@ describe('DeployPage component', () => {
                         selectedPackage: packageTwo,
                         instantiateFunctionName: '',
                         instantiateFunctionArgs: '',
-                        collectionConfigPath: undefined,
+                        collectionConfig: [],
                         endorsementPolicy: undefined,
                     }
                 });
@@ -499,7 +523,7 @@ describe('DeployPage component', () => {
 
     describe('handleGetOrgApprovals', () => {
 
-        it('should send getOrgApprovals message', () => {
+        it('should send getOrgApprovals message', async () => {
             postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
@@ -514,7 +538,7 @@ describe('DeployPage component', () => {
                 endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")'
             });
 
-            instance.handleGetOrgApprovals();
+            await instance.handleGetOrgApprovals();
 
             postToVscodeStub.should.have.been.calledOnceWithExactly({
                 command: 'getOrgApprovals',
@@ -523,14 +547,26 @@ describe('DeployPage component', () => {
                     channelName: 'myChannel',
                     definitionName: packageTwo.name,
                     definitionVersion: packageTwo.version,
-                    collectionConfigPath: undefined,
+                    collectionConfig: [],
                     endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")',
                 }
             });
         });
 
-        it('should send getOrgApprovals message and use file path', () => {
+        it('should send getOrgApprovals message and use file path', async () => {
             postToVscodeStub = mySandBox.stub(Utils, 'postToVSCode').returns(undefined);
+
+            const collection: any = [
+                {
+                    "name": "CollectionOne",
+                    "policy": "OR('Org1MSP.member')",
+                    "requiredPeerCount": 1,
+                    "maxPeerCount": 1,
+                    "blockToLive": 0,
+                    "memberOnlyRead": true
+                }
+            ];
+            mySandBox.stub(Utils, 'readJsonFileAsync').resolves(collection);
 
             const component: ReactWrapper<DeployPage> = mount(<DeployPage deployData={deployData} />);
             const instance: DeployPage = component.instance() as DeployPage;
@@ -547,7 +583,7 @@ describe('DeployPage component', () => {
                 endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")'
             });
 
-            instance.handleGetOrgApprovals();
+            await instance.handleGetOrgApprovals();
 
             postToVscodeStub.should.have.been.calledOnceWithExactly({
                 command: 'getOrgApprovals',
@@ -556,7 +592,7 @@ describe('DeployPage component', () => {
                     channelName: 'myChannel',
                     definitionName: packageTwo.name,
                     definitionVersion: packageTwo.version,
-                    collectionConfigPath: '/some/path',
+                    collectionConfig: collection,
                     endorsementPolicy: 'OR("Org1MSP.member","Org2MSP.member")',
                 }
             });
