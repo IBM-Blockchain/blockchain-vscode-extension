@@ -32,7 +32,7 @@ import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironme
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import IInstantiateFunction from '../interfaces/IInstantiateFunction';
+import IInstantiateFunction from '../interfaces/IDeployV1InstantiateFunction';
 
 export class DeployView extends ReactView {
     public static panel: vscode.WebviewPanel;
