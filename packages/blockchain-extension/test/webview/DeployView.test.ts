@@ -29,7 +29,6 @@ import {
     LogType,
     FabricSmartContractDefinition,
     FabricCollectionDefinition,
-    EnvironmentType
 } from 'ibm-blockchain-platform-common';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
