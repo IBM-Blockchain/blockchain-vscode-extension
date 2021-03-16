@@ -16,7 +16,6 @@
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -34,6 +33,8 @@ import {
     FabricEnvironmentRegistryEntry,
     FabricCollectionDefinition
 } from 'ibm-blockchain-platform-common';
+
+import * as privateCollectionConfig from '../../cucumber/data/collection.json';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -208,8 +209,7 @@ export class SmartContractHelper {
 
         let collectionConfig: FabricCollectionDefinition[] = [];
         if (privateData) {
-            const collectionPath: string = path.join(__dirname, '../../../cucumber/data/collection.json');
-            collectionConfig = await fs.readJSON(collectionPath);
+            collectionConfig = privateCollectionConfig;
         }
 
         if (!committedContract) {
@@ -248,7 +248,7 @@ export class SmartContractHelper {
 
         let collectionConfig: FabricCollectionDefinition[] = [];
         if (privateData) {
-            collectionConfig = await fs.readJSON(path.join(__dirname, '../../../cucumber/data/collection.json'));
+            collectionConfig = privateCollectionConfig;
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfig);
@@ -267,7 +267,7 @@ export class SmartContractHelper {
 
         let collectionConfig: FabricCollectionDefinition[] = [];
         if (privateData) {
-            collectionConfig = await fs.readJSON(path.join(__dirname, '../../../cucumber/data/collection.json'));
+            collectionConfig = privateCollectionConfig;
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channel, peerNames, wantedPackage, transaction, args, undefined, collectionConfig);
