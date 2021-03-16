@@ -81,12 +81,6 @@ describe('DeployView', () => {
     const commitMap: Map<string, string[]> = new Map();
     before(async () => {
         await TestUtil.setupTests(mySandBox);
-
-        await FabricEnvironmentRegistry.instance().add(new FabricEnvironmentRegistryEntry({
-            name: FabricRuntimeUtil.LOCAL_FABRIC,
-            managedRuntime: true,
-            environmentType: EnvironmentType.LOCAL_MICROFAB_ENVIRONMENT
-        }));
     });
 
     beforeEach(async () => {
