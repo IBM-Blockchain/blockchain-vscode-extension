@@ -37,6 +37,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import IInstantiateFunction from '../../extension/interfaces/IInstantiateFunction';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -1216,6 +1217,11 @@ describe('DeployView', () => {
     });
 
     describe('deployV1', () => {
+        const instantiateFunction: IInstantiateFunction = {
+            name: '',
+            args: '',
+        }
+
         it('should instantiate new contract if already connected', async () => {
             getConnectionStub.returns(localEnvironmentConnectionMock);
 
@@ -1226,7 +1232,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1245,7 +1251,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1264,7 +1270,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1283,7 +1289,7 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1304,7 +1310,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'myFunction', '["arg1", "arg2"]', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, { name: 'myFunction', args: '["arg1", "arg2"]' }, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1322,7 +1328,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'myFunction', '["arg1", "arg2"', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, { name: 'myFunction', args: '["arg1", "arg2"]' }, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1343,7 +1349,7 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', `OR("Org1.member","Org2.member")`, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, `OR("Org1.member","Org2.member")`, undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1361,7 +1367,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);

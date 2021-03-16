@@ -32,6 +32,7 @@ import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironme
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { UserInputUtil } from '../commands/UserInputUtil';
+import IInstantiateFunction from '../interfaces/IInstantiateFunction';
 
 export class DeployView extends ReactView {
     public static panel: vscode.WebviewPanel;
@@ -88,12 +89,14 @@ export class DeployView extends ReactView {
                 const channelName: string = message.data.channelName;
                 const environmentName: string = message.data.environmentName;
                 const selectedPackage: PackageRegistryEntry = message.data.selectedPackage;
-                const instantiateFunctionName: string = message.data.instantiateFunctionName;
-                const instantiateFunctionArgs: string = message.data.instantiateFunctionArgs;
+                const instantiateFunction: IInstantiateFunction = {
+                    name: message.data.instantiateFunctionName,
+                    args: message.data.instantiateFunctionArgs,
+                };
                 const endorsementPolicy: string = message.data.endorsementPolicy;
                 const collectionConfig: FabricCollectionDefinition[] = message.data.collectionConfig;
 
-                await this.deployV1(message.command, channelName, environmentName, selectedPackage, instantiateFunctionName, instantiateFunctionArgs, endorsementPolicy, collectionConfig);
+                await this.deployV1(message.command, channelName, environmentName, selectedPackage, instantiateFunction, endorsementPolicy, collectionConfig);
 
             } else if (message.command === 'package') {
                 const workspaceName: string = message.data.workspaceName;
@@ -267,7 +270,7 @@ export class DeployView extends ReactView {
 
     }
 
-    async deployV1(command: string, channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string, endorsementPolicy: any, collectionConfig: FabricCollectionDefinition[]): Promise<void> {
+    async deployV1(command: string, channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, instantiateFunction: IInstantiateFunction, endorsementPolicy: any, collectionConfig: FabricCollectionDefinition[]): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -301,13 +304,13 @@ export class DeployView extends ReactView {
             // check an instantiate function has been provided and either parse args to JSON or clear them
 
             let parsedArgs: string[];
-            if (instantiateFunctionName === '') {
+            if (instantiateFunction.name === '') {
                 parsedArgs = [];
             } else {
-                if (!instantiateFunctionArgs.startsWith('[') || !instantiateFunctionArgs.endsWith(']')) {
+                if (!instantiateFunction.args.startsWith('[') || !instantiateFunction.args.endsWith(']')) {
                     throw new Error('instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
                 }
-                parsedArgs = JSON.parse(instantiateFunctionArgs);
+                parsedArgs = JSON.parse(instantiateFunction.args);
             }
 
             if (endorsementPolicy) {
@@ -316,7 +319,7 @@ export class DeployView extends ReactView {
             }
 
             const extensionCommand: string = (command === 'instantiate') ? ExtensionCommands.INSTANTIATE_SMART_CONTRACT : ExtensionCommands.UPGRADE_SMART_CONTRACT;
-            await vscode.commands.executeCommand(extensionCommand, channelName, peerNames, selectedPackage, instantiateFunctionName, parsedArgs, endorsementPolicy, collectionConfig);
+            await vscode.commands.executeCommand(extensionCommand, channelName, peerNames, selectedPackage, instantiateFunction.name, parsedArgs, endorsementPolicy, collectionConfig);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }
