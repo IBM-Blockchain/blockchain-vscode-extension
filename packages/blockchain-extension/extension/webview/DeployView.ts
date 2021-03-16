@@ -158,7 +158,7 @@ export class DeployView extends ReactView {
         });
     }
 
-    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, endorsementPolicy: string, collectionConfig: FabricCollectionDefinition[], selectedPeers: string[]): Promise<void> {
+    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, endorsementPolicy: string, _collectionConfig: FabricCollectionDefinition[], selectedPeers: string[]): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -249,6 +249,11 @@ export class DeployView extends ReactView {
                 }
             }
 
+            let collectionConfig: FabricCollectionDefinition[];
+            if (_collectionConfig && _collectionConfig.length > 0) {
+                collectionConfig = _collectionConfig;
+            }
+
             if (collectionConfig || endorsementPolicy) {
                 // Always increment sequence
                 sequenceNumber = committedContract ? committedContract.sequence + 1 : 1;
@@ -270,7 +275,7 @@ export class DeployView extends ReactView {
 
     }
 
-    async deployV1(command: string, channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, instantiateFunction: IInstantiateFunction, endorsementPolicy: any, collectionConfig: FabricCollectionDefinition[]): Promise<void> {
+    async deployV1(command: string, channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, instantiateFunction: IInstantiateFunction, endorsementPolicy: any, _collectionConfig: FabricCollectionDefinition[]): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -316,6 +321,11 @@ export class DeployView extends ReactView {
             if (endorsementPolicy) {
                 // Replace double quotes with single quotes
                 endorsementPolicy = endorsementPolicy.replace(/"/g, "\'");
+            }
+
+            let collectionConfig: FabricCollectionDefinition[];
+            if (_collectionConfig && _collectionConfig.length > 0) {
+                collectionConfig = _collectionConfig;
             }
 
             const extensionCommand: string = (command === 'instantiate') ? ExtensionCommands.INSTANTIATE_SMART_CONTRACT : ExtensionCommands.UPGRADE_SMART_CONTRACT;
@@ -385,7 +395,9 @@ export class DeployView extends ReactView {
 
             const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber);
 
-            definition.collectionConfig = collectionConfig;
+            if (collectionConfig && collectionConfig.length > 0) {
+                definition.collectionConfig = collectionConfig;
+            }
 
             if (endorsementPolicy) {
                 // Replace double quotes with single quotes
