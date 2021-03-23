@@ -9,7 +9,7 @@
                 {
                     "name": "FabCar",
                     "description": "Basic sample based on cars: the \"hello world\" of Hyperledger Fabric samples.",
-                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/master/README.md",
+                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/main/README.md",
                     "category":{
                         "contracts":[
                             {
@@ -20,7 +20,7 @@
                                         "version": "1.0.0",
                                         "workspaceLabel": "fabcar-contract-go",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "chaincode/fabcar/go"
                                         }
                                     },
@@ -29,7 +29,7 @@
                                         "version": "1.0.0",
                                         "workspaceLabel": "fabcar-contract-java",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "chaincode/fabcar/java"
                                         }
                                     },
@@ -38,7 +38,7 @@
                                         "version": "1.0.0",
                                         "workspaceLabel": "fabcar-contract-javascript",
                                         "remote":{
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "chaincode/fabcar/javascript"
                                         },
                                         "onOpen": [
@@ -54,7 +54,7 @@
                                         "version": "1.0.0",
                                         "workspaceLabel": "fabcar-contract-typescript",
                                         "remote":{
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "chaincode/fabcar/typescript"
                                         },
                                         "onOpen": [
@@ -77,7 +77,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "fabcar-app-java",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "fabcar/java"
                                 }
                             },
@@ -89,7 +89,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "fabcar-app-javascript",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "fabcar/javascript"
                                 },
                                 "onOpen": [
@@ -108,7 +108,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "fabcar-app-typescript",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "fabcar/typescript"
                                 },
                                 "onOpen": [
@@ -125,7 +125,7 @@
                 {
                     "name": "Commercial Paper",
                     "description": "Based on a real-world financial use-case, with multiple parties sharing a ledger.",
-                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/master/README.md",
+                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/main/README.md",
                     "category":{
                         "contracts":[
                             {
@@ -136,7 +136,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "cp-digibank-contract-java",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "commercial-paper/organization/digibank/contract-java"
                                         }
                                     },
@@ -145,7 +145,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "cp-digibank-contract-javascript",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "commercial-paper/organization/digibank/contract"
                                         },
                                         "onOpen": [
@@ -167,7 +167,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "cp-magnetocorp-contract-java",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "commercial-paper/organization/magnetocorp/contract-java"
                                         }
                                     },
@@ -176,7 +176,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "cp-magnetocorp-contract-java",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "commercial-paper/organization/magnetocorp/contract"
                                         },
                                         "onOpen": [
@@ -199,7 +199,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "cp-digibank-app-java",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "commercial-paper/organization/digibank/application-java"
                                 }
                             },
@@ -211,7 +211,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "cp-digibank-app-javascript",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "commercial-paper/organization/digibank/application"
                                 },
                                 "onOpen": [
@@ -230,7 +230,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "cp-magnetocorp-contract-java",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "commercial-paper/organization/magnetocorp/application-java"
                                 }
                             },
@@ -242,7 +242,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "cp-magnetocorp-contract-javascript",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "commercial-paper/organization/magnetocorp/application"
                                 },
                                 "onOpen": [
@@ -259,7 +259,7 @@
                 {
                     "name": "Asset Transfer Secured Agreement",
                     "description": "This tutorial will demonstrate how an asset can be represented and traded between organizations in a Hyperledger Fabric blockchain channel, while keeping details of the asset and transaction private using private data. Each on-chain asset is a non-fungible token (NFT) that represents a specific asset having certain immutable metadata properties (such as size and color) with a unique owner. When the owner wants to sell the asset, both parties need to agree to the same price before the asset is transferred. The private asset transfer smart contract enforces that only the owner of the asset can transfer the asset. In the course of this sample, you will learn how Fabric features such as state based endorsement, private data, and access control come together to provide secured transactions that are both private and verifiable.",
-                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/master/asset-transfer-secured-agreement/chaincode-go/README.md",
+                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/main/asset-transfer-secured-agreement/chaincode-go/README.md",
                     "category":{
                         "contracts":[
                             {
@@ -270,7 +270,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "asset-transfer-secured-agreement-contract-go",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "asset-transfer-secured-agreement/chaincode-go"
                                         }
                                     }
@@ -288,7 +288,7 @@
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "asset-transfer-secured-agreement-app-javascript",
                                 "remote":{
-                                    "branch": "master",
+                                    "branch": "main",
                                     "path": "asset-transfer-secured-agreement/application-javascript"
                                 }
                             }
@@ -298,7 +298,7 @@
                 {
                     "name": "UTXO Token",
                     "description": "The UTXO token smart contract demonstrates how to create and transfer fungible tokens using a UTXO (unspent transaction output) model.",
-                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/master/token-utxo/README.md",
+                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/main/token-utxo/README.md",
                     "category":{
                         "contracts":[
                             {
@@ -309,7 +309,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "utxo-token-contract-go",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "token-utxo/chaincode-go"
                                         }
                                     }
@@ -323,7 +323,7 @@
                 {
                     "name": "ERC-20 Token",
                     "description": "The ERC-20 token smart contract demonstrates how to create and transfer fungible tokens using an account-based model. In an ERC-20 account-based model, there is an account for each participant that holds a balance of tokens. A mint transaction creates tokens in an account, while a transfer transaction debits the caller's account and credits another account.",
-                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/master/token-erc-20/README.md",
+                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/main/token-erc-20/README.md",
                     "category":{
                         "contracts":[
                             {
@@ -334,7 +334,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "erc-20-token-contract-go",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "token-erc-20/chaincode-go"
                                         }
                                     },
@@ -343,7 +343,7 @@
                                         "version": "0.0.1",
                                         "workspaceLabel": "erc-20-token-contract-javascript",
                                         "remote": {
-                                            "branch": "master",
+                                            "branch": "main",
                                             "path": "token-erc-20/chaincode-javascript"
                                         }
                                     }

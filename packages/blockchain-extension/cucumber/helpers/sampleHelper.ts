@@ -57,6 +57,6 @@ export class SampleHelper {
 
     public async openContract(sampleView: SampleView, sampleName: string, language: string, contractName: string): Promise<void> {
         this.userInputUtilHelper.showFolderOptionsStub.withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
-        await sampleView['cloneAndOpenRepository'](`chaincode/${sampleName}/${language}`, 'master', contractName, []);
+        await sampleView['cloneAndOpenRepository'](`chaincode/${sampleName}/${language}`, 'main', contractName, []);
     }
 }
