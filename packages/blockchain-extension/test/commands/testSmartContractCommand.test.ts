@@ -230,6 +230,7 @@ describe('testSmartContractCommand', () => {
             executeCommandStub.callThrough();
             fabricClientConnectionMock = mySandBox.createStubInstance(FabricGatewayConnection);
             fabricClientConnectionMock.connect.resolves();
+            // This is a TS contract. It has tag: submitTx = submit, empty = evaluate
             fakeMetadata = {
                 contracts: {
                     'my-contract': {
@@ -268,18 +269,22 @@ describe('testSmartContractCommand', () => {
                                             type: 'array'
                                         }
                                     }
-                                ]
+                                ],
+                                tag: ['submitTx']
                             },
                             {
                                 name: 'wagonwheeling',
-                                parameters: []
+                                parameters: [],
+                                tag: ['submitTx']
                             },
                             {
-                                name: 'transaction2'
+                                name: 'transaction2',
+                                tag: []
                             },
                             {
                                 name: 'readTransaction',
-                                parameters: []
+                                parameters: [],
+                                tag: []
                             },
                             {
                                 name: 'myAssetExists',
@@ -289,7 +294,7 @@ describe('testSmartContractCommand', () => {
                     }
                 }
             };
-
+            // This is a JS contract. It has tags: always submitTx = submit
             moreFakeMetadata = {
                 contracts: {
                     'my-contract': {
@@ -307,11 +312,13 @@ describe('testSmartContractCommand', () => {
                                     {
                                         name: 'sugar',
                                     },
-                                ]
+                                ],
+                                tags: ['submitTx']
                             },
                             {
                                 name: 'wagonwheeling',
-                                parameters: []
+                                parameters: [],
+                                tags: []
                             }
                         ]
                     },
@@ -327,7 +334,8 @@ describe('testSmartContractCommand', () => {
                                             type: 'string'
                                         }
                                     }
-                                ]
+                                ],
+                                tags: ['submitTx']
                             },
                             {
                                 name: 'upgrade'
@@ -336,6 +344,7 @@ describe('testSmartContractCommand', () => {
                     }
                 }
             };
+            // This is a JAVA contract. It has tags: INVOKE = DEFAULT = submit. QUERY = evaluate
             javaFakeMetadata = {
                 contracts: {
                     MyJavaContract: {
@@ -427,20 +436,23 @@ describe('testSmartContractCommand', () => {
                                             }
                                         }
                                     }
-                                ]
+                                ],
+                                tags: ['INVOKE']
                             },
                             {
                                 name: 'wagonwheeling',
-                                parameters: []
+                                parameters: [],
+                                tags: ['QUERY']
                             },
                             {
-                                name: 'transaction2'
+                                name: 'transaction2',
+                                tags: ['DEFAULT']
                             }
                         ]
                     }
                 }
             };
-
+            // This is a GO contract. It has tag: submit = submit. evaluate = evaluate
             goFakeMetadata = {
                 contracts: {
                     MyGoContract: {
@@ -550,11 +562,13 @@ describe('testSmartContractCommand', () => {
                                             }
                                         }
                                     }
-                                ]
+                                ],
+                                tag: ['submit']
                             },
                             {
                                 name: 'transaction2',
-                                parameters: []
+                                parameters: [],
+                                tag: ['evaluate']
                             },
                             {
                                 name: 'transaction3'
@@ -727,7 +741,8 @@ describe('testSmartContractCommand', () => {
             };
         });
 
-        it('should generate a javascript test file for a selected instantiated smart contract', async () => {
+        // Metadata includes information regarding submit/evaluate
+        it('should generate a javascript test file for a selected instantiated TS smart contract', async () => {
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', 'js-smart-contract-util.js');
@@ -1735,6 +1750,7 @@ describe('testSmartContractCommand', () => {
             sendTelemetryEventStub.should.have.been.called;
         });
 
+        // All transactions from a JS contract will be submited - no metadata for evaluate
         it('should generate a test file for each smart contract defined in the metadata (from tree)', async () => {
             const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
@@ -1759,6 +1775,7 @@ describe('testSmartContractCommand', () => {
             firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
             firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
+            firstTemplateData.includes('evaluateTransaction').should.be.false;
 
             const secondTemplateData: string = mockEditBuilderReplaceSpy.args[3][1];
             secondTemplateData.includes('my-other-contract').should.be.true;
@@ -1767,6 +1784,7 @@ describe('testSmartContractCommand', () => {
             secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
             secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
+            secondTemplateData.includes('evaluateTransaction').should.be.false;
 
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
