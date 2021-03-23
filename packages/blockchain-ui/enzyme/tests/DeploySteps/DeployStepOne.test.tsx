@@ -22,6 +22,7 @@ describe('DeployStepOne component', () => {
     let packageTwo: IPackageRegistryEntry;
     let packageThree: IPackageRegistryEntry;
     let chosenWorkspace: { language: string, name: string, version: string };
+    let chosenWorkspaceName: string;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -32,6 +33,7 @@ describe('DeployStepOne component', () => {
         packageTwo = {name: 'othercontract', version: '0.0.2', path: '/package/two', sizeKB: 12000};
         packageThree = {name: 'importedContract', path: '/package/two', sizeKB: 18000};
         chosenWorkspace = {language: 'node', name: 'mycontract', version: '0.0.1'};
+        chosenWorkspaceName = 'my workspace (open project)'
     });
 
     afterEach(async () => {
@@ -80,13 +82,49 @@ describe('DeployStepOne component', () => {
         it('should show inputs for packaging an open workspace', () => {
             const component: any = shallow(<DeployStepOne hasV1Capabilities={false} chosenWorkspaceData={undefined} packageEntries={[packageOne, packageTwo, packageThree]} selectedPackage={undefined} selectedWorkspace='workspaceOne' workspaceNames={['workspaceOne']} onPackageWorkspace={onPackageWorkspaceStub} deletedSelectedPackage={false} onPackageChange={onPackageChangeStub} />);
             chosenWorkspace.language = 'go';
+            chosenWorkspaceName = 'another workspace (open project)'
+            component.setProps({
+                chosenWorkspaceData: chosenWorkspace,
+                chosenWorkspaceName: chosenWorkspaceName
+            });
+            component.find('InlineNotification').prop('title').should.deep.equal('The contract must be packaged');
+            component.find('ForwardRef(TextInput)').length.should.equal(2);
+            component.find('ForwardRef(TextInput)').at(0).prop('labelText').should.deep.equal('Package name');
+            component.find('ForwardRef(TextInput)').at(0).prop('value').should.deep.equal('');
+            component.find('ForwardRef(TextInput)').at(1).prop('labelText').should.deep.equal('Package version');
+            component.find('ForwardRef(TextInput)').at(1).prop('value').should.deep.equal('');
+            component.find('ForwardRef(Button)').length.should.equal(1);
+        });
+
+        it('should reset inputs for packaging an open workspace', () => {
+            const component: any = shallow(<DeployStepOne hasV1Capabilities={false} chosenWorkspaceData={undefined} packageEntries={[packageOne, packageTwo, packageThree]} selectedPackage={undefined} selectedWorkspace='workspaceOne' workspaceNames={['workspaceOne']} onPackageWorkspace={onPackageWorkspaceStub} deletedSelectedPackage={false} onPackageChange={onPackageChangeStub} />);
             component.setProps({
                 chosenWorkspaceData: chosenWorkspace
             });
             component.find('InlineNotification').prop('title').should.deep.equal('The contract must be packaged');
             component.find('ForwardRef(TextInput)').length.should.equal(2);
             component.find('ForwardRef(TextInput)').at(0).prop('labelText').should.deep.equal('Package name');
+            component.find('ForwardRef(TextInput)').at(0).prop('value').should.deep.equal(chosenWorkspace.name);
+            component.find('ForwardRef(TextInput)').at(0).prop('disabled').should.deep.equal(true);
             component.find('ForwardRef(TextInput)').at(1).prop('labelText').should.deep.equal('Package version');
+            component.find('ForwardRef(TextInput)').at(1).prop('value').should.deep.equal(chosenWorkspace.version);
+            component.find('ForwardRef(TextInput)').at(1).prop('disabled').should.deep.equal(true);
+            component.find('ForwardRef(Button)').length.should.equal(1);
+
+            chosenWorkspace.language = 'go';
+            chosenWorkspaceName = 'another workspace (open project)'
+            component.setProps({
+                chosenWorkspaceName: chosenWorkspaceName,
+                chosenWorkspaceData: chosenWorkspace
+            });
+            component.find('InlineNotification').prop('title').should.deep.equal('The contract must be packaged');
+            component.find('ForwardRef(TextInput)').length.should.equal(2);
+            component.find('ForwardRef(TextInput)').at(0).prop('labelText').should.deep.equal('Package name');
+            component.find('ForwardRef(TextInput)').at(0).prop('value').should.deep.equal('');
+            component.find('ForwardRef(TextInput)').at(0).prop('disabled').should.deep.equal(false);
+            component.find('ForwardRef(TextInput)').at(1).prop('labelText').should.deep.equal('Package version');
+            component.find('ForwardRef(TextInput)').at(1).prop('value').should.deep.equal('');
+            component.find('ForwardRef(TextInput)').at(1).prop('disabled').should.deep.equal(false);
             component.find('ForwardRef(Button)').length.should.equal(1);
         });
 
@@ -98,8 +136,10 @@ describe('DeployStepOne component', () => {
             component.find('InlineNotification').prop('title').should.deep.equal('The contract must be packaged');
             component.find('ForwardRef(TextInput)').length.should.equal(2);
             component.find('ForwardRef(TextInput)').at(0).prop('labelText').should.deep.equal('Package name');
+            component.find('ForwardRef(TextInput)').at(0).prop('value').should.deep.equal(chosenWorkspace.name);
             component.find('ForwardRef(TextInput)').at(0).prop('disabled').should.deep.equal(true);
             component.find('ForwardRef(TextInput)').at(1).prop('labelText').should.deep.equal('Package version');
+            component.find('ForwardRef(TextInput)').at(1).prop('value').should.deep.equal(chosenWorkspace.version);
             component.find('ForwardRef(TextInput)').at(1).prop('disabled').should.deep.equal(true);
             component.find('ForwardRef(Button)').length.should.equal(1);
         });
