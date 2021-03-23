@@ -149,7 +149,7 @@ public final class Fv<%=capsChaincodeLabelForJava%>Test {
     @Nested
     class <%=capsTransactionName%> {
         @Test
-        <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+        <%_ if(transaction.tags && transaction.tags.includes('QUERY')){ -%>
         public void evaluate<%=capsTransactionName%>Test() throws ContractException, TimeoutException, InterruptedException {
         <%_ } else { _%>
         public void submit<%=capsTransactionName%>Test() throws ContractException, TimeoutException, InterruptedException {
@@ -190,14 +190,14 @@ public final class Fv<%=capsChaincodeLabelForJava%>Test {
             Transaction transaction = contract.createTransaction("<%=transaction.name%>");
             transaction.setTransient(transientData);
     
-                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+                <%_ if(transaction.tags && transaction.tags.includes('QUERY')){ -%>
             byte[] response = transaction.evaluate(args);
                 <%_ } else { _%>
             byte[] response = transaction.submit(args);
                 <%_ } _%> 
             <%_ } else { _%>
             Transaction transaction = contract.createTransaction("<%=transaction.name%>");
-                <%_ if(transaction.name.toLowerCase().startsWith('read') || transaction.name.toLowerCase().endsWith('exists')){ -%>
+                <%_ if(transaction.tags && transaction.tags.includes('QUERY')){ -%>
             byte[] response = transaction.evaluate(args);
                 <%_ } else { _%>
             byte[] response = transaction.submit(args);
