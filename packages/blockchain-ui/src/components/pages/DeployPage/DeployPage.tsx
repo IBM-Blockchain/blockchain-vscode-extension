@@ -184,7 +184,9 @@ class DeployPage extends Component<IProps, DeployState> {
         });
     }
 
-    handleGetOrgApprovals(): void {
+    async handleGetOrgApprovals(): Promise<void> {
+        const collectionConfig: string = this.state.currentCollectionFile ? await Utils.readFileAsync(this.state.currentCollectionFile) : '';
+
         Utils.postToVSCode({
             command: 'getOrgApprovals',
             data: {
@@ -192,13 +194,15 @@ class DeployPage extends Component<IProps, DeployState> {
                 channelName: this.state.channelName,
                 definitionName: this.state.definitionName,
                 definitionVersion: this.state.definitionVersion,
-                collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined,
+                collectionConfig,
                 endorsementPolicy: this.state.endorsementPolicy
             }
         });
     }
 
-    handleDeploy(): void {
+    async handleDeploy(): Promise<void> {
+        const collectionConfig: string = this.state.currentCollectionFile ? await Utils.readFileAsync(this.state.currentCollectionFile) : '';
+
         if (this.state.hasV1Capabilities) {
             const command: string = (this.props.deployData.committedDefinitions.find((entry: string) => entry.includes(`${this.state.definitionName}@`))) ? 'upgrade' : 'instantiate';
             Utils.postToVSCode({
@@ -210,7 +214,7 @@ class DeployPage extends Component<IProps, DeployState> {
                     selectedPackage: this.state.selectedPackage,
                     instantiateFunctionName: this.state.instantiateFunctionName,
                     instantiateFunctionArgs: this.state.instantiateFunctionArgs,
-                    collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined,
+                    collectionConfig,
                     endorsementPolicy: this.state.endorsementPolicy ? this.state.endorsementPolicy : undefined,
                 }
             });
@@ -224,7 +228,7 @@ class DeployPage extends Component<IProps, DeployState> {
                     definitionName: this.state.definitionName,
                     definitionVersion: this.state.definitionVersion,
                     commitSmartContract: this.state.commitSmartContract,
-                    collectionConfigPath: this.state.currentCollectionFile ? this.state.currentCollectionFile.path : undefined,
+                    collectionConfig,
                     endorsementPolicy: this.state.endorsementPolicy ? this.state.endorsementPolicy : undefined,
                     selectedPeers: this.state.selectedPeers
                 }

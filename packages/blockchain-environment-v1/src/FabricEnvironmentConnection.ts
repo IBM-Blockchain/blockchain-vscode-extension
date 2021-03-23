@@ -418,12 +418,12 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return LifecycleChannel.getCollectionConfig(collectionConfig, true) as Buffer;
     }
 
-    public async instantiateChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionPath: string, _contractEP: any): Promise<void> {
-        return this.instantiateOrUpgradeChaincode(_name, _version, _peerNames, _channelName, _fcn, _args, _collectionPath, _contractEP, false);
+    public async instantiateChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionConfigString: string, _contractEP: any): Promise<void> {
+        return this.instantiateOrUpgradeChaincode(_name, _version, _peerNames, _channelName, _fcn, _args, _collectionConfigString, _contractEP, false);
     }
 
-    public async upgradeChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionPath: string, _contractEP: any): Promise<void> {
-        return this.instantiateOrUpgradeChaincode(_name, _version, _peerNames, _channelName, _fcn, _args, _collectionPath, _contractEP, true);
+    public async upgradeChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionConfigString: string, _contractEP: any): Promise<void> {
+        return this.instantiateOrUpgradeChaincode(_name, _version, _peerNames, _channelName, _fcn, _args, _collectionConfigString, _contractEP, true);
     }
 
     public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{ certificate: string, privateKey: string }> {
@@ -501,14 +501,14 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
         return peer.getAllChannelNames();
     }
 
-    private async instantiateOrUpgradeChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionPath: string, _contractEP: any, isUpgrade: boolean): Promise<void> {
+    private async instantiateOrUpgradeChaincode(_name: string, _version: string, _peerNames: Array<string>, _channelName: string, _fcn: string, _args: Array<string>, _collectionConfigString: string, _contractEP: any, isUpgrade: boolean): Promise<void> {
         const wallet: FabricWallet = await this.getWallet(_peerNames[0]) as FabricWallet;
         const peerNode: FabricNode = this.getNode(_peerNames[0]);
         const channel: LifecycleChannel = this.lifecycle.getChannel(_channelName, wallet.getWallet(), peerNode.identity);
         const ordererName: string = this.getAllOrdererNames()[0];
         let collectionFile: FabricCollectionDefinition[];
-        if (_collectionPath) {
-            collectionFile = await fs.readJSON(_collectionPath) as FabricCollectionDefinition[];
+        if (_collectionConfigString && _collectionConfigString !== '') {
+            collectionFile = JSON.parse(_collectionConfigString) as FabricCollectionDefinition[];
         }
 
         return channel.instantiateOrUpgradeSmartContractDefinition(
@@ -518,7 +518,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
                 smartContractVersion: _version,
                 sequence: -1,
                 endorsementPolicy: _contractEP as string,
-                collectionConfig: collectionFile
+                collectionConfig: collectionFile,
             },
             _fcn,
             _args,

@@ -27,7 +27,8 @@ import {
     FabricEnvironmentRegistryEntry,
     FabricEnvironmentRegistry,
     LogType,
-    FabricSmartContractDefinition
+    FabricSmartContractDefinition,
+    FabricCollectionDefinition
 } from 'ibm-blockchain-platform-common';
 import { PackageRegistryEntry } from '../../extension/registries/PackageRegistryEntry';
 import { FabricEnvironmentManager } from '../../extension/fabric/environments/FabricEnvironmentManager';
@@ -36,6 +37,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../extension/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../../extension/registries/PackageRegistry';
 import { UserInputUtil } from '../../extension/commands/UserInputUtil';
+import IInstantiateFunction from '../../extension/interfaces/IDeployV1InstantiateFunction';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -246,7 +248,7 @@ describe('DeployView', () => {
                                     definitionVersion: 'packageOneVersion',
                                     commitSmartContract: undefined,
                                     endorsmentPolicy: undefined,
-                                    collectionConfigPath: undefined,
+                                    collectionConfig: '',
                                     selectedPeers: ['Org2Peer1', 'Org2Peer2']
                                 }
                             });
@@ -270,7 +272,7 @@ describe('DeployView', () => {
             await deployView.openView(false);
             await Promise.all(onDidDisposePromises);
 
-            deployStub.should.have.been.calledOnceWithExactly('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'packageOneName', 'packageOneVersion', undefined, undefined, undefined, ['Org2Peer1', 'Org2Peer2']);
+            deployStub.should.have.been.calledOnceWithExactly('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'packageOneName', 'packageOneVersion', undefined, undefined, '', ['Org2Peer1', 'Org2Peer2']);
         });
 
     });
@@ -533,7 +535,7 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            const collection: any = [
+            const collection: FabricCollectionDefinition[] = [
                 {
                     "name": "CollectionOne",
                     "policy": "OR('Org1MSP.member')",
@@ -544,9 +546,7 @@ describe('DeployView', () => {
                 }
             ];
 
-            const readJSONStub: sinon.SinonStub = mySandBox.stub(fs, 'readJSON').resolves(collection);
-
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, undefined, '/some/path', ['Org2Peer1', 'Org2Peer2']);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.2', undefined, undefined, JSON.stringify(collection), ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -555,8 +555,6 @@ describe('DeployView', () => {
             localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
             localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
-
-            readJSONStub.should.have.been.calledOnceWithExactly('/some/path');
 
             executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.2', 2, undefined, undefined, collection), commitMap);
         });
@@ -573,7 +571,7 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            const collection: any = [
+            const collection: FabricCollectionDefinition[] = [
                 {
                     "name": "CollectionOne",
                     "policy": "OR('Org1MSP.member')",
@@ -584,9 +582,7 @@ describe('DeployView', () => {
                 }
             ];
 
-            const readJSONStub: sinon.SinonStub = mySandBox.stub(fs, 'readJSON').resolves(collection);
-
-            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, '/some/path', ['Org2Peer1', 'Org2Peer2']);
+            await deployView.deploy('mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'defName', '0.0.1', undefined, undefined, JSON.stringify(collection), ['Org2Peer1', 'Org2Peer2']);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -595,8 +591,6 @@ describe('DeployView', () => {
             localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org1Peer2'], 'mychannel');
             localEnvironmentConnectionMock.getDiscoveredOrgs.should.have.been.calledOnceWithExactly('mychannel');
-
-            readJSONStub.should.have.been.calledOnceWithExactly('/some/path');
 
             executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.DEPLOY_SMART_CONTRACT, true, localEntry, 'orderer.example.com', 'mychannel', installApproveMap, packageEntryOne, new FabricSmartContractDefinition('defName', '0.0.1', 1, undefined, undefined, collection), commitMap);
         });
@@ -768,7 +762,7 @@ describe('DeployView', () => {
                                     definitionName: 'packageOneName',
                                     definitionVersion: 'packageOneVersion',
                                     endorsmentPolicy: undefined,
-                                    collectionConfigPath: undefined
+                                    collectionConfig: '',
                                 }
                             });
                             resolve();
@@ -794,7 +788,7 @@ describe('DeployView', () => {
             await deployView.openView(false);
             await Promise.all(onDidDisposePromises);
 
-            getOrgApprovalsStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'packageOneName', 'packageOneVersion', undefined, undefined);
+            getOrgApprovalsStub.should.have.been.calledOnceWithExactly(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'packageOneName', 'packageOneVersion', undefined, '');
         });
 
     });
@@ -1107,7 +1101,7 @@ describe('DeployView', () => {
             channelMap.set('mychannel', ['Org1Peer1', 'Org2Peer1']);
             localEnvironmentConnectionMock.createChannelMap.resolves(channelMap);
 
-            const collection: any = [
+            const collection: FabricCollectionDefinition[] = [
                 {
                     "name": "CollectionOne",
                     "policy": "OR('Org1MSP.member')",
@@ -1117,16 +1111,13 @@ describe('DeployView', () => {
                     "memberOnlyRead": true
                 }
             ];
-            const readJSONStub: sinon.SinonStub = mySandBox.stub(fs, 'readJSON').resolves(collection);
 
-            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, '/some/path');
+            await deployView.getOrgApprovals(FabricRuntimeUtil.LOCAL_FABRIC, 'mychannel', 'defName', '0.0.1', undefined, JSON.stringify(collection));
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
 
             localEnvironmentConnectionMock.createChannelMap.should.have.been.calledOnce;
             localEnvironmentConnectionMock.getCommittedSmartContractDefinitions.should.have.been.calledWithExactly(['Org1Peer1', 'Org2Peer1'], 'mychannel');
-
-            readJSONStub.should.have.been.calledOnceWithExactly('/some/path');
 
             const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition('defName', '0.0.1', 1, undefined, undefined, collection);
             localEnvironmentConnectionMock.getOrgApprovals.should.have.been.calledOnceWithExactly('mychannel', 'Org1Peer1', definition);
@@ -1162,7 +1153,7 @@ describe('DeployView', () => {
                                     instantiateFunctionName: '',
                                     instantiateFunctionArgs: '',
                                     endorsmentPolicy: undefined,
-                                    collectionConfigPath: undefined,
+                                    collectionConfig: '',
                                 }
                             });
                             resolve();
@@ -1182,7 +1173,7 @@ describe('DeployView', () => {
             const deployV1Stub: sinon.SinonStub = mySandBox.stub(deployView, 'deployV1').resolves();
             await deployView.openView(false);
             await Promise.all(onDidDisposePromises);
-            deployV1Stub.should.have.been.calledWith('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            deployV1Stub.should.have.been.calledWith('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, { name: '', args: '' }, undefined, '');
         });
 
         it('should handle instantiate message', async () => {
@@ -1201,7 +1192,7 @@ describe('DeployView', () => {
                                     instantiateFunctionName: '',
                                     instantiateFunctionArgs: '',
                                     endorsmentPolicy: undefined,
-                                    collectionConfigPath: undefined,
+                                    collectionConfig: '',
                                 }
                             });
                             resolve();
@@ -1221,11 +1212,16 @@ describe('DeployView', () => {
             const deployV1Stub: sinon.SinonStub = mySandBox.stub(deployView, 'deployV1').resolves();
             await deployView.openView(false);
             await Promise.all(onDidDisposePromises);
-            deployV1Stub.should.have.been.calledWith('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            deployV1Stub.should.have.been.calledWith('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, { name: '', args: '' }, undefined, '');
         });
     });
 
     describe('deployV1', () => {
+        const instantiateFunction: IInstantiateFunction = {
+            name: '',
+            args: '',
+        };
+
         it('should instantiate new contract if already connected', async () => {
             getConnectionStub.returns(localEnvironmentConnectionMock);
 
@@ -1236,7 +1232,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1255,7 +1251,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1274,7 +1270,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1293,7 +1289,7 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1314,7 +1310,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'myFunction', '["arg1", "arg2"]', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, { name: 'myFunction', args: '["arg1", "arg2"]' }, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1332,7 +1328,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, 'myFunction', '["arg1", "arg2"', undefined, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, { name: 'myFunction', args: '["arg1", "arg2"' }, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1353,7 +1349,7 @@ describe('DeployView', () => {
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
 
-            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', `OR("Org1.member","Org2.member")`, undefined);
+            await deployView.deployV1('instantiate', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, `OR("Org1.member","Org2.member")`, undefined);
 
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
@@ -1371,7 +1367,7 @@ describe('DeployView', () => {
 
             const deployView: DeployView = new DeployView(context, deployData);
             DeployView.panel = webviewPanel;
-            await deployView.deployV1('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, '', '', undefined, undefined);
+            await deployView.deployV1('upgrade', 'mychannel', FabricRuntimeUtil.LOCAL_FABRIC, packageEntryOne, instantiateFunction, undefined, undefined);
             disposeStub.should.have.been.calledOnce;
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
             executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, localEntry);
