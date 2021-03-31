@@ -4,6 +4,6 @@ jobs:
   firstJob:
     runs-on: ubuntu-latest
     steps:
-      - name: 'simple print'
-      run: echo first job
-      shell: bash
+      - name: simple print
+        run: echo first job
+        shell: bash
