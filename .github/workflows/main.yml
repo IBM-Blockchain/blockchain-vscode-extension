@@ -27,18 +27,19 @@ on:
 
 jobs:
   unitTest:
-    name: unit (${{ matrix.name }})
-    runs-on: ${{ matrix.runs-on }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: linux
-            runs-on: ubuntu-16.04
-            VERSION: 1.40.0
-          - name: mac
-            runs-on: macos-10.14
-            VERSION: 1.40.0
+    # name: unit (${{ matrix.name }})
+    # runs-on: ${{ matrix.runs-on }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     include:
+    #       - name: linux
+    #         runs-on: ubuntu-16.04
+    #         VERSION: 1.40.0
+    #       - name: mac
+    #         runs-on: macos-10.14
+    #         VERSION: 1.40.0
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -129,6 +130,7 @@ jobs:
   # #      reportDirectory: '$(System.DefaultWorkingDirectory)/coverage'
 
   cucumberTestSetVersion:
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -144,41 +146,43 @@ jobs:
       #   shell: bash
 
   cucumberTest:
-#      if: variables['Build.Reason'] == 'PullRequest' || (variables['Build.Reason'] == 'IndividualCI' && (startsWith(variables['Build.SourceBranch'], 'refs/tags/v1') || startsWith(variables['Build.SourceBranch'], 'refs/tags/v2')))
-    name: cucumber (${{ matrix.name }})
-    runs-on: ${{ matrix.imageName }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: cucumber
-            imageName: ubuntu-16.04
-            VERSION: "${{ env.CUCUMBER_VERSION }}"
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            type: 'oneOrg'
-          - name: cucumber_other
-            imageName: ubuntu-16.04
-            OTHER_FABRIC: 'true'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: "${{ env.CUCUMBER_VERSION }}"
-            type: 'other'
-          - name: cucumber_opsTools
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'true'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: "${{ env.CUCUMBER_VERSION }}"
-            type: 'opsTools'
-          - name: cucumber_two_org
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'true'
-            VERSION: "${{ env.CUCUMBER_VERSION }}"
-            type: 'twoOrg'
+    # # condition: variables['Build.Reason'] == 'PullRequest' || (variables['Build.Reason'] == 'IndividualCI' && (startsWith(variables['Build.SourceBranch'], 'refs/tags/v1') || startsWith(variables['Build.SourceBranch'], 'refs/tags/v2')))
+    # name: cucumber (${{ matrix.name }})
+    # runs-on: ${{ matrix.imageName }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     include:
+    #       - name: cucumber
+    #         imageName: ubuntu-16.04
+    #         VERSION: "${{ env.CUCUMBER_VERSION }}"
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         type: 'oneOrg'
+    #       - name: cucumber_other
+    #         imageName: ubuntu-16.04
+    #         OTHER_FABRIC: 'true'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: "${{ env.CUCUMBER_VERSION }}"
+    #         type: 'other'
+    #       - name: cucumber_opsTools
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'true'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: "${{ env.CUCUMBER_VERSION }}"
+    #         type: 'opsTools'
+    #       - name: cucumber_two_org
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'true'
+    #         VERSION: "${{ env.CUCUMBER_VERSION }}"
+    #         type: 'twoOrg'
+
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -264,9 +268,10 @@ jobs:
 
 
   cucumberReport:
-    needs: cucumberTest
-    name: cucumberReport
-    runs-on: 'ubuntu-16.04'
+    # needs: cucumberTest
+    # name: cucumberReport
+    # runs-on: 'ubuntu-16.04'
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -342,21 +347,21 @@ jobs:
       #     path: packages/blockchain-extension/cucumber/cucumber-report.html/**
 
   cypressTest:
-    name: cypress (${{ matrix.name }})
-    if: 
-    #    condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))))
-    # startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2')
-    needs: []
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: linux
-            runs-on: ubuntu-16.04
-            VERSION: 1.40.0
-          - name: mac
-            runs-on: macos-10.14
-            VERSION: 1.40.0
+    # name: cypress (${{ matrix.name }})
+    # # condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))))
+    # needs: []
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     include:
+    #       - name: linux
+    #         runs-on: ubuntu-16.04
+    #         VERSION: 1.40.0
+    #       - name: mac
+    #         runs-on: macos-10.14
+    #         VERSION: 1.40.0
+
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -409,9 +414,10 @@ jobs:
       #     DISPLAY: ':99.0'
   
   buildPackage:
-    needs: [unitTest, cucumberTest, cypressTest]
-    name: buildPackage
-    runs-on: 'ubuntu-16.04'
+    # needs: [unitTest, cucumberTest, cypressTest]
+    # name: buildPackage
+    # runs-on: 'ubuntu-16.04'
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -487,8 +493,9 @@ jobs:
       #     path: packages/blockchain-extension/ibm-blockchain-platform-**.vsix
 
   buildChePackage:
-    needs: [unitTest, cucumberTest, cypressTest]
-    name: buildPackage
+    # needs: [unitTest, cucumberTest, cypressTest]
+    # name: buildPackage
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -507,7 +514,8 @@ jobs:
       #       che/ibm-blockchain-platform-**.yaml
 
   buildPdf:
-    if: condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+    # condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -549,9 +557,10 @@ jobs:
       #   shell: bash
 
   deploy:
-    name: deploy
-    if: #    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
-    needs: [unitTest, cucumberTest, cypressTest, buildPackage, buildChePackage]
+    # name: deploy
+    # # condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+    # needs: [unitTest, cucumberTest, cypressTest, buildPackage, buildChePackage]
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -653,19 +662,21 @@ jobs:
 
 
   otherVersionsUnitTest:
-    name: otherVersionsUnit (${{ matrix.name }})
-    if: #     condition: eq(variables['Build.Reason'], 'Schedule')
-    runs-on: ${{ matrix.runs-on }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: linux
-            runs-on: ubuntu-16.04
-            VERSION: 'insiders'
-          - name: mac
-            runs-on: macos-10.14
-            VERSION: 'insiders'
+    # name: otherVersionsUnit (${{ matrix.name }})
+    # # condition: eq(variables['Build.Reason'], 'Schedule')
+    # runs-on: ${{ matrix.runs-on }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     include:
+    #       - name: linux
+    #         runs-on: ubuntu-16.04
+    #         VERSION: 'insiders'
+    #       - name: mac
+    #         runs-on: macos-10.14
+    #         VERSION: 'insiders'
+
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
@@ -757,98 +768,100 @@ jobs:
 
 
 
-otherVersionsCucumberTest:
-  name: cucumber (${{ matrix.name }})
-    if: #    condition: eq(variables['Build.Reason'], 'Schedule')
-    runs-on: ${{ matrix.imageName }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: insiders cucumber
-            imageName: ubuntu-16.04
-            VERSION: insiders
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            type: 'oneOrg'
-          - name: insiders cucumber_other
-            imageName: ubuntu-16.04
-            OTHER_FABRIC: 'true'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: insiders
-            type: 'other'
-          - name: cinsiders ucumber_opsTools
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'true'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: insiders
-            type: 'opsTools'
-          - name: insiders cucumber_two_org
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'true'
-            VERSION: insiders
-            type: 'twoOrg'
-          - name: old cucumber
-            imageName: ubuntu-16.04
-            VERSION: '1.40.0'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            type: 'oneOrg'
-          - name: old cucumber_other
-            imageName: ubuntu-16.04
-            OTHER_FABRIC: 'true'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: '1.40.0'
-            type: 'other'
-          - name: old cucumber_opsTools
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'true'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: '1.40.0'
-            type: 'opsTools'
-          - name: old cucumber_two_org
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'true'
-            VERSION: '1.40.0'
-            type: 'twoOrg'
-          - name: latest cucumber
-            imageName: ubuntu-16.04
-            VERSION: 'stable'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            type: 'oneOrg'
-          - name: latest cucumber_other
-            imageName: ubuntu-16.04
-            OTHER_FABRIC: 'true'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: 'stable'
-            type: 'other'
-          - name: latest cucumber_opsTools
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'true'
-            TWO_ORG_FABRIC: 'false'
-            VERSION: 'stable'
-            type: 'opsTools'
-          - name: latest cucumber_two_org
-            imageName: 'ubuntu-16.04'
-            OTHER_FABRIC: 'false'
-            OPSTOOLS_FABRIC: 'false'
-            TWO_ORG_FABRIC: 'true'
-            VERSION: 'stable'
-            type: 'twoOrg'
+  otherVersionsCucumberTest:
+    # name: cucumber (${{ matrix.name }})
+    # # condition: eq(variables['Build.Reason'], 'Schedule')
+    # runs-on: ${{ matrix.imageName }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     include:
+    #       - name: insiders cucumber
+    #         imageName: ubuntu-16.04
+    #         VERSION: insiders
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         type: 'oneOrg'
+    #       - name: insiders cucumber_other
+    #         imageName: ubuntu-16.04
+    #         OTHER_FABRIC: 'true'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: insiders
+    #         type: 'other'
+    #       - name: cinsiders ucumber_opsTools
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'true'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: insiders
+    #         type: 'opsTools'
+    #       - name: insiders cucumber_two_org
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'true'
+    #         VERSION: insiders
+    #         type: 'twoOrg'
+    #       - name: old cucumber
+    #         imageName: ubuntu-16.04
+    #         VERSION: '1.40.0'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         type: 'oneOrg'
+    #       - name: old cucumber_other
+    #         imageName: ubuntu-16.04
+    #         OTHER_FABRIC: 'true'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: '1.40.0'
+    #         type: 'other'
+    #       - name: old cucumber_opsTools
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'true'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: '1.40.0'
+    #         type: 'opsTools'
+    #       - name: old cucumber_two_org
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'true'
+    #         VERSION: '1.40.0'
+    #         type: 'twoOrg'
+    #       - name: latest cucumber
+    #         imageName: ubuntu-16.04
+    #         VERSION: 'stable'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         type: 'oneOrg'
+    #       - name: latest cucumber_other
+    #         imageName: ubuntu-16.04
+    #         OTHER_FABRIC: 'true'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: 'stable'
+    #         type: 'other'
+    #       - name: latest cucumber_opsTools
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'true'
+    #         TWO_ORG_FABRIC: 'false'
+    #         VERSION: 'stable'
+    #         type: 'opsTools'
+    #       - name: latest cucumber_two_org
+    #         imageName: 'ubuntu-16.04'
+    #         OTHER_FABRIC: 'false'
+    #         OPSTOOLS_FABRIC: 'false'
+    #         TWO_ORG_FABRIC: 'true'
+    #         VERSION: 'stable'
+    #         type: 'twoOrg'
+
+    runs-on: ubuntu-latest # remove when ready
     steps:
       # remove when ready
       - name: remove when ready
