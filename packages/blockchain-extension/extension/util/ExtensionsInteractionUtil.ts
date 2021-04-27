@@ -88,8 +88,7 @@ export class ExtensionsInteractionUtil {
         if (!loggedIn) {
             return;
         }
-        const accessToken: string = await cloudAccount.getAccessToken();
-        return accessToken;
+        return cloudAccount.getAccessToken();
     }
 
     public static async cloudAccountGetRefreshToken(userInteraction: boolean = true): Promise<string> {
@@ -98,8 +97,7 @@ export class ExtensionsInteractionUtil {
         if (!loggedIn) {
             return;
         }
-        const refreshToken: string = await cloudAccount.getRefreshToken();
-        return refreshToken;
+        return cloudAccount.getRefreshToken();
     }
 
     public static async cloudAccountIsLoggedIn(): Promise<boolean> {

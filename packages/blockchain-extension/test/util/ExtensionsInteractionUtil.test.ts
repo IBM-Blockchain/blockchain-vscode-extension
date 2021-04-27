@@ -26,7 +26,7 @@ import { DependencyProperties } from '../../extension/dependencies/Dependencies'
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
 
-describe.only('ExtensionsInteractionUtil Test', () => {
+describe('ExtensionsInteractionUtil Test', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let executeCommandStub: sinon.SinonStub;
