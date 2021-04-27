@@ -49,9 +49,8 @@ export class ExtensionsInteractionUtil {
         return cloudAccountExtension.exports;
     }
 
-    public static async cloudAccountGetAccessToken(userInteraction: boolean = true): Promise<string> {
-        const cloudAccount: CloudAccountApi = await this.getIBMCloudExtension();
-
+    public static async cloudAccountEnsureLoggedIn(cloudAccount: CloudAccountApi, userInteraction: boolean = true): Promise<boolean> {
+        let definitelyLoggedIn: boolean = true;
         const isLoggedIn: boolean = await cloudAccount.loggedIn();
         let result: boolean;
         if ( !isLoggedIn ) {
@@ -59,11 +58,11 @@ export class ExtensionsInteractionUtil {
                 // If not logged in, ask the user to login, and then to select the account.
                 result = await vscode.commands.executeCommand('ibmcloud-account.login');
                 if (!result) {
-                    return;
+                    definitelyLoggedIn = false;
                 }
             } else {
                 // Just return if we are not supposed request user interaction.
-                return;
+                definitelyLoggedIn = false;
             }
         } else {
             const hasAccount: boolean = await cloudAccount.accountSelected();
@@ -72,18 +71,35 @@ export class ExtensionsInteractionUtil {
                     // If not logged in, this will first ask the user to login, and then to select the account.
                     result = await vscode.commands.executeCommand('ibmcloud-account.selectAccount');
                     if (!result) {
-                        return;
+                        definitelyLoggedIn = false;
                     }
                 } else {
                     // Just return if we are not supposed request user interaction.
-                    return;
+                    definitelyLoggedIn = false;
                 }
             }
         }
+        return definitelyLoggedIn;
+    }
 
+    public static async cloudAccountGetAccessToken(userInteraction: boolean = true): Promise<string> {
+        const cloudAccount: CloudAccountApi = await this.getIBMCloudExtension();
+        const loggedIn: boolean = await this.cloudAccountEnsureLoggedIn(cloudAccount, userInteraction);
+        if (!loggedIn) {
+            return;
+        }
         const accessToken: string = await cloudAccount.getAccessToken();
-
         return accessToken;
+    }
+
+    public static async cloudAccountGetRefreshToken(userInteraction: boolean = true): Promise<string> {
+        const cloudAccount: CloudAccountApi = await this.getIBMCloudExtension();
+        const loggedIn: boolean = await this.cloudAccountEnsureLoggedIn(cloudAccount, userInteraction);
+        if (!loggedIn) {
+            return;
+        }
+        const refreshToken: string = await cloudAccount.getRefreshToken();
+        return refreshToken;
     }
 
     public static async cloudAccountIsLoggedIn(): Promise<boolean> {
@@ -165,12 +181,24 @@ export class ExtensionsInteractionUtil {
 
         const dashboardUrl: URL = new URL(ibpResource.dashboard_url);
         const encodedCrn: string = encodeURIComponent(ibpResource.crn);
-        const consoleStatus: any = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, requestOptions);
+        let consoleStatus: any;
+        try {
+            consoleStatus = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, requestOptions);
+        } catch (error) {
+            // should make the call again with a refresh token in case that's the reason it failed
+            const refreshToken: string = await this.cloudAccountGetRefreshToken();
+            const newRequestOptions: any = {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'x-refresh-token': refreshToken
+                }
+            };
+            consoleStatus = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, newRequestOptions);
+        }
 
         if (consoleStatus.status !== 200) {
             throw new Error(`Got status ${consoleStatus.status}. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`);
         }
-
         return consoleStatus.data.endpoint;
     }
 

@@ -26,7 +26,7 @@ import { DependencyProperties } from '../../extension/dependencies/Dependencies'
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
 
-describe('ExtensionsInteractionUtil Test', () => {
+describe.only('ExtensionsInteractionUtil Test', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let executeCommandStub: sinon.SinonStub;
@@ -47,32 +47,145 @@ describe('ExtensionsInteractionUtil Test', () => {
         mySandBox.restore();
     });
 
-    describe('#cloudAccountGetAccessToken', () => {
-        let loginStub: sinon.SinonStub;
-        let pingStub: sinon.SinonStub;
-        let selectAccountStub: sinon.SinonStub;
-        let isLoggedInStub: sinon.SinonStub;
-        let accountSelectedStub: sinon.SinonStub;
-        let getAccessTokenStub: sinon.SinonStub;
-        let activateStub: sinon.SinonStub;
+    describe('#isIBMCloudExtensionInstalled', () => {
         let cloudExtensionStub: any;
-        let accessToken: string;
 
         beforeEach(() => {
-            isLoggedInStub = mySandBox.stub().resolves(true);
-            accountSelectedStub = mySandBox.stub().resolves(true);
-            getAccessTokenStub = mySandBox.stub().resolves('some token');
+            cloudExtensionStub = {
+            isActive: true,
+            activate: mySandBox.stub(),
+            exports: {
+                        loggedIn: mySandBox.stub(),
+                        accountSelected: mySandBox.stub(),
+                        getAccessToken: mySandBox.stub()
+                     }
+            };
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
+        });
+
+        it('returns true if installed', () => {
+            ExtensionsInteractionUtil.isIBMCloudExtensionInstalled().should.equal(true);
+        });
+
+        it('returns false if not installed', () => {
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(undefined);
+            ExtensionsInteractionUtil.isIBMCloudExtensionInstalled().should.equal(false);
+        });
+    });
+
+    describe('#getIBMCloudExtension', () => {
+        let pingStub: sinon.SinonStub;
+        let activateStub: sinon.SinonStub;
+        let cloudExtensionStub: any;
+        let cloudAccount: any;
+
+        beforeEach(() => {
             activateStub = mySandBox.stub().resolves();
             cloudExtensionStub = {
                 isActive: true,
                 activate: activateStub,
                 exports: {
-                            loggedIn: isLoggedInStub,
-                            accountSelected: accountSelectedStub,
-                            getAccessToken: getAccessTokenStub
+                            loggedIn: mySandBox.stub(),
+                            accountSelected: mySandBox.stub(),
+                            getAccessToken: mySandBox.stub()
                          }
             };
             getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
+
+            pingStub = executeCommandStub.withArgs('ibmcloud-account.ping');
+            pingStub.resolves();
+            cloudAccount = undefined;
+        });
+
+        it('should return the ibm cloud extension', async () => {
+            chai.should().equal(undefined, cloudAccount);
+
+            try {
+                cloudAccount = await ExtensionsInteractionUtil.getIBMCloudExtension();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            cloudAccount.should.equal(cloudExtensionStub.exports);
+            getExtensionStub.should.have.been.calledOnce;
+            activateStub.should.not.have.been.called;
+        });
+
+        it('should throw an error if the ibm cloud extension is not installed', async () => {
+            chai.should().equal(undefined, cloudAccount);
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(undefined);
+            const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
+
+            try {
+                cloudAccount = await ExtensionsInteractionUtil.getIBMCloudExtension();
+            } catch (e) {
+                e.toString().should.deep.equal(expectedError.toString());
+            }
+
+            chai.should().equal(undefined, cloudAccount);
+            getExtensionStub.should.have.been.calledOnce;
+            activateStub.should.not.have.been.called;
+        });
+
+        it('should handle ibmcloud-account not activated when ping is available', async () => {
+            chai.should().equal(undefined, cloudAccount);
+            cloudExtensionStub.isActive = false;
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
+            getCommandsStub.resetBehavior();
+            getCommandsStub.returns(['ibmcloud-account.ping']);
+
+            try {
+                cloudAccount = await ExtensionsInteractionUtil.getIBMCloudExtension();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            cloudAccount.should.equal(cloudExtensionStub.exports);
+            getExtensionStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWithExactly('ibmcloud-account.ping');
+            activateStub.should.not.have.been.called;
+        });
+
+        it('should handle ibmcloud-account not activated when ping not available', async () => {
+            chai.should().equal(undefined, cloudAccount);
+            cloudExtensionStub.isActive = false;
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
+            getCommandsStub.resetBehavior();
+            getCommandsStub.returns([]);
+
+            try {
+                cloudAccount = await ExtensionsInteractionUtil.getIBMCloudExtension();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            cloudAccount.should.equal(cloudExtensionStub.exports);
+            getExtensionStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWithExactly('ibmcloud-account.ping');
+            activateStub.should.have.been.called;
+        });
+    });
+
+    describe('#cloudAccoutEnsureLoggedIn', () => {
+        let loginStub: sinon.SinonStub;
+        let pingStub: sinon.SinonStub;
+        let selectAccountStub: sinon.SinonStub;
+        let isLoggedInStub: sinon.SinonStub;
+        let accountSelectedStub: sinon.SinonStub;
+        let activateStub: sinon.SinonStub;
+        let cloudExtensionStub: any;
+        let definitielyLoggedIn: boolean;
+
+        beforeEach(() => {
+            isLoggedInStub = mySandBox.stub().resolves(true);
+            accountSelectedStub = mySandBox.stub().resolves(true);
+            activateStub = mySandBox.stub().resolves();
+            cloudExtensionStub = {
+                isActive: true,
+                activate: activateStub,
+                loggedIn: isLoggedInStub,
+                accountSelected: accountSelectedStub,
+            };
 
             selectAccountStub = executeCommandStub.withArgs('ibmcloud-account.selectAccount');
             selectAccountStub.resolves(true);
@@ -80,150 +193,152 @@ describe('ExtensionsInteractionUtil Test', () => {
             loginStub.resolves(true);
             pingStub = executeCommandStub.withArgs('ibmcloud-account.ping');
             pingStub.resolves();
-            accessToken = undefined;
+            definitielyLoggedIn = undefined;
         });
 
-        it('should get token when not logged in', async () => {
-            chai.should().equal(undefined, accessToken);
+        it('should get log in if not logged in already and return true', async () => {
+            chai.should().equal(undefined, definitielyLoggedIn);
             isLoggedInStub.onFirstCall().resolves(false);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+                definitielyLoggedIn = await ExtensionsInteractionUtil.cloudAccountEnsureLoggedIn(cloudExtensionStub);
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            accessToken.should.equal('some token');
-            getExtensionStub.should.have.been.calledOnce;
+            definitielyLoggedIn.should.equal(true);
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.not.been.called;
-            getAccessTokenStub.should.have.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.not.been.called;
             loginStub.should.have.been.called;
         });
 
-        it('should get token when already logged in but account not selected', async () => {
-            chai.should().equal(undefined, accessToken);
+        it('should select an account when logged in and return true', async () => {
+            chai.should().equal(undefined, definitielyLoggedIn);
             accountSelectedStub.onFirstCall().resolves(false);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+                definitielyLoggedIn = await ExtensionsInteractionUtil.cloudAccountEnsureLoggedIn(cloudExtensionStub);
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            accessToken.should.equal('some token');
-            getExtensionStub.should.have.been.calledOnce;
+            definitielyLoggedIn.should.equal(true);
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.been.calledOnce;
-            getAccessTokenStub.should.have.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.been.called;
             loginStub.should.have.not.been.called;
         });
 
-        it('should get token when already logged in and account selected', async () => {
-            chai.should().equal(undefined, accessToken);
+        it('should return true when already logged in and account selected', async () => {
+            chai.should().equal(undefined, definitielyLoggedIn);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+                definitielyLoggedIn = await ExtensionsInteractionUtil.cloudAccountEnsureLoggedIn(cloudExtensionStub);
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            accessToken.should.equal('some token');
-            getExtensionStub.should.have.been.calledOnce;
+            definitielyLoggedIn.should.equal(true);
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.been.calledOnce;
-            getAccessTokenStub.should.have.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.not.been.called;
             loginStub.should.have.not.been.called;
         });
 
-        it('should handle user not loggin in and gracefuly return', async () => {
-            chai.should().equal(undefined, accessToken);
+        it('should handle user not logging in and return false', async () => {
+            chai.should().equal(undefined, definitielyLoggedIn);
             isLoggedInStub.onFirstCall().resolves(false);
             loginStub.resolves(false);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+                definitielyLoggedIn = await ExtensionsInteractionUtil.cloudAccountEnsureLoggedIn(cloudExtensionStub);
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            chai.should().equal(undefined, accessToken);
-            getExtensionStub.should.have.been.calledOnce;
+            definitielyLoggedIn.should.equal(false);
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.not.been.called;
-            getAccessTokenStub.should.have.not.been.called;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.not.been.called;
             loginStub.should.have.been.called;
         });
 
-        it('should return without asking for user input if user not logged in and userInteraction is false ', async () => {
-            chai.should().equal(undefined, accessToken);
+        it('should return false without asking for user input if user not logged in and userInteraction is false ', async () => {
+            chai.should().equal(undefined, definitielyLoggedIn);
             isLoggedInStub.onFirstCall().resolves(false);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken( false );
+                definitielyLoggedIn = await ExtensionsInteractionUtil.cloudAccountEnsureLoggedIn(cloudExtensionStub, false);
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            chai.should().equal(undefined, accessToken);
-            getExtensionStub.should.have.been.calledOnce;
+            definitielyLoggedIn.should.equal(false);
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.not.been.called;
-            getAccessTokenStub.should.have.not.been.called;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.not.been.called;
             loginStub.should.have.not.been.called;
         });
 
-        it('should handle user not selecting account and gracefuly return', async () => {
-            chai.should().equal(undefined, accessToken);
+        it('should handle user not selecting account and return false', async () => {
+            chai.should().equal(undefined, definitielyLoggedIn);
             accountSelectedStub.onFirstCall().resolves(false);
             selectAccountStub.resolves(false);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+                definitielyLoggedIn = await ExtensionsInteractionUtil.cloudAccountEnsureLoggedIn(cloudExtensionStub);
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            chai.should().equal(undefined, accessToken);
-            getExtensionStub.should.have.been.calledOnce;
+            definitielyLoggedIn.should.equal(false);
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.been.calledOnce;
-            getAccessTokenStub.should.have.not.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.been.called;
             loginStub.should.have.not.been.called;
         });
 
-        it('should return without asking for user input if no account selected and userInteraction is false ', async () => {
-            chai.should().equal(undefined, accessToken);
+        it('should return false without asking for user input if no account selected and userInteraction is false ', async () => {
+            chai.should().equal(undefined, definitielyLoggedIn);
             accountSelectedStub.onFirstCall().resolves(false);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken(false);
+                definitielyLoggedIn = await ExtensionsInteractionUtil.cloudAccountEnsureLoggedIn(cloudExtensionStub, false);
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            chai.should().equal(undefined, accessToken);
-            getExtensionStub.should.have.been.calledOnce;
+            definitielyLoggedIn.should.equal(false);
             isLoggedInStub.should.have.been.calledOnce;
             accountSelectedStub.should.have.been.calledOnce;
-            getAccessTokenStub.should.have.not.been.calledOnce;
             activateStub.should.have.not.been.called;
             selectAccountStub.should.have.not.been.called;
             loginStub.should.have.not.been.called;
         });
+    });
 
-        it('should handle ibmcloud-account not activated when ping is available', async () => {
-            chai.should().equal(undefined, accessToken);
-            isLoggedInStub.onFirstCall().resolves(false);
-            cloudExtensionStub.isActive = false;
+    describe('#cloudAccountGetAccessToken', () => {
+        let getAccessTokenStub: sinon.SinonStub;
+        let ensureLoggedInStub: sinon.SinonStub;
+        let cloudExtensionStub: any;
+        let accessToken: string;
+
+        beforeEach(() => {
+            getAccessTokenStub = mySandBox.stub().resolves('some token');
+            cloudExtensionStub = {
+                isActive: true,
+                exports: {
+                   getAccessToken: getAccessTokenStub
+                }
+            };
             getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
-            getCommandsStub.resetBehavior();
-            getCommandsStub.returns(['ibmcloud-account.ping']);
+            ensureLoggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountEnsureLoggedIn');
+            accessToken = undefined;
+        });
+
+        it('should get access token after ensuring the user is logged in', async () => {
+            chai.should().equal(undefined, accessToken);
+            ensureLoggedInStub.resolves(true);
 
             try {
                 accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
@@ -231,79 +346,71 @@ describe('ExtensionsInteractionUtil Test', () => {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
             accessToken.should.equal('some token');
-            getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
-            accountSelectedStub.should.have.not.been.called;
+            ensureLoggedInStub.should.have.been.calledOnce;
             getAccessTokenStub.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWithExactly('ibmcloud-account.ping');
-            activateStub.should.not.have.been.called;
-            selectAccountStub.should.have.not.been.called;
-            loginStub.should.have.been.calledOnce;
         });
 
-        it('should handle ibmcloud-account not activated when ping not available', async () => {
+        it('should not get access token if the user is definitely not logged in', async () => {
             chai.should().equal(undefined, accessToken);
-            isLoggedInStub.onFirstCall().resolves(false);
-            cloudExtensionStub.isActive = false;
-            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
-            getCommandsStub.resetBehavior();
-            getCommandsStub.returns([]);
+            ensureLoggedInStub.resolves(false);
 
             try {
                 accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
             } catch (e) {
                 chai.assert.isNull(e, 'there should not have been an error!');
             }
-            accessToken.should.equal('some token');
-            getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
-            accountSelectedStub.should.have.not.been.called;
-            getAccessTokenStub.should.have.been.calledOnce;
-            executeCommandStub.should.not.have.been.calledWithExactly('ibmcloud-account.ping');
-            activateStub.should.have.been.called;
-            selectAccountStub.should.have.not.been.called;
-            loginStub.should.have.been.calledOnce;
+            chai.should().equal(undefined, accessToken);
+            ensureLoggedInStub.should.have.been.calledOnce;
+            getAccessTokenStub.should.not.have.been.called;
         });
 
-        it('should throw if ibmcloud-account not installed', async () => {
-            chai.should().equal(undefined, accessToken);
-            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(undefined);
-            const expectedError: Error = new Error('IBM Cloud Account extension must be installed');
+    });
 
-            try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
-            } catch (e) {
-                e.toString().should.deep.equal(expectedError.toString());
-            }
+    describe('#cloudAccountGetRefreshToken', () => {
+        let getRefreshTokenStub: sinon.SinonStub;
+        let ensureLoggedInStub: sinon.SinonStub;
+        let cloudExtensionStub: any;
+        let refreshToken: string;
 
-            chai.should().equal(undefined, accessToken);
-            getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.not.been.called;
-            accountSelectedStub.should.have.not.been.called;
-            getAccessTokenStub.should.have.not.been.called;
-            activateStub.should.have.not.been.called;
-            selectAccountStub.should.have.not.been.called;
-            loginStub.should.have.not.been.called;
+        beforeEach(() => {
+            getRefreshTokenStub = mySandBox.stub().resolves('some token');
+            cloudExtensionStub = {
+                isActive: true,
+                exports: {
+                   getRefreshToken: getRefreshTokenStub
+                }
+            };
+            getExtensionStub.withArgs(DependencyProperties.IBM_CLOUD_ACCOUNT_EXTENSION).returns(cloudExtensionStub);
+            ensureLoggedInStub = mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountEnsureLoggedIn');
+            refreshToken = undefined;
         });
 
-        it('should throw if error returned from ibmcloud-account', async () => {
-            chai.should().equal(undefined, accessToken);
-            const error: Error = new Error('some error');
-            getAccessTokenStub.rejects(error);
+        it('should get refresh token after ensuring the user is logged in', async () => {
+            chai.should().equal(undefined, refreshToken);
+            ensureLoggedInStub.resolves(true);
 
             try {
-                accessToken = await ExtensionsInteractionUtil.cloudAccountGetAccessToken();
+                refreshToken = await ExtensionsInteractionUtil.cloudAccountGetRefreshToken();
             } catch (e) {
-                e.should.deep.equal(error);
+                chai.assert.isNull(e, 'there should not have been an error!');
             }
-            chai.should().equal(undefined, accessToken);
-            getExtensionStub.should.have.been.calledOnce;
-            isLoggedInStub.should.have.been.calledOnce;
-            accountSelectedStub.should.have.been.calledOnce;
-            getAccessTokenStub.should.have.been.calledOnce;
-            activateStub.should.have.not.been.called;
-            selectAccountStub.should.have.not.been.called;
-            loginStub.should.have.not.been.called;
+            refreshToken.should.equal('some token');
+            ensureLoggedInStub.should.have.been.calledOnce;
+            getRefreshTokenStub.should.have.been.calledOnce;
+        });
+
+        it('should not get refresh token if the user is definitely not logged in', async () => {
+            chai.should().equal(undefined, refreshToken);
+            ensureLoggedInStub.resolves(false);
+
+            try {
+                refreshToken = await ExtensionsInteractionUtil.cloudAccountGetRefreshToken();
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+            chai.should().equal(undefined, refreshToken);
+            ensureLoggedInStub.should.have.been.calledOnce;
+            getRefreshTokenStub.should.not.have.been.called;
         });
 
     });
@@ -687,6 +794,22 @@ describe('ExtensionsInteractionUtil Test', () => {
             }
 
             chai.should().equal(undefined, apiEndpoint);
+        });
+
+        it('should retry with additional header after error', async () => {
+            chai.should().equal(undefined, apiEndpoint);
+            axiosGetStub.resolves(consoleStatusMock);
+            axiosGetStub.onFirstCall().rejects();
+            mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetRefreshToken').resolves('some token');
+
+            try {
+                apiEndpoint = await ExtensionsInteractionUtil.cloudAccountGetApiEndpoint(mockIbpInstance, 'some token');
+            } catch (e) {
+                chai.assert.isNull(e, 'there should not have been an error!');
+            }
+
+            apiEndpoint.should.deep.equal(consoleStatusMock.data.endpoint);
+            logSpy.should.not.have.been.called;
         });
     });
 
