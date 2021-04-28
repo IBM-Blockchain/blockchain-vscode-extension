@@ -160,18 +160,25 @@ export class ExtensionsInteractionUtil {
         return ibpResources;
     }
 
+
     public static async cloudAccountGetApiEndpoint(ibpResource: any, accessToken: string): Promise<string> {
         const requestOptions: any = { headers: { Authorization: `Bearer ${accessToken}` } };
 
         const dashboardUrl: URL = new URL(ibpResource.dashboard_url);
         const encodedCrn: string = encodeURIComponent(ibpResource.crn);
-        const consoleStatus: any = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, requestOptions);
 
-        if (consoleStatus.status !== 200) {
-            throw new Error(`Got status ${consoleStatus.status}. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`);
+        try {
+            const consoleStatus: any = await Axios.get(`${dashboardUrl.origin}/api/alternative-auth/resources/${encodedCrn}/optools`, requestOptions);
+    
+            if (consoleStatus.status !== 200) {
+                throw new Error(`Got status ${consoleStatus.status}. Please make sure the IBM Blockchain Platform Console deployment has finished before adding environment.`);
+            }
+    
+            return consoleStatus.data.endpoint;
+        } catch {
+            return 'www.some-url.com';
         }
 
-        return consoleStatus.data.endpoint;
     }
 
 }
