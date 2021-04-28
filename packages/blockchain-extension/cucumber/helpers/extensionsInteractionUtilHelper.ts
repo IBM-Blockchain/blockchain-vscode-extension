@@ -21,7 +21,9 @@ export class ExtensionsInteractionUtilHelper {
 
     mySandBox: sinon.SinonSandbox;
     accessToken: string;
+    refreshToken: string;
     cloudAccountGetAccessTokenStub: sinon.SinonStub;
+    cloudAccountGetRefreshTokenStub: sinon.SinonStub;
     cloudAccountIsLoggedInStub: sinon.SinonStub;
     cloudAccountHasSelectedAccountStub: sinon.SinonStub;
     cloudAccountGetIbpResourcesStub: sinon.SinonStub;
@@ -29,7 +31,9 @@ export class ExtensionsInteractionUtilHelper {
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
         this.accessToken = undefined;
-        this.cloudAccountGetAccessTokenStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetAccessToken').callsFake(this.getTokenDirectly);
+        this.refreshToken = undefined;
+        this.cloudAccountGetAccessTokenStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetAccessToken').callsFake(this.getAccessTokenDirectly);
+        this.cloudAccountGetAccessTokenStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetRefreshToken').callsFake(this.getRefreshTokenDirectly);
         this.cloudAccountIsLoggedInStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountIsLoggedIn').callsFake(this.resolveFalse);
         this.cloudAccountHasSelectedAccountStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountHasSelectedAccount').callsFake(this.resolveFalse);
         this.cloudAccountGetIbpResourcesStub = this.mySandBox.stub(ExtensionsInteractionUtil, 'cloudAccountGetIbpResources').callThrough();
@@ -39,7 +43,7 @@ export class ExtensionsInteractionUtilHelper {
         return false;
     }
 
-    private async getTokenDirectly(): Promise<string> {
+    private async getAccessTokenDirectly(): Promise<string> {
         // Access tokens last 1hr, so there is no need to request multiple times.
         if (!this.accessToken) {
             const options: any = {
@@ -53,5 +57,21 @@ export class ExtensionsInteractionUtilHelper {
         }
 
         return this.accessToken;
+    }
+
+    private async getRefreshTokenDirectly(): Promise<string> {
+        // Access tokens last 1hr, so there is no need to request multiple times.
+        if (!this.refreshToken) {
+            const options: any = {
+                method: 'post',
+                url: 'https://iam.cloud.ibm.com/identity/token',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+                params: { grant_type: 'urn:ibm:params:oauth:grant-type:apikey', apikey: `${process.env.MAP_OPSTOOLS_SAAS_API_KEY}`},
+            };
+            const result: any = await Axios(options);
+            this.refreshToken = result.data.refresh_token;
+        }
+
+        return this.refreshToken;
     }
 }
