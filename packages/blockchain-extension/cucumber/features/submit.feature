@@ -79,33 +79,33 @@ Feature: Submit transaction
       | JavaScript | CongaTwo  | JavaScriptContract | 0.0.1   |
       | Java       | CongaTwo  | JavaContract       | 0.0.1   |
 
-  @opsToolsFabric
-  Scenario Outline: Submit a transaction for a smart contract (OpsTool software environment)
-    Given an environment 'myOpsToolsFabric' of type 'software' exists
-    And the wallet 'opsToolsWallet' with identity 'Org1_CA_Admin' and mspid 'Org1MSP' exists
-    And the wallet 'opsToolsWallet' with identity 'Org2_CA_Admin' and mspid 'Org2MSP' exists
-    And the wallet 'opsToolsWallet' with identity 'Ordering_Org_CA_Admin' and mspid 'OrdererMSP' exists
-    And the wallet 'opsToolsWallet' with identity 'Ordering_Org_Admin' and mspid 'OrdererMSP' exists
-    And the wallet 'opsToolsWallet' with identity 'Ordering_Org_Admin' and mspid 'OrdererMSP' exists
-    And the wallet 'opsToolsWallet' with identity 'Org1_Admin' and mspid 'Org1MSP' exists
-    And the wallet 'opsToolsWallet' with identity 'Org2_Admin' and mspid 'Org2MSP' exists
-    And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
-    And the 'software' opstools environment is setup
-    And the 'myOpsToolsFabric' environment is connected
-    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-    And the contract has been created
-    And the contract has been packaged as a tar.gz
-    And the contract has been deployed on channel 'mychannel1'
-    And I have created a gateway 'myOpsGateway' from an 'environment' with an msp "Org1MSP" and CA name "Org1 CA"
-    And the 'opsToolsWallet' wallet
-    And the 'Org1_Admin' identity
-    And I'm connected to the 'myOpsGateway' gateway
-    And the transaction 'createConga' has been submitted on the channel 'mychannel1' with args '["001", "newAsset"]'
-    When I submit the transaction 'readConga' on the channel 'mychannel1' with args '["001"]'
-    Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from readConga: {"value":"newAsset"}'
-    Examples:
-      | language   | assetType | name               | version |
-      | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
+  # @opsToolsFabric
+  # Scenario Outline: Submit a transaction for a smart contract (OpsTool software environment)
+  #   Given an environment 'myOpsToolsFabric' of type 'software' exists
+  #   And the wallet 'opsToolsWallet' with identity 'Org1_CA_Admin' and mspid 'Org1MSP' exists
+  #   And the wallet 'opsToolsWallet' with identity 'Org2_CA_Admin' and mspid 'Org2MSP' exists
+  #   And the wallet 'opsToolsWallet' with identity 'Ordering_Org_CA_Admin' and mspid 'OrdererMSP' exists
+  #   And the wallet 'opsToolsWallet' with identity 'Ordering_Org_Admin' and mspid 'OrdererMSP' exists
+  #   And the wallet 'opsToolsWallet' with identity 'Ordering_Org_Admin' and mspid 'OrdererMSP' exists
+  #   And the wallet 'opsToolsWallet' with identity 'Org1_Admin' and mspid 'Org1MSP' exists
+  #   And the wallet 'opsToolsWallet' with identity 'Org2_Admin' and mspid 'Org2MSP' exists
+  #   And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
+  #   And the 'software' opstools environment is setup
+  #   And the 'myOpsToolsFabric' environment is connected
+  #   And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+  #   And the contract has been created
+  #   And the contract has been packaged as a tar.gz
+  #   And the contract has been deployed on channel 'mychannel1'
+  #   And I have created a gateway 'myOpsGateway' from an 'environment' with an msp "Org1MSP" and CA name "Org1 CA"
+  #   And the 'opsToolsWallet' wallet
+  #   And the 'Org1_Admin' identity
+  #   And I'm connected to the 'myOpsGateway' gateway
+  #   And the transaction 'createConga' has been submitted on the channel 'mychannel1' with args '["001", "newAsset"]'
+  #   When I submit the transaction 'readConga' on the channel 'mychannel1' with args '["001"]'
+  #   Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from readConga: {"value":"newAsset"}'
+  #   Examples:
+  #     | language   | assetType | name               | version |
+  #     | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
 
   @opsToolsFabric
   Scenario Outline: Submit a transaction for a smart contract (OpsTool SaaS environment)
