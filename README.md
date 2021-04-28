@@ -23,7 +23,7 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 ## Requirements
 
-The first time you install this extension, it will check your system for the prequisites, and guide you to install any that you are missing. 
+The first time you install this extension, it will check your system for the prerequisites, and guide you to install any that you are missing. 
 
 Windows 10, Linux, or Mac OS are currently the supported operating systems.
 Each of these operating systems have their own additional requirements. 
@@ -62,7 +62,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Add Identity To Wallet | Add an identity into a wallet to be used when connecting to a Hyperledger Fabric gateway |
 | Add Wallet | Add a wallet containing identities to be used when connecting to a gateway |
 | Associate A Wallet | Associate a wallet with a gateway to be used when connecting |
-| Associate Directory for Transaction Data | Associate a directory of transasction data with a smart contract
+| Associate Directory for Transaction Data | Associate a directory of transaction data with a smart contract
 | Associate Identity with a Node | Associate an identity with a node to enable the extension to connect to that node |
 | Connect Via Gateway | Connect to a Hyperledger Fabric instance using a gateway |
 | Create New Project | Create a new smart contract project |
@@ -92,7 +92,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Stop Fabric Runtime | Stop the local Fabric instance |
 | Subscribe to Event | Subscribe to an event emitted from a smart contract |
 | Teardown Fabric Environment | Teardown the local Fabric runtime (hard reset) |
-| Transact with Smart Contract | Submit & evalutate transactions to deployed smart contracts |
+| Transact with Smart Contract | Submit & evaluate transactions to deployed smart contracts |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
 | View Sample Gallery | View the smart contract and application sample gallery |
