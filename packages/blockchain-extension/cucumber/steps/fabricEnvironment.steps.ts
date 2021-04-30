@@ -81,7 +81,6 @@ module.exports = function(): any {
         await TimerUtil.sleep(3000);
     });
 
-    // this one
     this.Given(/(a local environment|an environment) '(.*?)' ?(?:of type '(.*?)')? ?(?:with (.*?) capabilities)? exists/, this.timeout, async (localString: string, environmentName: string, opsType: string, capability?: string) => {
         const args: any[] = [environmentName, opsType];
         const isLocal: boolean = localString === 'a local environment';
