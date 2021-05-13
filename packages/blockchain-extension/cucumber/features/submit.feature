@@ -96,7 +96,8 @@ Feature: Submit transaction
     And the contract has been created
     And the contract has been packaged as a tar.gz
     And the contract has been deployed on channel 'mychannel1'
-    And I have created a gateway 'myOpsGateway' from an 'environment' with an msp "Org1MSP" and CA name "Org1 CA"
+    # And I have created a gateway 'myOpsGateway' from an 'environment' with an msp "Org1MSP" and CA name "Org1 CA"
+    And I have created a gateway 'myOpsGateway' from an 'environment'
     And the 'opsToolsWallet' wallet
     And the 'Org1_Admin' identity
     And I'm connected to the 'myOpsGateway' gateway
