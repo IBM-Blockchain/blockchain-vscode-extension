@@ -86,7 +86,7 @@ Feature: Submit transaction
     And the wallet 'opsToolsWallet' with identity 'Org2_CA_Admin' and mspid 'Org2MSP' exists
     And the wallet 'opsToolsWallet' with identity 'Ordering_Org_CA_Admin' and mspid 'OrdererMSP' exists
     And the wallet 'opsToolsWallet' with identity 'Ordering_Org_Admin' and mspid 'OrdererMSP' exists
-    And the wallet 'opsToolsWallet' with identity 'Ordering_Org_Admin' and mspid 'OrdererMSP' exists
+    # And the wallet 'opsToolsWallet' with identity 'Ordering_Org_Admin' and mspid 'OrdererMSP' exists
     And the wallet 'opsToolsWallet' with identity 'Org1_Admin' and mspid 'Org1MSP' exists
     And the wallet 'opsToolsWallet' with identity 'Org2_Admin' and mspid 'Org2MSP' exists
     And I have edited filters and imported all nodes to environment 'myOpsToolsFabric'
@@ -107,29 +107,29 @@ Feature: Submit transaction
       | language   | assetType | name               | version |
       | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
 
-# @opsToolsFabric
-# Scenario Outline: Submit a transaction for a smart contract (OpsTool SaaS environment)
-#   Given an environment 'mySaaSOpsToolsFabric' of type 'SaaS' exists
-#   And the wallet 'SaaSOpsToolsWallet' with identity 'Org1_CA_Saas_Admin' and mspid 'Org1MSP' exists
-#   And the wallet 'SaaSOpsToolsWallet' with identity 'Org2_CA_Saas_Admin' and mspid 'Org1MSP' exists
-#   And the wallet 'SaaSOpsToolsWallet' with identity 'Ordering_Org_Saas_CA_Admin' and mspid 'OrdererMSP' exists
-#   And the wallet 'SaaSOpsToolsWallet' with identity 'Ordering_Org_Saas_Admin' and mspid 'OrdererMSP' exists
-#   And the wallet 'SaaSOpsToolsWallet' with identity 'Org1Saas_Admin' and mspid 'Org1MSP' exists
-#   And the wallet 'SaaSOpsToolsWallet' with identity 'Org2Saas_Admin' and mspid 'Org2MSP' exists
-#   And I have edited filters and imported all nodes to environment 'mySaaSOpsToolsFabric'
-#   And the 'SaaS' opstools environment is setup
-#   And the 'mySaaSOpsToolsFabric' environment is connected
-#   And a <language> smart contract for <assetType> assets with the name <name> and version <version>
-#   And the contract has been created
-#   And the contract has been packaged as a tar.gz
-#   And the contract has been deployed on channel 'mychannel1'
-#   And I have created a gateway 'mySaaSOpsGateway' from an 'environment'
-#   And the 'SaaSOpsToolsWallet' wallet
-#   And the 'Org1Saas_Admin' identity
-#   And I'm connected to the 'mySaaSOpsGateway' gateway
-#   And the transaction 'createConga' has been submitted on the channel 'mychannel1' with args '["001", "newAsset"]'
-#   When I submit the transaction 'readConga' on the channel 'mychannel1' with args '["001"]'
-#   Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from readConga: {"value":"newAsset"}'
-#   Examples:
-#     | language   | assetType | name               | version |
-#     | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
+  @opsToolsFabric
+  Scenario Outline: Submit a transaction for a smart contract (OpsTool SaaS environment)
+    Given an environment 'mySaaSOpsToolsFabric' of type 'SaaS' exists
+    And the wallet 'SaaSOpsToolsWallet' with identity 'Org1_CA_Saas_Admin' and mspid 'Org1MSP' exists
+    And the wallet 'SaaSOpsToolsWallet' with identity 'Org2_CA_Saas_Admin' and mspid 'Org1MSP' exists
+    And the wallet 'SaaSOpsToolsWallet' with identity 'Ordering_Org_Saas_CA_Admin' and mspid 'OrdererMSP' exists
+    And the wallet 'SaaSOpsToolsWallet' with identity 'Ordering_Org_Saas_Admin' and mspid 'OrdererMSP' exists
+    And the wallet 'SaaSOpsToolsWallet' with identity 'Org1Saas_Admin' and mspid 'Org1MSP' exists
+    And the wallet 'SaaSOpsToolsWallet' with identity 'Org2Saas_Admin' and mspid 'Org2MSP' exists
+    And I have edited filters and imported all nodes to environment 'mySaaSOpsToolsFabric'
+    And the 'SaaS' opstools environment is setup
+    And the 'mySaaSOpsToolsFabric' environment is connected
+    And a <language> smart contract for <assetType> assets with the name <name> and version <version>
+    And the contract has been created
+    And the contract has been packaged as a tar.gz
+    And the contract has been deployed on channel 'mychannel1'
+    And I have created a gateway 'mySaaSOpsGateway' from an 'environment'
+    And the 'SaaSOpsToolsWallet' wallet
+    And the 'Org1Saas_Admin' identity
+    And I'm connected to the 'mySaaSOpsGateway' gateway
+    And the transaction 'createConga' has been submitted on the channel 'mychannel1' with args '["001", "newAsset"]'
+    When I submit the transaction 'readConga' on the channel 'mychannel1' with args '["001"]'
+    Then the logger should have been called with 'SUCCESS', 'Successfully submitted transaction' and 'Returned value from readConga: {"value":"newAsset"}'
+    Examples:
+      | language   | assetType | name               | version |
+      | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
