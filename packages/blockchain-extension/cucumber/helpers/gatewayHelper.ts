@@ -205,10 +205,17 @@ export class GatewayHelper {
 
         this.userInputUtilHelper.showQuickPickStub.withArgs('Select a peer-targeting policy for this transaction', [UserInputUtil.DEFAULT, UserInputUtil.CUSTOM]).resolves(UserInputUtil.DEFAULT);
 
-        if (evaluate) {
-            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
-        } else {
-            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+        try {
+            if (evaluate) {
+                await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
+            } else {
+                await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            }
+        } catch (err) {
+            // tslint:disable-next-line: no-console
+            console.log('**** HERE, evaluate: ', evaluate, '. error: ');
+            // tslint:disable-next-line: no-console
+            console.log(err);
         }
     }
 
