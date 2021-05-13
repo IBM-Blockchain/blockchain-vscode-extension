@@ -108,13 +108,8 @@ module.exports = function(): any {
     });
 
     this.When(/^I (submit|evaluate) the transaction '(.*?)' on the channel '(.*?)' with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (submitEvaluate: string, transaction: string, channel: string, args: string, transientData: string) => {
-        let evaluateBoolean: boolean;
-        if (submitEvaluate === 'submit') {
-            evaluateBoolean = false;
-        } else if (submitEvaluate === 'evaluate') {
-            evaluateBoolean = true;
-        }
-        await this.gatewayHelper.submitTransaction(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, transaction, channel, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
+        const evaluateBoolean: boolean = submitEvaluate === 'evaluate';
+        await this.gatewayHelper.submitTransaction(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, transaction, channel, args, this.gateway, `${this.contractAssetType}Contract`, transientData, evaluateBoolean);
         // await this.gatewayHelper.submitTransaction(this.contractDefinitionName, this.contractDefinitionVersion, this.contractLanguage, transaction, channel, args, this.gateway, this.namespace, transientData, evaluateBoolean);
     });
 
