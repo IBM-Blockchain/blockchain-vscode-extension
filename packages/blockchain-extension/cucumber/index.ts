@@ -41,7 +41,7 @@ async function runCucumberTest(): Promise<any> {
     // If you only want to run a specific few .feature files, add them in the array below
     // Ensure that the first entry is always fabric-environments.feature or the tests won't work
     // You'll need to lerna run compile after changing this array
-    // onlyRunTheseFiles = ['fabric-environments.feature', 'package.feature'];
+    onlyRunTheseFiles = ['fabric-environments.feature', 'submit.feature'];
 
     let featureFiles: string[] = fs.readdirSync(featurePath);
     featureFiles = featureFiles.filter((file: string) => {
