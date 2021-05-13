@@ -434,7 +434,12 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         const runnerArgs: string = vscode.workspace.getConfiguration().get('javascript-test-runner.additionalArgs');
         if (!runnerArgs || !runnerArgs.includes('-r ts-node/register')) {
             // If the user has removed JavaScript Test Runner since generating tests, this update will silently fail
-            await vscode.workspace.getConfiguration().update('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global);
+            try {
+                await vscode.workspace.getConfiguration().update('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global);
+            } catch (err) {
+                const message: string = 'Unable to update javascript-test-runner.additionalArgs for running TypeScript tests. Add "javascript-test-runner.additionalArgs": "-r ts-node/register", to your VSCode settings (JSON)';
+                outputAdapter.log(LogType.ERROR, message);
+            }
         }
 
         // Setup Tsconfig path
