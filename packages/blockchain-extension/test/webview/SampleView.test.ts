@@ -242,7 +242,7 @@ describe('SampleView', () => {
             const sampleView: SampleView = new SampleView(context, 'fabric-samples', 'FabCar');
             const webview: any = { asWebviewUri: mySandBox.stub() };
             const samplePageHtml: string = await sampleView.getHTMLString(webview);
-            AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/master/README.md');
+            AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/main/README.md');
 
             samplePageHtml.should.contain(`<h1 id="sample-title">FabCar Sample</h1>`);
             samplePageHtml.should.contain(`<button class="clone-button" onclick="cloneRepository()">Clone</button>`);
@@ -298,7 +298,7 @@ describe('SampleView', () => {
             const webview: any = { asWebviewUri: mySandBox.stub() };
             const samplePageHtml: string = await sampleView.getHTMLString(webview);
 
-            AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/master/README.md');
+            AxiosStub.should.have.been.calledWith('https://raw.githubusercontent.com/hyperledger/fabric-samples/main/README.md');
 
             samplePageHtml.should.contain(`<h1 id="sample-title">FabCar Sample</h1>`);
             samplePageHtml.should.contain(`<div class="repository-config-item">Cloned to: /some/path</div>`); // Cloned, so shows the location
@@ -548,7 +548,7 @@ describe('SampleView', () => {
 
             pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
-            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
+            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b main origin/main');
             openNewProjectStub.should.have.been.calledOnce;
             sendCommandWithOutputAndProgress.should.not.have.been.called;
             sendCommandWithOutputAndProgress.should.not.have.been.called;
@@ -608,7 +608,7 @@ describe('SampleView', () => {
             sendCommandWithOutputAndProgress.should.not.have.been.called;
             pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
-            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
+            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b main origin/main');
             openNewProjectStub.should.have.not.have.been.called;
         });
 
@@ -637,7 +637,7 @@ describe('SampleView', () => {
             sendCommandWithOutputAndProgress.should.not.have.been.called;
             pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
-            sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout master');
+            sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout main');
             openNewProjectStub.should.have.been.calledOnce;
             sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', { sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go' });
         });
@@ -689,12 +689,12 @@ describe('SampleView', () => {
 
             await sampleView.openView(false);
 
-            await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith(/Couldn't automatically checkout 'master' branch. Please checkout branch manually. Error: couldnt checkout for some reason/);
+            await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith(/Couldn't automatically checkout 'main' branch. Please checkout branch manually. Error: couldnt checkout for some reason/);
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
             pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
-            sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout master');
+            sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout main');
             openNewProjectStub.should.not.have.been.called;
         });
 
@@ -718,7 +718,7 @@ describe('SampleView', () => {
 
             pathExistsStub.should.have.been.calledWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
-            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
+            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b main origin/main');
             openNewProjectStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledWith(LogType.INFO, null, `Starting command "npm" with arguments "install" for sample "FabCar"`);
             logSpy.should.have.been.calledWith(LogType.INFO, null, `Finished command "npm" with arguments "install" for sample "FabCar"`);

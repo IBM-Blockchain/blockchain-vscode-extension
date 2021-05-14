@@ -32,6 +32,7 @@ import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironme
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../registries/PackageRegistry';
 import { UserInputUtil } from '../commands/UserInputUtil';
+import IInstantiateFunction from '../interfaces/IDeployV1InstantiateFunction';
 
 export class DeployView extends ReactView {
     public static panel: vscode.WebviewPanel;
@@ -79,21 +80,23 @@ export class DeployView extends ReactView {
                 const definitionVersion: string = message.data.definitionVersion;
                 const commitSmartContract: boolean = message.data.commitSmartContract;
                 const endorsementPolicy: string = message.data.endorsementPolicy;
-                const collectionConfigPath: string = message.data.collectionConfigPath;
+                const collectionConfigString: string = message.data.collectionConfig;
                 const selectedPeers: string[] = message.data.selectedPeers;
 
-                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, endorsementPolicy, collectionConfigPath, selectedPeers);
+                await this.deploy(channelName, environmentName, selectedPackage, definitionName, definitionVersion, commitSmartContract, endorsementPolicy, collectionConfigString, selectedPeers);
 
             } else if (message.command === 'instantiate' || message.command === 'upgrade') {
                 const channelName: string = message.data.channelName;
                 const environmentName: string = message.data.environmentName;
                 const selectedPackage: PackageRegistryEntry = message.data.selectedPackage;
-                const instantiateFunctionName: string = message.data.instantiateFunctionName;
-                const instantiateFunctionArgs: string = message.data.instantiateFunctionArgs;
+                const instantiateFunction: IInstantiateFunction = {
+                    name: message.data.instantiateFunctionName,
+                    args: message.data.instantiateFunctionArgs,
+                };
                 const endorsementPolicy: string = message.data.endorsementPolicy;
-                const collectionConfigPath: string = message.data.collectionConfigPath;
+                const collectionConfigString: string = message.data.collectionConfig;
 
-                await this.deployV1(message.command, channelName, environmentName, selectedPackage, instantiateFunctionName, instantiateFunctionArgs, endorsementPolicy, collectionConfigPath);
+                await this.deployV1(message.command, channelName, environmentName, selectedPackage, instantiateFunction, endorsementPolicy, collectionConfigString);
 
             } else if (message.command === 'package') {
                 const workspaceName: string = message.data.workspaceName;
@@ -112,9 +115,9 @@ export class DeployView extends ReactView {
                 const definitionName: string = message.data.definitionName;
                 const definitionVersion: string = message.data.definitionVersion;
                 const endorsementPolicy: string = message.data.endorsementPolicy;
-                const collectionConfigPath: string = message.data.collectionConfigPath;
+                const collectionConfigString: string = message.data.collectionConfig;
 
-                await this.getOrgApprovals(environmentName, channelName, definitionName, definitionVersion, endorsementPolicy, collectionConfigPath);
+                await this.getOrgApprovals(environmentName, channelName, definitionName, definitionVersion, endorsementPolicy, collectionConfigString);
             } else if (message.command === 'getPackageLanguage') {
                 const chosenWorkspaceData: { language: string, name: string, version: string } = {
                     language: '',
@@ -155,7 +158,7 @@ export class DeployView extends ReactView {
         });
     }
 
-    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, endorsementPolicy: string, collectionConfigPath: string, selectedPeers: string[]): Promise<void> {
+    async deploy(channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, definitionName: string, definitionVersion: string, commitSmartContract: boolean, endorsementPolicy: string, collectionConfigString: string, selectedPeers: string[]): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -246,14 +249,14 @@ export class DeployView extends ReactView {
                 }
             }
 
-            if (collectionConfigPath || endorsementPolicy) {
+            if (collectionConfigString || endorsementPolicy) {
                 // Always increment sequence
                 sequenceNumber = committedContract ? committedContract.sequence + 1 : 1;
             }
 
             let collectionFile: FabricCollectionDefinition[];
-            if (collectionConfigPath) {
-                collectionFile = await fs.readJSON(collectionConfigPath) as FabricCollectionDefinition[];
+            if (collectionConfigString && collectionConfigString !== '') {
+                collectionFile = JSON.parse(collectionConfigString) as FabricCollectionDefinition[];
             }
 
             if (endorsementPolicy) {
@@ -272,7 +275,7 @@ export class DeployView extends ReactView {
 
     }
 
-    async deployV1(command: string, channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, instantiateFunctionName: string, instantiateFunctionArgs: string, endorsementPolicy: any, collectionConfigPath: string): Promise<void> {
+    async deployV1(command: string, channelName: string, environmentName: string, selectedPackage: PackageRegistryEntry, instantiateFunction: IInstantiateFunction, endorsementPolicy: any, collectionConfigString: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -306,13 +309,13 @@ export class DeployView extends ReactView {
             // check an instantiate function has been provided and either parse args to JSON or clear them
 
             let parsedArgs: string[];
-            if (instantiateFunctionName === '') {
+            if (instantiateFunction.name === '') {
                 parsedArgs = [];
             } else {
-                if (!instantiateFunctionArgs.startsWith('[') || !instantiateFunctionArgs.endsWith(']')) {
+                if (!instantiateFunction.args.startsWith('[') || !instantiateFunction.args.endsWith(']')) {
                     throw new Error('instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
                 }
-                parsedArgs = JSON.parse(instantiateFunctionArgs);
+                parsedArgs = JSON.parse(instantiateFunction.args);
             }
 
             if (endorsementPolicy) {
@@ -321,7 +324,7 @@ export class DeployView extends ReactView {
             }
 
             const extensionCommand: string = (command === 'instantiate') ? ExtensionCommands.INSTANTIATE_SMART_CONTRACT : ExtensionCommands.UPGRADE_SMART_CONTRACT;
-            await vscode.commands.executeCommand(extensionCommand, channelName, peerNames, selectedPackage, instantiateFunctionName, parsedArgs, endorsementPolicy, collectionConfigPath);
+            await vscode.commands.executeCommand(extensionCommand, channelName, peerNames, selectedPackage, instantiateFunction.name, parsedArgs, endorsementPolicy, collectionConfigString);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }
@@ -338,7 +341,7 @@ export class DeployView extends ReactView {
         return packageEntry;
     }
 
-    async getOrgApprovals(environmentName: string, channelName: string, definitionName: string, definitionVersion: string, endorsementPolicy: string, collectionConfigPath: string): Promise<void> {
+    async getOrgApprovals(environmentName: string, channelName: string, definitionName: string, definitionVersion: string, endorsementPolicy: string, collectionConfigString: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -387,8 +390,8 @@ export class DeployView extends ReactView {
 
             const definition: FabricSmartContractDefinition = new FabricSmartContractDefinition(definitionName, definitionVersion, sequenceNumber);
 
-            if (collectionConfigPath) {
-                const collectionFile: FabricCollectionDefinition[] = await fs.readJSON(collectionConfigPath) as FabricCollectionDefinition[];
+            if (collectionConfigString && collectionConfigString !== '') {
+                const collectionFile: FabricCollectionDefinition[] = JSON.parse(collectionConfigString) as FabricCollectionDefinition[];
                 definition.collectionConfig = collectionFile;
             }
 
