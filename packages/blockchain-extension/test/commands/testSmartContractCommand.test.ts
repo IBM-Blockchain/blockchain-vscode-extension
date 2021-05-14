@@ -912,6 +912,32 @@ describe('testSmartContractCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
         });
 
+        it('should generate a typescript test file for a selected instantiated smart contract and handle when the workspace config rejects', async () => {
+            workspaceConfigurationGetStub.onCall(0).returns('some command');
+            workspaceConfigurationUpdateStub.onCall(0).rejects('error updating config');
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            showTextDocumentStub.should.have.been.calledTwice;
+            sendCommandStub.should.have.been.calledOnce;
+            workspaceConfigurationUpdateStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_NODE_VERSION}, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
+            // Call 4 is the key part
+            logSpy.getCall(4).should.have.been.calledWith(LogType.ERROR, 'Unable to update javascript-test-runner.additionalArgs for running TypeScript tests. Add "javascript-test-runner.additionalArgs": "-r ts-node/register", to your VSCode settings (JSON)');
+            logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
+        });
+
         it('should generate a typescript test file for a selected instantiated private smart contract', async () => {
             showQuickPickYesNoStub.resolves(UserInputUtil.YES);
             workspaceConfigurationGetStub.onCall(0).returns('some command');
