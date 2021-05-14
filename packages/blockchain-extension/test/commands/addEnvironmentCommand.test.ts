@@ -969,12 +969,8 @@ describe('AddEnvironmentCommand', () => {
 
             executeCommandInternalStub.should.not.have.been.calledWith(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, sinon.match.instanceOf(FabricEnvironmentRegistryEntry));
 
-            const extPath: string = ExtensionUtil.getExtensionPath();
-            const tutorialPath: string = path.join(extPath, 'tutorials', 'developer-tutorials', 'create-custom-networks.md');
-
             const executeCallOne: sinon.SinonSpyCall = executeCommandStub.getCall(executeCommandStub.callCount - 1);
-            executeCallOne.should.have.been.calledWith('markdown.showPreview', sinon.match.any);
-            executeCallOne.args[1].fsPath.should.equal(tutorialPath);
+            executeCallOne.should.have.been.calledWith(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'Other tutorials', 'Create and use a custom Fabric network');
 
             deleteEnvironmentSpy.should.have.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
