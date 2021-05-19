@@ -1074,6 +1074,41 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.should.have.been.calledWith(LogType.WARNING, 'Finished importing nodes but some nodes could not be imported');
         });
 
+        it('should not import nodes that are MSP typed', async () => {
+            readJsonStub.resolves([{
+                short_name: 'peer0.org1.example.com',
+                name: 'peer0.org1.example.com',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'msp',
+                wallet: 'Org1',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+            },
+            {
+                short_name: 'invalid',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'wibble',
+                wallet: 'Org1',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+            }]);
+
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+
+            await ExtensionUtil.executeCommandInternal(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.not.been.called;
+            getNodesStub.should.have.been.calledTwice;
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+        });
+
         it('should handle error when deleting nodes from an Ops Tool instance', async () => {
             const originalNodes: any[] = [{
                 short_name: 'peer1.org1.example.com',
