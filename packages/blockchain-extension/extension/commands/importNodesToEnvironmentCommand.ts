@@ -276,9 +276,9 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         }
 
-        // only need the orderer, peer and CA.. other node types can exist 
+        // only need the orderer, peer and CA.. other node types can exist
         nodesToUpdate = nodesToUpdate.filter((node: FabricNode) => {
-            let validType = (node.type === 'fabric-orderer' || node.type === 'fabric-peer' || node.type === 'fabric-ca');
+            const validType: boolean = (node.type === 'fabric-orderer' || node.type === 'fabric-peer' || node.type === 'fabric-ca');
             if (!validType) {
                 outputAdapter.log(LogType.INFO, `Ignoring Node of type ${node.type}`);
                 return false;
