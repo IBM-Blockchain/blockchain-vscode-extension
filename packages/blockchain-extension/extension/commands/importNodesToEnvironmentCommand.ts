@@ -18,7 +18,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import * as fs from 'fs-extra';
 import * as https from 'https';
 import * as path from 'path';
-import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType, EnvironmentFlags} from 'ibm-blockchain-platform-common';
+import { FabricEnvironmentRegistryEntry, FabricNode, LogType, FabricEnvironment, FabricNodeType, FabricEnvironmentRegistry, EnvironmentType, EnvironmentFlags } from 'ibm-blockchain-platform-common';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentManager } from '../fabric/environments/FabricEnvironmentManager';
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
@@ -78,7 +78,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
         const allNodes: FabricNode[] = await environment.getNodes(false, true);
         const oldNodes: FabricNode[] = allNodes.filter((_node: FabricNode) => !_node.hidden);
 
-        const nodesToUpdate: FabricNode[] = [];
+        let nodesToUpdate: FabricNode[] = [];
         let nodesToDelete: FabricNode[] = [];
 
         let addedAllNodes: boolean = true;
@@ -162,13 +162,13 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             try {
                 if (environmentRegistryEntry.environmentType === EnvironmentType.SAAS_OPS_TOOLS_ENVIRONMENT) {
                     let askUserInput: boolean;
-                    if ( fromConnectEnvironment ) {
+                    if (fromConnectEnvironment) {
                         askUserInput = ExtensionUtil.getExtensionSaasConfigUpdatesSetting();
                     } else {
                         askUserInput = true;
                     }
 
-                    const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken( askUserInput );
+                    const accessToken: string = await ExtensionsInteractionUtil.cloudAccountGetAccessToken(askUserInput);
                     if (!accessToken) {
                         if (fromConnectEnvironment) {
                             throw new Error('User must be logged in to an IBM Cloud account');
@@ -191,7 +191,7 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
                         headers: { 'Content-Type': 'application/json' },
                         auth: { username: userAuth1, password: userAuth2 }
                     };
-                    requestOptions.httpsAgent = new https.Agent({rejectUnauthorized: rejectUnauthorized});
+                    requestOptions.httpsAgent = new https.Agent({ rejectUnauthorized: rejectUnauthorized });
                 }
 
                 // retrieve json file
@@ -276,10 +276,19 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
         }
 
-        nodesToUpdate.forEach((node: FabricNode) => {
+        // only need the orderer, peer and CA.. other node types can exist
+        nodesToUpdate = nodesToUpdate.filter((node: FabricNode) => {
+            const validType: boolean = (node.type === 'fabric-orderer' || node.type === 'fabric-peer' || node.type === 'fabric-ca');
+            if (!validType) {
+                outputAdapter.log(LogType.INFO, `Ignoring Node of type ${node.type}`);
+                return false;
+            }
+            return true;
+        }).map((node: FabricNode) => {
             if (node.hidden === undefined) {
                 node.hidden = false;
             }
+            return node;
         });
 
         const environmentNodesPath: string = path.join(environmentBaseDir, 'nodes');
