@@ -11,7 +11,6 @@ import './TutorialMarkdown.scss';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import CommandLink from '../../elements/CommandLink/CommandLink';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
-import ibpIcon from '../../../resources/ibp.png';
 
 interface IProps {
     tutorial: ITutorialObject;
@@ -192,7 +191,6 @@ const TutorialMarkdown: FunctionComponent<IProps> = ({ tutorial, tutorialData })
                 <strong>IBM Blockchain Platform</strong>
             </p>
             {linkToPreviousTutorial}
-            <img className='ibp-icon' src={ibpIcon} alt='IBM Blockchain Platform' />
             <h2 className='tutorial-name'>{tutorial.title}</h2>
             <hr />
             <p>Estimated time: <code>{tutorial.length}</code></p>

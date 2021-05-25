@@ -73,7 +73,7 @@ class HighLevelStatus extends Component<{}, HighLevelStatusState> {
             return(
                 <p className='current-status'>
                     <span>
-                        Current overall status: <span> </span> {/* Added a space after colon using span */}
+                        {'Current overall status: '}
                     </span>
                     <img className='icon' alt='' title={this.state.description} src={this.state.icon}/>
                 </p>

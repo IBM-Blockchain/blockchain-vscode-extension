@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './App.scss';
 import StatusList from './components/StatusList/StatusList';
-import UpcomingList from './components/UpcomingList/UpcomingList';
 import CurrentVersion from './components/CurrentVersion/CurrentVersion';
 import HighLevelStatus from './components/HighLevelStatus/HighLevelStatus';
 
@@ -24,10 +23,6 @@ class App extends Component {
                     </div>
                     <div className='issues-container'>
                         <StatusList></StatusList>
-                    </div>
-
-                    <div className='issues-container upcoming-issues-container'>
-                        <UpcomingList></UpcomingList>
                     </div>
                 </div>
             </div>
