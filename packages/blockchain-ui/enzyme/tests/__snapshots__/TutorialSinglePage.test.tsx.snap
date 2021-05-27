@@ -15,11 +15,6 @@ exports[`TutorialPage component should render the component when no tutorialData
           IBM Blockchain Platform
         </strong>
       </p>
-      <img
-        alt="IBM Blockchain Platform"
-        className="ibp-icon"
-        src="test-file-stub"
-      />
       <h2
         className="tutorial-name"
       >
@@ -261,11 +256,6 @@ exports[`TutorialPage component should render the expected snapshot (when the st
           ← a1
         </a>
       </div>
-      <img
-        alt="IBM Blockchain Platform"
-        className="ibp-icon"
-        src="test-file-stub"
-      />
       <h2
         className="tutorial-name"
       >
@@ -522,11 +512,6 @@ exports[`TutorialPage component should render the expected snapshot 1`] = `
           ← a1
         </a>
       </div>
-      <img
-        alt="IBM Blockchain Platform"
-        className="ibp-icon"
-        src="test-file-stub"
-      />
       <h2
         className="tutorial-name"
       >
