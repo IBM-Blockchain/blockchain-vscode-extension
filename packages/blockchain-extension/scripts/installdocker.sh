@@ -1,4 +1,8 @@
 retries=0
+
+# Update brew to make sure we're using the latest formulae
+brew upgrade && brew upgrade
+
 brew install --cask docker
 
 # manually setup docker, as versions after 2.0.0.3-ce-mac81,31259 cannot be installed using cli
