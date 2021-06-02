@@ -1,5 +1,5 @@
 # IBM Blockchain Platform Extension updated to v2.0.3
-_Release date: June 1st 2021_
+_Release date: June 2nd 2021_
 
 Announcements
 ---

@@ -1,6 +1,6 @@
 # IBM Blockchain Platform Extension Change Log
 
-## 2.0.3: June 1st 2021
+## 2.0.3: June 2nd 2021
 
 Announcements
 ---
