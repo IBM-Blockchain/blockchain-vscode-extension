@@ -100,7 +100,7 @@ export class V1SmartContractPackage extends SmartContractPackageBase {
                 handler = new JavaPackager();
                 break;
             case SmartContractType.GO:
-                handler = new GolangPackager(['.go', '.c', '.h', '.s', '.mod', '.sum']);
+                handler = new GolangPackager(['.go', '.c', '.h', '.s', '.mod', '.sum', '.txt']);
         }
 
         return handler;

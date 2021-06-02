@@ -1,5 +1,5 @@
 # IBM Blockchain Platform Extension updated to v2.0.3
-_Release date: May 27th 2021_
+_Release date: June 2nd 2021_
 
 Announcements
 ---
@@ -15,6 +15,7 @@ Fixes
 * Fixed transaction output overflowing from its container in the transaction view [#3009](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3009)
 * Prevented unsupported node types being read in and causing an error [#3013](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3013)
 Notes
+* Updated go packaging logic to include txt files [#3030](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3030)
 ---
 * Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
 
