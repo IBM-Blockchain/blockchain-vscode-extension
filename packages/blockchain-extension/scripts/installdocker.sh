@@ -1,38 +1,38 @@
+# Install latest version of Docker Desktop for Mac
+echo 'Downloading and then running docker brew formula ...'
+
+# The brew formula below will install Docker Desktop for Mac, v2.0.0.3,31259.
+dockerInstallationScriptName='docker.rb'
+dockerInstallationScriptUrl="https://raw.githubusercontent.com/Homebrew/homebrew-cask/8ce4e89d10716666743b28c5a46cd54af59a9cc2/Casks/$dockerInstallationScriptName"
+curl -L  $dockerInstallationScriptUrl > $dockerInstallationScriptName && brew install $dockerInstallationScriptName
+
+
+echo 'Installing Docker Desktop for Mac ...'
+sudo /Applications/Docker.app/Contents/MacOS/Docker --quit-after-install --unattended
+/Applications/Docker.app/Contents/MacOS/Docker --unattended &
+
+echo 'Starting Docker service ...'
+
+start=$SECONDS
+
 retries=0
-
-# Update brew to make sure we're using the latest formulae
-brew upgrade && brew upgrade
-
-brew install --cask docker
-
-# manually setup docker, as versions after 2.0.0.3-ce-mac81,31259 cannot be installed using cli
-# thanks to https://github.com/docker/for-mac/issues/2359#issuecomment-607154849
-# allow the app to run without confirmation
-xattr -d -r com.apple.quarantine /Applications/Docker.app
-# preemptively do docker.app's setup to avoid any gui prompts
-sudo /bin/cp /Applications/Docker.app/Contents/Library/LaunchServices/com.docker.vmnetd /Library/PrivilegedHelperTools
-sudo /bin/cp /Applications/Docker.app/Contents/Resources/com.docker.vmnetd.plist /Library/LaunchDaemons/
-sudo /bin/chmod 544 /Library/PrivilegedHelperTools/com.docker.vmnetd
-sudo /bin/chmod 644 /Library/LaunchDaemons/com.docker.vmnetd.plist
-sudo /bin/launchctl load /Library/LaunchDaemons/com.docker.vmnetd.plist
-
-#open -g -a Docker.app || exit
-open -g /Applications/Docker.app || exit
+maxRetries=30
 
 while ! docker info 2>/dev/null ; do
-    sleep 5
-    retries=`expr $retries + 1`
-    if pgrep -xq -- "Docker"; then
-        echo 'docker still running'
+    sleep 5s
+    ((retries=retries+1))
+
+    if pgrep -xq -- 'Docker'; then
+        echo 'Docker still running'
     else
-        echo 'docker not running, restart'
-        #open -g -a Docker.app || exit
-        open -g /Applications/Docker.app || exit
+        echo 'Docker not running, restart'
+        /Applications/Docker.app/Contents/MacOS/Docker --unattended &
     fi
-    if [ $retries -gt 60 ]; then
+
+    if [[ ${retries} -gt ${maxRetries} ]]; then
         >&2 echo 'Failed to run docker'
         exit 1
     fi;
 
-    echo 'Waiting for docker service to be in the running state'
+    echo 'Waiting for Docker service to be in running state ...'
 done
