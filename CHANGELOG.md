@@ -1,6 +1,6 @@
 # IBM Blockchain Platform Extension Change Log
 
-## 2.0.3: May 27th 2021
+## 2.0.3: June 1st 2021
 
 Announcements
 ---
@@ -15,6 +15,7 @@ Fixes
 * Fixed broken path to the `create-custom-networks.md` tutorial when opening from the create environment command [#3005](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3005), [#3019](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3019)
 * Fixed transaction output overflowing from its container in the transaction view [#3009](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3009)
 * Prevented unsupported node types being read in and causing an error [#3013](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3013)
+* Updated go packaging logic to include txt files [#3030](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3030)
 
 
 Notes
