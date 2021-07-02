@@ -24,7 +24,10 @@ export interface Collection {
     blockToLive?: number,
     memberOnlyRead?: boolean,
     memberOnlyWrite?: boolean,
-    endorsementPolicy?: string
+    endorsementPolicy?: {
+        signaturePolicy?: string,
+        channelConfigPolicy?: string
+     }
 }
 
 export class CollectionConfig {
@@ -42,7 +45,6 @@ export class CollectionConfig {
             collectionConfigs.push(collectionConfig);
         });
         collectionConfigPackage.config = collectionConfigs;
-
         return new protos.common.CollectionConfigPackage(collectionConfigPackage);
     }
 
@@ -117,17 +119,17 @@ export class CollectionConfig {
 
         if (collectionConfig.endorsementPolicy) {
             const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
-            if (collectionConfig.endorsementPolicy.startsWith(EndorsementPolicy.AND) || collectionConfig.endorsementPolicy.startsWith(EndorsementPolicy.OR) || collectionConfig.endorsementPolicy.startsWith(EndorsementPolicy.OUT_OF)) {
+            if (collectionConfig.endorsementPolicy.signaturePolicy) {
                 const policy: EndorsementPolicy = new EndorsementPolicy();
-                const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(collectionConfig.endorsementPolicy);
+                const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(collectionConfig.endorsementPolicy.signaturePolicy);
                 applicationPolicy.signature_policy = signaturePolicy;
-            } else {
-                applicationPolicy.channel_config_policy_reference = collectionConfig.endorsementPolicy;
+            }
+            if (collectionConfig.endorsementPolicy.channelConfigPolicy) {
+                applicationPolicy.channel_config_policy_reference = collectionConfig.endorsementPolicy.channelConfigPolicy;
             }
 
             staticCollectionConfig.endorsement_policy = applicationPolicy;
         }
-
         return staticCollectionConfig;
     }
 }
