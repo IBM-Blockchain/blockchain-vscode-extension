@@ -22,6 +22,6 @@ export class FabricCollectionDefinition {
                        public blockToLive?: number,
                        public memberOnlyRead?: boolean,
                        public memberOnlyWrite?: boolean,
-                       public  endorsementPolicy?: string) {
+                       public endorsementPolicy?: { signaturePolicy?: string, channelConfigPolicy?: string }) {
     }
 }

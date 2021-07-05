@@ -105,7 +105,7 @@ describe('CollectionConfig', () => {
             policy: `OR('Org1MSP.member', 'Org2MSP.member')`,
             requiredPeerCount: 1,
             maxPeerCount: 3,
-            endorsementPolicy: `AND('Org1MSP.member', 'Org2MSP.member')`
+            endorsementPolicy: { signaturePolicy: `AND('Org1MSP.member', 'Org2MSP.member')` }
         };
 
         const staticCollectionConfig: protos.common.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
@@ -128,7 +128,7 @@ describe('CollectionConfig', () => {
 
         const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
         const policy: EndorsementPolicy = new EndorsementPolicy();
-        const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(collection.endorsementPolicy);
+        const signaturePolicy: protos.common.SignaturePolicyEnvelope = policy.buildPolicy(collection.endorsementPolicy.signaturePolicy);
         applicationPolicy.signature_policy = signaturePolicy;
 
         staticCollectionConfig.endorsement_policy = applicationPolicy;
@@ -147,7 +147,7 @@ describe('CollectionConfig', () => {
             policy: `OR('Org1MSP.member', 'Org2MSP.member')`,
             requiredPeerCount: 1,
             maxPeerCount: 3,
-            endorsementPolicy: `myPolicy`
+            endorsementPolicy: { channelConfigPolicy: 'myPolicy' }
         };
 
         const staticCollectionConfig: protos.common.StaticCollectionConfig = new protos.common.StaticCollectionConfig();
@@ -170,7 +170,7 @@ describe('CollectionConfig', () => {
 
         const applicationPolicy: protos.common.ApplicationPolicy = new protos.common.ApplicationPolicy();
 
-        applicationPolicy.channel_config_policy_reference = collection.endorsementPolicy;
+        applicationPolicy.channel_config_policy_reference = collection.endorsementPolicy.channelConfigPolicy;
 
         staticCollectionConfig.endorsement_policy = applicationPolicy;
 
