@@ -1,5 +1,5 @@
 # IBM Blockchain Platform Extension updated to v2.0.4
-_Release date: July 6th 2021_
+_Release date: July 20th 2021_
 
 Announcements
 ---
@@ -8,7 +8,7 @@ Announcements
 
 Fixes
 ---
-* Fixed handling of endorsement policy when provided in collection config files [#3039](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3039)
+* Fixed the handling of endorsement policy when provided in collection config files [#3039](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3039)
 
 Notes
 ---
