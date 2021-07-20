@@ -55,10 +55,7 @@ stages:
       - template: azure-templates/cucumber-job.yml
         parameters:
           name: cucumber
-          ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-            version: '1.40.0'
-          ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
-            version: 'stable'
+          version: '1.40.0'
 
   - stage: cucumberReport
     dependsOn: [cucumberTest]
