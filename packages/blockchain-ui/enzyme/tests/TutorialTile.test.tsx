@@ -98,22 +98,4 @@ describe('TutorialTile component', () => {
         });
         component.find('button').at(0).hasClass('bx--btn--ghost').should.equal(true);
     });
-
-    it('should show badge available if the tutorial has a badge available', () => {
-        const anotherTutorialObject: ITutorialObject = {
-            title: 'a4',
-            length: '3 weeks',
-            badge: true,
-            file: 'some/file/path',
-            series: 'someSeries',
-            objectives: [
-                'objective 1',
-                'objective 2',
-                'objective 3'
-            ]
-        };
-        const component: ReactWrapper<IProps> = mount(<TutorialTile tutorialObject={anotherTutorialObject}/>);
-        component.text().includes('Badge available').should.be.true;
-    });
-
 });

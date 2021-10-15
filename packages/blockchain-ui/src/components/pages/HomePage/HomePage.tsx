@@ -31,7 +31,7 @@ interface IProps {
 class HomePage extends Component<IProps> {
     render(): JSX.Element {
         const fabric2TileString: string = 'Congratulations on upgrading to v2.0 of the IBM Blockchain Platform VS Code extension! This update brings support for the Fabric 2.0 smart contract lifecycle, as well as new features. Learn about how this update will affect your workflow here.';
-        const tutorialTileString: string = 'Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills and earn accredited badges along the way!';
+        const tutorialTileString: string = 'Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills.';
 
         return (
             <div className='bx--grid home-page-container'>
@@ -41,7 +41,7 @@ class HomePage extends Component<IProps> {
                             <h2>IBM Blockchain Platform
                                 <Tag className='extension-version' id='extension-version-tag' type='gray'>{`v${this.props.extensionVersion}`}</Tag>
                             </h2>
-                            <p className='home-title-description'>This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifications with our tutorials.</p>
+                            <p className='home-title-description'>This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, and learn best practices with our tutorials.</p>
                         </div>
                         <div className='bx--row margin-bottom-05' id='fabric-2-tile-container'>
                             <CommandTile title={`Find out what's new with Fabric v2.0`} body={fabric2TileString} command={ExtensionCommands.OPEN_FABRIC_2_PAGE} image={fabric2Rocket}/>

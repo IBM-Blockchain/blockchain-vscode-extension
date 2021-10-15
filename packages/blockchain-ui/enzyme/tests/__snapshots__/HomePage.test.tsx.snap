@@ -25,7 +25,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
         <p
           className="home-title-description"
         >
-          This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, learn best practices and earn developer qualifications with our tutorials.
+          This extension supports the complete development workflow for Hyperledger Fabric and IBM Blockchain Platform. Get started, and learn best practices with our tutorials.
         </p>
       </div>
       <div
@@ -78,7 +78,7 @@ exports[`HomePage component should render the expected snapshot 1`] = `
               Tutorials
             </h3>
             <p>
-              Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills and earn accredited badges along the way!
+              Learn about Hyperledger Fabric development using IBM Blockchain Platform. Complete these tutorials to grow your blockchain skills.
             </p>
           </div>
           <img

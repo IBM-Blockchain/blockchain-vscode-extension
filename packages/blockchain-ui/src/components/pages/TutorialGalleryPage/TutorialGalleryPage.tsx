@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import TutorialTabs from '../../elements/TutorialTabs/TutorialTabs';
 import ITutorialObject from '../../../interfaces/ITutorialObject';
 import '../../../styles/gallery.scss';
-import { Link } from 'carbon-components-react';
 
 interface IProps {
     tutorialData: Array<{name: string, tutorials: ITutorialObject[], tutorialFolder: string, tutorialDescription?: string}>;
@@ -17,8 +16,6 @@ class TutorialPage extends Component<IProps> {
                         <h3>Blockchain Tutorials</h3>
                         <p>
                             In these tutorials you will learn about Hyperledger Fabric development using IBM Blockchain Platform.
-                            <br/>
-                            As you complete the learning objectives you will be invited to gain <Link id='acclaim-link' href='https://www.youracclaim.com/'>accredited badges</Link> from IBM.
                         </p>
                     </div>
                 </div>
