@@ -1,14 +1,14 @@
-# IBM Blockchain Platform Extension updated to v2.0.4
-_Release date: July 20th 2021_
+# IBM Blockchain Platform Extension updated to v2.0.5
+_Release date: Octorber 18th 2021_
 
 Announcements
 ---
 
 * **VS Code v1.40 or greater is now the minimum version required for using the v2.0.0 version of the extension.**
 
-Fixes
+Changes
 ---
-* Fixed the handling of endorsement policy when provided in collection config files [#3039](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3039)
+* Removed Join network tutorials
 
 Notes
 ---
