@@ -338,7 +338,6 @@ describe('View', () => {
                           'Learn about the Linux Foundation Hyperledger Project and Hyperledger Fabric',
                           'Learn about IBM Blockchain Platform and the VS Code extension'
                         ],
-                        badge: true,
                         file: 'new-tutorials/basic-tutorials/a1.md'
                     },
                     {
@@ -436,19 +435,6 @@ describe('View', () => {
                           'Submit a transaction and receive the resulting event notification'
                         ],
                         file: 'new-tutorials/basic-tutorials/a9.md'
-                    },
-                    {
-                        title: 'A10: Claim your badge!',
-                        series: 'Basic tutorials',
-                        length: '60 minutes',
-                        objectives:
-                        [
-                          'Summarize what you have learned so far',
-                          'Identify some additional resources that you might find interesting and helpful',
-                          'Invite you to test your learning and gain a badge'
-                        ],
-                        badge: true,
-                        file: 'new-tutorials/basic-tutorials/a10.md'
                     }
                 ]
             });

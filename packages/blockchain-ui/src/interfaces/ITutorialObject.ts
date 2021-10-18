@@ -5,7 +5,6 @@ interface ITutorialObject {
     firstInSeries?: boolean;
     file: string;
     objectives: string[];
-    badge?: boolean;
     markdown?: string;
 }
 

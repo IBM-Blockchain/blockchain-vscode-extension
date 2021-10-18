@@ -17,7 +17,7 @@ trigger: # Hopefully should run the buildPdf stage after every merge into master
 pr: # Hopefully this causes PR's to trigger
   branches:
     include:
-    - '*' 
+    - '*'
 
 stages:
   - stage: unitTest
@@ -28,7 +28,7 @@ stages:
         strategy:
           matrix:
             linux:
-              imageName: 'ubuntu-16.04'
+              imageName: 'ubuntu-latest'
               VERSION: '1.40.0'
               MODULES: 64
               ELECTRON: '3.0'
@@ -71,7 +71,7 @@ stages:
         strategy:
           matrix:
             linux:
-              imageName: 'ubuntu-16.04'
+              imageName: 'ubuntu-latest'
               VERSION: '1.40.0'
               MODULES: 64
               ELECTRON: '3.0'
@@ -105,7 +105,7 @@ stages:
     jobs:
       - job: buildChePackage
         pool:
-          vmImage: ubuntu-16.04
+          vmImage: 'ubuntu-latest'
         steps:
           - script: che/build.sh
             displayName: Build Che package
@@ -145,7 +145,7 @@ stages:
         strategy:
           matrix:
             insiders_linux:
-              imageName: 'ubuntu-16.04'
+              imageName: 'ubuntu-latest'
               VERSION: 'insiders'
               MODULES: 75
               ELECTRON: '7.2'

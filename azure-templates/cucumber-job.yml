@@ -19,21 +19,21 @@ jobs:
     strategy:
       matrix:
         cucumber:
-          imageName: 'ubuntu-16.04'
+          imageName: 'ubuntu-latest'
           VERSION: ${{ parameters.version }}
           type: 'oneOrg'
         cucumber_other:
-          imageName: 'ubuntu-16.04'
+          imageName: 'ubuntu-latest'
           OTHER_FABRIC: 'true'
           VERSION: ${{ parameters.version }}
           type: 'other'
         cucumber_opsTools:
-          imageName: 'ubuntu-16.04'
+          imageName: 'ubuntu-latest'
           OPSTOOLS_FABRIC: 'true'
           VERSION: ${{ parameters.version }}
           type: 'opsTools'
         cucumber_two_org:
-          imageName: 'ubuntu-16.04'
+          imageName: 'ubuntu-latest'
           TWO_ORG_FABRIC: 'true'
           VERSION: ${{ parameters.version }}
           type: 'twoOrg'
