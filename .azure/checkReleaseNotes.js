@@ -23,10 +23,10 @@ console.log('Reading release notes');
 const releaseNotes = fs.readFileSync('./RELEASE-NOTES.md', 'utf8');
 console.log('Read recent release notes:', releaseNotes);
 
-console.log('Reading package.json')
+console.log('Reading package.json');
 const packageJson = JSON.parse(fs.readFileSync('./package.json'));
 
-const includesVersion = releaseNotes.includes(`v${packageJson.version}`)
+const includesVersion = releaseNotes.includes(`v${packageJson.version}`);
 if(!includesVersion){
     throw new Error(`RELEASE-NOTES.md has not been updated with the latest release version: v${packageJson.version}`);
 }
@@ -41,4 +41,4 @@ if(!includesDate){
     throw new Error(`RELEASE-NOTES.md has not been updated with todays date: ${todaysDate}`);
 }
 
-console.log('Release notes contain the latest release version and todays date')
+console.log('Release notes contain the latest release version and todays date');
