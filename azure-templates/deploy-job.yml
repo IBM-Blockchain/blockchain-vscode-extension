@@ -57,7 +57,7 @@ jobs:
 
       - script: |
           set -ex
-          npm install dateformat
+          npm install dateformat@4.6.3
           git checkout package.json
           cd ./packages/blockchain-extension
           npm run checkReleaseNotes
