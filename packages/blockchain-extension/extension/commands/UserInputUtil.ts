@@ -1157,12 +1157,17 @@ export class UserInputUtil {
             return 'node';
         }
 
-        // Is this a Java smart contract (Java, Kotlin, etc)?
-        const gradleFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle');
-        const gradleFileExists: boolean = await fs.pathExists(gradleFile);
+        // Is this a Java smart contract (Java, Kotlin)?
+        const groovyGradleFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle');
+        const groovyGradleFileExists: boolean = await fs.pathExists(groovyGradleFile);
+
         const mavenFile: string = path.join(workspaceDir.uri.fsPath, 'pom.xml');
         const mavenFileExists: boolean = await fs.pathExists(mavenFile);
-        if (gradleFileExists || mavenFileExists) {
+
+        const kotlinGradleFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle.kts');
+        const kotlinGradleFileExists: boolean = await fs.pathExists(kotlinGradleFile);
+
+        if (groovyGradleFileExists || mavenFileExists || kotlinGradleFileExists) {
             return 'java';
         }
 
