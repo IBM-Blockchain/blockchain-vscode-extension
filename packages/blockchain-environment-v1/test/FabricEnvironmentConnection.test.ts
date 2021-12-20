@@ -1296,7 +1296,7 @@ describe('FabricEnvironmentConnection', () => {
                 'instantiate',
                 ['arg1'],
                 false,
-                5 * 60 * 1000
+                10 * 60 * 1000
             );
         });
     });
@@ -1319,7 +1319,7 @@ describe('FabricEnvironmentConnection', () => {
                 'instantiate',
                 ['arg1'],
                 true,
-                5 * 60 * 1000
+                10 * 60 * 1000
             );
         });
     });
