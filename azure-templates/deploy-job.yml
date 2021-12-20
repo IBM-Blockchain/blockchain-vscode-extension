@@ -21,10 +21,10 @@ jobs:
           artifact: vscode-package
           path: $(Build.SourcesDirectory)
 
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          artifact: vscode-che-package
-          path: $(Build.SourcesDirectory)
+#      - task: DownloadPipelineArtifact@2
+#        inputs:
+#          artifact: vscode-che-package
+#          path: $(Build.SourcesDirectory)
 
       - bash: |
           set -ev
