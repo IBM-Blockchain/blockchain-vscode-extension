@@ -133,7 +133,6 @@ stages:
       - cucumberTest
       - cypressTest
       - buildPackage
-      - buildChePackage
     jobs:
       - template: azure-templates/deploy-job.yml
 
