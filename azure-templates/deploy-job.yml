@@ -50,7 +50,7 @@ jobs:
           set -ev
           npm install vsce
           git checkout package.json
-          node ./node_modules/vsce/out/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-2*
+          node ./node_modules/vsce/vsce publish -p $(VSCETOKEN) --packagePath ibm-blockchain-platform-2*
         displayName: Publish extension
         condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))
 
