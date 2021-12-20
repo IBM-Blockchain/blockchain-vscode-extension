@@ -97,29 +97,29 @@ stages:
     jobs:
       - template: azure-templates/build-package-job.yml
 
-  - stage: buildChePackage
-    dependsOn:
-      - unitTest
-      - cucumberTest
-      - cypressTest
-    jobs:
-      - job: buildChePackage
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          - script: che/build.sh
-            displayName: Build Che package
-          - task: CopyFiles@2
-            inputs:
-              sourceFolder: '$(Build.SourcesDirectory)/che'
-              contents: |
-                ibm-blockchain-platform-*.vsix
-                ibm-blockchain-platform-*.yaml
-              targetFolder: '$(Build.ArtifactStagingDirectory)'
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-              artifactName: vscode-che-package
+#  - stage: buildChePackage
+#    dependsOn:
+#      - unitTest
+#      - cucumberTest
+#      - cypressTest
+#    jobs:
+#      - job: buildChePackage
+#        pool:
+#          vmImage: 'ubuntu-latest'
+#        steps:
+#          - script: che/build.sh
+#            displayName: Build Che package
+#          - task: CopyFiles@2
+#            inputs:
+#              sourceFolder: '$(Build.SourcesDirectory)/che'
+#              contents: |
+#                ibm-blockchain-platform-*.vsix
+#                ibm-blockchain-platform-*.yaml
+#              targetFolder: '$(Build.ArtifactStagingDirectory)'
+#          - task: PublishBuildArtifacts@1
+#            inputs:
+#              pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#              artifactName: vscode-che-package
 
   - stage: buildPdf
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')

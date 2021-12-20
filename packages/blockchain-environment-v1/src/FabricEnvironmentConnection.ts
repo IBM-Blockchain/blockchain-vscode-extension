@@ -523,7 +523,7 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
             _fcn,
             _args,
             isUpgrade,
-            5 * 60 * 1000
+            10 * 60 * 1000
         );
     }
 }
