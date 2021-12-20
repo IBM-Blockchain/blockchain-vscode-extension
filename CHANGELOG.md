@@ -1,4 +1,19 @@
 # IBM Blockchain Platform Extension Change Log
+## 2.0.6: December 20th 2021
+
+Announcements
+---
+
+* **VS Code v1.40 or greater is now the minimum version required for using the v2.0.0 version of the extension.**
+
+Changes
+---
+* Increased deploy and upgrade timeout
+
+Notes
+---
+* Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
+
 
 ## 2.0.5: October 18th 2021
 
