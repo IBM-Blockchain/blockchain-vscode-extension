@@ -72,6 +72,9 @@ class HomePage extends Component<IProps> {
                             <div className='bx--col link-list-container'>
                                 <CommandLink linkContents='View Release notes' commandName={ExtensionCommands.OPEN_RELEASE_NOTES} id='home-link-05'/>
                                 <CommandLink linkContents='View Sample Gallery' commandName={ExtensionCommands.OPEN_SAMPLE_GALLERY} id='home-link-06'/>
+                                <Link href='https://github.com/IBM-Blockchain/blockchain-vscode-extension/wiki/Common-tasks-and-how-to-complete-them' id='home-link-12'>
+                                    Common tasks wiki
+                                </Link>
                                 <Link href='https://hyperledger-fabric.readthedocs.io/en/release-2.0/' id='home-link-07'>
                                     Fabric Documentation
                                 </Link>
