@@ -26,6 +26,7 @@ describe('StatusList', () => {
         {
             url: 'incident1',
             title: 'someIncident',
+            number: 1946,
             labels: [{
                 id : 'someLabelID',
                 name: 'sev3',
@@ -35,6 +36,7 @@ describe('StatusList', () => {
         {
             url: 'incident2',
             title: 'someOtherIncident',
+            number: 1948,
             labels: [{
                 id : 'someLabelID',
                 name: 'sev2',
@@ -59,6 +61,7 @@ describe('StatusList', () => {
             {
                 url: 'incident1',
                 title: 'someIncident',
+                number: 1946,
                 labels: [{
                     id : 'someLabelID',
                     name: 'sev3',
@@ -68,6 +71,7 @@ describe('StatusList', () => {
             {
                 url: 'incident2',
                 title: 'someOtherIncident',
+                number: 1948,
                 labels: [{
                     id : 'someLabelID',
                     name: 'sev2',

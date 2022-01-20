@@ -59,7 +59,7 @@ class IssuesList extends Component<IssueProps, {}> {
             let issuesArray: any = this.props.issues;
             const sortedArray: any = [];
             if (!this.props.newestMilestone) {
-                issuesArray.map((issue: any) => {
+                issuesArray.forEach((issue: any) => {
                     let labels: any = issue.labels;
                     labels = labels.filter((label: {id: number, node_id: string, url: string, name: string, color: string, default: boolean, description: string}) => {
                         return(label.name.startsWith('sev') || label.name.startsWith('status'));
@@ -79,7 +79,7 @@ class IssuesList extends Component<IssueProps, {}> {
                 }
 
                 return (
-                    <div className='panel'>
+                    <div key={issue.number} className='panel'>
                         <div>
                             <p className='issue-title'>
                                 {(issue.state === 'closed' ? 'RESOLVED: ' : '') + issue.title + ' (#' + issue.number + ')'}
