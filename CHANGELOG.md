@@ -1,4 +1,21 @@
 # IBM Blockchain Platform Extension Change Log
+## 2.0.7: January 19th 2022
+
+Announcements
+---
+
+* **VS Code v1.40 or greater is now the minimum version required for using the v2.0.0 version of the extension.**
+
+Changes
+---
+* Add link to common tasks wiki on home page
+
+Notes
+---
+* Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-87.jpg)
+
 ## 2.0.6: December 20th 2021
 
 Announcements
@@ -45,6 +62,29 @@ Fixes
 Notes
 ---
 * Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
+
+## 2.0.3: May 27th 2021
+
+Announcements
+---
+
+* **VS Code v1.40 or greater is now the minimum version required for using the v2.0.0 version of the extension.**
+
+Fixes
+---
+* Fixed packaging form in deploy view not updating correctly [#2950](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2950)
+* Fixed not being able to use a remote file as a private data collection config file [#2948](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2948)
+* Improved functional test detection of which transactions should be submitted/evaluated [#2982](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2982)
+* Fixed broken path to the `create-custom-networks.md` tutorial when opening from the create environment command [#3005](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3005), [#3019](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3019)
+* Fixed transaction output overflowing from its container in the transaction view [#3009](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3009)
+* Prevented unsupported node types being read in and causing an error [#3013](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/3013)
+
+
+Notes
+---
+* Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-86.jpg)
 
 ## 2.0.2: February 25th 2021
 

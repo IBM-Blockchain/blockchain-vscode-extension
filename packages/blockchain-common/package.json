@@ -3,7 +3,7 @@
     "author": "IBMBlockchain",
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "2.0.7",
+    "version": "2.0.8",
     "publisher": "IBMBlockchain",
     "repository": {
         "type": "git",
@@ -51,7 +51,8 @@
         "ts-node": "^7.0.0",
         "tslint": "5.11.0",
         "tslint-loader": "3.6.0",
-        "typescript": "3.6.3"
+        "typescript": "3.6.3",
+        "vscode-test": "1.6.1"
     },
     "dependencies": {
         "@fidm/x509": "1.1.3",
