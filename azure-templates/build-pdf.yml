@@ -12,6 +12,10 @@
 
 jobs: 
   - job: buildPdf
+
+    pool:
+      vmImage: 'ubuntu-latest'
+
     steps:
       - script: |
           set -ex
