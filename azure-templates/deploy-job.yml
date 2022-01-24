@@ -85,14 +85,15 @@ jobs:
 
       - script: |
           set -ex
-          cd ./packages/blockchain-website
-          npm install
-          npm run build
-          rm -rf ../../docs/*
-          mv build/* ../../docs
-        displayName: Build website
+          rm -rf docs/*
+        displayName: Delete old website
         condition: succeeded()
 
+      - task: DownloadPipelineArtifact@2
+        displayName: Download new website
+        inputs:
+          artifact: status-site
+          path: '$(Build.SourcesDirectory)/docs'
 
       - script: |
           set -ex

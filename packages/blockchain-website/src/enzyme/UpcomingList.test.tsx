@@ -147,8 +147,7 @@ describe('UpcomingList', () => {
             }];
         const component: ReactWrapper<{}, {issues: any, error: string, newestMilestone: any}, UpcomingList> = await mount(<UpcomingList/>);
         component.setState({
-            issues: issues,
-            error: undefined
+            issues: issues
         });
         axiosGetStub.should.have.been.calledTwice;
         component.text().includes('Some completed issue').should.be.true;

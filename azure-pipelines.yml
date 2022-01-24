@@ -120,7 +120,7 @@ stages:
 #            inputs:
 #              pathtoPublish: '$(Build.ArtifactStagingDirectory)'
 #              artifactName: vscode-che-package
-
+    
   - stage: buildPdf
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
     jobs:
@@ -133,8 +133,14 @@ stages:
       - cucumberTest
       - cypressTest
       - buildPackage
+      - buildStatusSite
     jobs:
       - template: azure-templates/deploy-job.yml
+
+  - stage: buildStatusSite
+    dependsOn: []
+    jobs:
+      - template: azure-templates/build-status-site.yml
 
   - stage: otherVersionsUnitTest
     condition: eq(variables['Build.Reason'], 'Schedule')
