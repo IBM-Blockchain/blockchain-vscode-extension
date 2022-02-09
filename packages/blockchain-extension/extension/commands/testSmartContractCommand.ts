@@ -586,6 +586,12 @@ async function updateBuildFile(buildFile: string, state: any): Promise<void> {
                 version: '2.10.0',
                 present: false,
             },
+            'json': {
+                groupId: 'org.json',
+                artifactId: 'json',
+                version: '20211205',
+                present: false,
+            },
         }
     };
 

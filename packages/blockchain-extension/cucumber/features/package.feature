@@ -11,8 +11,8 @@ Feature: Smart Contracts packages
         And the file size should be greater than '<size>' KB
         Examples:
         | language   | assetType | name               | packagedName             | size     | version | extension |
-        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 39       | 0.0.1   | .tar.gz   |
-        | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 37       | 0.0.1   | .tar.gz   |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 36       | 0.0.1   | .tar.gz   |
+        | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 36       | 0.0.1   | .tar.gz   |
         | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 55       | 0.0.1   | .tar.gz   |
         | Go         | Conga     | GoContract         | GoContract@0.0.1         | 2414     | 0.0.1   | .tar.gz   |
 
@@ -43,8 +43,8 @@ Feature: Smart Contracts packages
         And the tree item should have a tooltip equal to '<packagedName> (<extension>)\nFile size: <size> KB'
         Examples:
         | language   | assetType | name                 | packagedName               | size     | version | extension |
-        | JavaScript | Conga     | JavaScriptContractV1 | JavaScriptContractV1@0.0.1 | 39       | 0.0.1   | .cds      |
-        | TypeScript | Conga     | TypeScriptContractV1 | TypeScriptContractV1@0.0.1 | 37       | 0.0.1   | .cds      |
+        | JavaScript | Conga     | JavaScriptContractV1 | JavaScriptContractV1@0.0.1 | 36       | 0.0.1   | .cds      |
+        | TypeScript | Conga     | TypeScriptContractV1 | TypeScriptContractV1@0.0.1 | 36       | 0.0.1   | .cds      |
         | Java       | Conga     | JavaContractV1       | JavaContractV1@0.0.1       | 55       | 0.0.1   | .cds      |
 
     Scenario: Do not package go contract as cds from outside gopath
