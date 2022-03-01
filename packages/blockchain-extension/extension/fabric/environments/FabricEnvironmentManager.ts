@@ -91,6 +91,12 @@ export class FabricEnvironmentManager extends EventEmitter {
         }
 
         if (this.environmentRegistryEntry) {
+            // ensure that the connection is disconencted and removed
+            // For more info see comments in environmentConnectCommand.ts
+            if (this.environmentRegistryEntry.environmentConnection){
+                this.environmentRegistryEntry.environmentConnection.disconnect();
+                this.environmentRegistryEntry.environmentConnection = undefined;
+            }
             this.environmentRegistryEntry = null;
         }
 
