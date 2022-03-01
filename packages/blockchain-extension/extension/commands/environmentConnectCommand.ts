@@ -24,6 +24,23 @@ import { FabricEnvironmentRegistryEntry, IFabricEnvironmentConnection, FabricNod
 import { EnvironmentFactory } from '../fabric/environments/EnvironmentFactory';
 import { LocalMicroEnvironment } from '../fabric/environments/LocalMicroEnvironment';
 
+
+// Development Note: This `fabricEnvironmentConnect` is triggered from a number of UI events, but also from other parts of the base
+// it has a double duty - both connect, but also to act as a form of 'state refresh'. eg if a Node (say a CA or Peer) has been deleted
+// this will be called to act as a 'refresh'
+//
+// However it has been found that if the environment tab has more than a few channels, then it is very easy to get so many 'refresh'
+// events that this method gets swamped - as it's not that quick to reconnect. The system 'live locks' in effect.
+//
+// There are a number of manager and factory classes, that cache various things, but the 'EnvironmentConnection' isn't one of them.
+// Therefore the `fabricEnviromentRegistryEntry` has an added entry to cache the connection. This is check early on in this function
+// and returns early. This speeds up UI responsiveness.
+//
+// The risk is that the refresh may be hindered; hence in the deleteNodeCommand function specifically clears out this cached connection
+//
+// In the interests of full disclosure - the above is how I *think* this works, but I've not spent long enough with the code
+// to be completely certain. 
+
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry, showSuccess: boolean = true): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let startRefresh: boolean = true;
@@ -41,6 +58,11 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             }
 
             fabricEnvironmentRegistryEntry = chosenEntry.data;
+        }
+
+        // if connection has already been made, do not reconnect.
+        if (fabricEnvironmentRegistryEntry.environmentConnection){
+            return;
         }
 
         fabricEnvironment = EnvironmentFactory.getEnvironment(fabricEnvironmentRegistryEntry);
@@ -115,9 +137,8 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             FabricEnvironmentManager.instance().stopEnvironmentRefresh();
             return;
         }
-
+   
         const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection(fabricEnvironmentRegistryEntry.name);
-
         await connection.connect(nodes);
 
         try {
@@ -128,6 +149,9 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
+        // cache the connection in the registry entry for future use
+        fabricEnvironmentRegistryEntry.environmentConnection = connection;
+        
         FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTING, startRefresh);
 
         const environmentName: string = fabricEnvironment.getName();

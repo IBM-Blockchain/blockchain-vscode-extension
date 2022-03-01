@@ -103,6 +103,7 @@ describe('EnvironmentConnectCommand', () => {
             environmentRegistryEntry.name = 'myFabric';
             environmentRegistryEntry.managedRuntime = false;
             environmentRegistryEntry.environmentType = EnvironmentType.ENVIRONMENT;
+            environmentRegistryEntry.environmentConnection = undefined;
 
             await FabricEnvironmentRegistry.instance().clear();
             await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
@@ -162,21 +163,33 @@ describe('EnvironmentConnectCommand', () => {
 
             it('should test a fabric environment can be connected to from the command', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+                const cloneRegistryEntry: FabricEnvironmentRegistryEntry = Object.assign({}, environmentRegistryEntry);
+                cloneRegistryEntry.environmentConnection = {} as any;
 
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true);
                 connectExplorerStub.should.have.been.called;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING, true);
+
+                connectManagerSpy.should.have.been.calledWith(mockConnection, cloneRegistryEntry, ConnectedState.CONNECTING, true);
+
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
+
+                // calling the connect again to validate the caching is syntax correct
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+                connectManagerSpy.should.have.been.called;
+
             });
 
             it('should test a fabric environment can be connected to from the command but not show success if not wanted', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, undefined, false);
 
+                const cloneRegistryEntry: FabricEnvironmentRegistryEntry = Object.assign({}, environmentRegistryEntry);
+                cloneRegistryEntry.environmentConnection = {} as any;
+
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, false, true);
                 connectExplorerStub.should.have.been.called;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING, true);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, cloneRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
                 logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Connected to myFabric');
@@ -184,9 +197,7 @@ describe('EnvironmentConnectCommand', () => {
 
             it('should do nothing if the user cancels choosing a environment', async () => {
                 chooseEnvironmentQuickPick.resolves();
-
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -194,8 +205,8 @@ describe('EnvironmentConnectCommand', () => {
                 requireSetupStub.resolves(true);
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-
-                connectManagerSpy.should.have.been.calledWith(undefined, environmentRegistryEntry, ConnectedState.SETUP);
+                // the key element is the first one is undefined.. not worried about the rest
+                connectManagerSpy.should.have.been.calledWith(undefined, sinon.match.any, ConnectedState.SETUP);
                 logSpy.should.have.been.calledWith(LogType.IMPORTANT, 'You must complete setup for this environment to enable deploy and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
 
                 stopEnvironmentRefreshSpy.should.have.been.called;
@@ -214,8 +225,11 @@ describe('EnvironmentConnectCommand', () => {
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
+                const cloneRegistryEntry: FabricEnvironmentRegistryEntry = Object.assign({}, environmentRegistryEntry);
+                cloneRegistryEntry.environmentConnection = {} as any;
+
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTING, true);
+                connectManagerSpy.should.have.been.calledWith(mockConnection, cloneRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -431,7 +445,9 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING, true);
+                const cloneRegistryEntry: FabricEnvironmentRegistryEntry = Object.assign({}, localFabricRegistryEntry);
+                cloneRegistryEntry.environmentConnection = {} as any;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, cloneRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -451,7 +467,9 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectExplorerStub.should.have.been.calledOnce;
-                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTING, true);
+                const cloneRegistryEntry: FabricEnvironmentRegistryEntry = Object.assign({}, localFabricRegistryEntry);
+                cloneRegistryEntry.environmentConnection = {} as any;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, cloneRegistryEntry, ConnectedState.CONNECTING, true);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });
