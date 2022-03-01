@@ -105,7 +105,7 @@ export class LifecycleChannel {
      * @param peerNames string[], the names of the peer to endorse the transaction
      * @param ordererName string, the orderer to send the request to
      * @param options SmartContractDefinitionOptions, the details of the definition
-     * @param requestTimeout number, [optional] the timeout used when performing the install operation
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the install operation
      */
     public async approveSmartContractDefinition(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, requestTimeout?: number): Promise<void> {
         const method: string = 'approvePackage';
@@ -118,7 +118,7 @@ export class LifecycleChannel {
      * @param peerNames string[], the names of the peer to endorse the transaction
      * @param ordererName string, the orderer to send the request to
      * @param options SmartContractDefinitionOptions, the details of the definition
-     * @param requestTimeout number, [optional] the timeout used when performing the install operation
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the install operation
      */
     public async commitSmartContractDefinition(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, requestTimeout?: number): Promise<void> {
         const method: string = 'commit';
@@ -126,6 +126,16 @@ export class LifecycleChannel {
         return this.submitTransaction(peerNames, ordererName, options, this.COMMIT, requestTimeout);
     }
 
+    /**
+     * Instantiate or upgrade a smart contract definition
+     * @param peerNames string[], the names of the peer to endorse the transaction
+     * @param ordererName string, the orderer to send the request to
+     * @param options SmartContractDefinitionOptions, the details of the definition
+     * @param fcn string, the chaincode function to run
+     * @param args string[], array of chaincode arguments
+     * @param isUpgrade boolean, true for an upgrade or false to instantiate
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the install operation
+     */
     public async instantiateOrUpgradeSmartContractDefinition(peerNames: string[], ordererName: string, options: SmartContractDefinitionOptions, fcn: string, args: Array<string>, isUpgrade: boolean, requestTimeout?: number): Promise<void> {
         const functionName: string = isUpgrade ? this.UPGRADE : this.INSTANTIATE
         logger.debug('%s - start', functionName);
@@ -173,7 +183,7 @@ export class LifecycleChannel {
      * Get the commit readiness of a smart contract definition
      * @param peerName string, the name of the peer to endorse the transaction
      * @param options SmartContractDefinitionOptions, the details of the definition
-     * @param requestTimeout number, [optional] the timeout used when performing the install operation
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the install operation
      * @return Promise<Map<string, boolean>>, the status of if an organisation has approved the definition or not
      */
     public async getCommitReadiness(peerName: string, options: SmartContractDefinitionOptions, requestTimeout?: number): Promise<Map<string, boolean>> {
@@ -258,7 +268,7 @@ export class LifecycleChannel {
     /**
      * Get a list of all the committed smart contracts
      * @param peerName string, the name of the peer to endorse the transaction
-     * @param requestTimeout number, [optional] the timeout used when performing the install operation
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the install operation
      * @return DefinedSmartContract[], a list of the defined smart contracts
      */
     public async getAllCommittedSmartContracts(peerName: string, requestTimeout?: number): Promise<DefinedSmartContract[]> {
@@ -316,7 +326,7 @@ export class LifecycleChannel {
     /**
      * Get a list of all the committed smart contracts
      * @param peerName
-     * @param requestTimeout
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing each operation
      * @return DefinedSmartContract[], a list of the defined smart contracts
      */
     public async getAllInstantiatedSmartContracts(peerName: string, requestTimeout?: number): Promise<DefinedSmartContract[]> {
@@ -380,7 +390,7 @@ export class LifecycleChannel {
      * Get the details of a committed smart contract
      * @param peerName string, the name of the peer to endorse the transaction
      * @param smartContractName string, the name of the comitted smart contract to get the details for
-     * @param requestTimeout number, [optional] the timeout used when performing the install operation
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the operation
      * @return DefinedSmartContract, the defined smart contract
      */
     public async getCommittedSmartContract(peerName: string, smartContractName: string, requestTimeout?: number): Promise<DefinedSmartContract> {
@@ -491,6 +501,11 @@ export class LifecycleChannel {
         }
     }
 
+    /**
+     * Get discovered peer names
+     * @param peerNames string[]
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the operation
+     */
     public async getDiscoveredPeerNames(peerNames: string[], requestTimeout?: number): Promise<string[]> {
 
         if (!peerNames || peerNames.length === 0) {
@@ -538,6 +553,11 @@ export class LifecycleChannel {
         }
     }
 
+    /**
+     * Get discovered peers
+     * @param peerNames string[]
+     * @param requestTimeout number, [optional] the timeout in seconds used when performing the operation
+     */
     public async getDiscoveredPeers(peerNames: string[], requestTimeout?: number): Promise<Endorser[]> {
 
         if (!peerNames || peerNames.length === 0) {
@@ -911,7 +931,8 @@ export class LifecycleChannel {
         }
 
         if (peer.requestTimeout) {
-            peerConnectOptions.requestTimeout = peer.requestTimeout;
+            // convert from seconds to milliseconds
+            peerConnectOptions.requestTimeout = peer.requestTimeout * 1000;
         }
 
         if (peer.apiOptions) {
@@ -963,7 +984,8 @@ export class LifecycleChannel {
             };
 
             if (requestTimeout) {
-                endorseRequest.requestTimeout = requestTimeout;
+                // convert from seconds to milliseconds
+                endorseRequest.requestTimeout = requestTimeout * 1000;
             }
 
             logger.debug('%s - send the query request');

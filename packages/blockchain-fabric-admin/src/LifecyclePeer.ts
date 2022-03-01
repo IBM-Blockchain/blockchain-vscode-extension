@@ -430,7 +430,8 @@ export class LifecyclePeer {
 
             if (requestTimeout || this.requestTimeout) {
                 // use the one set in the params if set otherwise use the one set when the peer was added
-                endorseRequest.requestTimeout = requestTimeout ? requestTimeout : this.requestTimeout;
+                // and convert from seconds to milliseconds
+                endorseRequest.requestTimeout = (requestTimeout ? requestTimeout : this.requestTimeout) * 1000;
             }
 
             logger.debug('%s - send the query request');

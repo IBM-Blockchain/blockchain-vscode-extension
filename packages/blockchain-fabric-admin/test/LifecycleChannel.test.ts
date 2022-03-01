@@ -83,7 +83,7 @@ describe('LifecycleChannel', () => {
             url: 'grpcs://localhost:7051',
             mspid: 'myMSPID',
             name: 'myPeer',
-            requestTimeout: 70000,
+            requestTimeout: 70,
             pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
         });
 
@@ -1254,7 +1254,7 @@ describe('LifecycleChannel', () => {
                     smartContractName: 'myContract',
                     smartContractVersion: '0.0.1',
                     sequence: 1
-                }, 1234);
+                }, 90);
 
                 result.size.should.equal(2);
                 // @ts-ignore
@@ -1267,7 +1267,7 @@ describe('LifecycleChannel', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 
@@ -1703,7 +1703,7 @@ describe('LifecycleChannel', () => {
                     }]
                 });
 
-                const result: DefinedSmartContract[] = await channel.getAllCommittedSmartContracts('myPeer', 1234);
+                const result: DefinedSmartContract[] = await channel.getAllCommittedSmartContracts('myPeer', 90);
 
                 result.length.should.equal(2);
 
@@ -1724,7 +1724,7 @@ describe('LifecycleChannel', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 
@@ -1842,7 +1842,7 @@ describe('LifecycleChannel', () => {
                     }]
                 });
 
-                const result: DefinedSmartContract[] = await channel.getAllInstantiatedSmartContracts('myPeer', 1234);
+                const result: DefinedSmartContract[] = await channel.getAllInstantiatedSmartContracts('myPeer', 90);
 
                 result.length.should.equal(2);
 
@@ -1865,7 +1865,7 @@ describe('LifecycleChannel', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 
@@ -2034,7 +2034,7 @@ describe('LifecycleChannel', () => {
                     }]
                 });
 
-                const result: DefinedSmartContract = await channel.getCommittedSmartContract('myPeer', 'myContract', 1234);
+                const result: DefinedSmartContract = await channel.getCommittedSmartContract('myPeer', 'myContract', 90);
 
                 result.smartContractName.should.equal('myContract');
                 result.smartContractVersion.should.equal('0.0.1');
@@ -2051,7 +2051,7 @@ describe('LifecycleChannel', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 

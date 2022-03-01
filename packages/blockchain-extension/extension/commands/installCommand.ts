@@ -68,10 +68,7 @@ export async function installSmartContract(orgMap?: Map<string, string[]>, chose
             progress.report({ message: `Installing Smart Contract on peer ${peer}` });
             try {
                 let timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
-                // convert from seconds to milliseconds
-                if (timeout) {
-                    timeout = timeout * 1000;
-                }
+
                 packageId = await connection.installSmartContract(chosenPackage.path, peer, `${chosenPackage.name}_${chosenPackage.version}`, timeout);
                 outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
             } catch (error) {
