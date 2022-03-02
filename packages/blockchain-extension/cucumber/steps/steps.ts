@@ -139,6 +139,8 @@ module.exports = function(): any {
         this.treeItem = children.find((child: any) => {
             return child.label === childName;
         });
+
+        should.exist(this.treeItem);
     });
 
     this.Then(/the tree item should have a tooltip (equal|including) to '(.*)'/, this.timeout, async (operator: string, tooltipValue: string) => {
