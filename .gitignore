@@ -16,3 +16,6 @@ test/tmp
 /lerna-debug.log
 /node_modules/
 .scannerwork
+
+saas-ibp-bootstrap/*.bin
+saas-ibp-bootstrap/*.json
