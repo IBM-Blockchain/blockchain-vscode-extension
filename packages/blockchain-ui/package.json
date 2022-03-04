@@ -83,7 +83,7 @@
         "jest-transform-css": "^2.0.0",
         "license-check-and-add": "2.3.6",
         "mocha": "^6.1.4",
-        "node-sass": "^4.13.0",
+        "node-sass": "^7.0.0",
         "raf": "^3.4.1",
         "react-scripts": "3.4.1",
         "rewire": "^4.0.1",
