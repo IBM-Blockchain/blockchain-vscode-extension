@@ -1,0 +1,33 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+- name: Delete components for an endorsing organization
+  hosts: localhost
+  vars:
+    state: absent
+    organization_name: "{{ org2_name }}"
+    ca_name: "{{ org2_ca_name }}"
+    peer_name: "{{ org2_peer_name }}"
+  vars_files:
+    - common-vars.yml
+    - org2-vars.yml
+  roles:
+    - ibm.blockchain_platform.endorsing_organization
+
+- name: Remove imported components
+  hosts: localhost
+  vars_files:
+    - common-vars.yml
+    - org2-vars.yml
+  tasks:
+    - name: Remove imported ordering service
+      ibm.blockchain_platform.external_ordering_service:
+        api_endpoint: "{{ api_endpoint }}"
+        api_authtype: "{{ api_authtype }}"
+        api_key: "{{ api_key }}"
+        api_secret: "{{ api_secret | default(omit) }}"
+        api_token_endpoint: "{{ api_token_endpoint | default(omit) }}"
+        state: absent
+        name: "{{ ordering_service_name }}"
+      when: import_export_used | default(false)

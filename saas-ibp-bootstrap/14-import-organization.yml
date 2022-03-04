@@ -1,0 +1,18 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+- name: Import the organization
+  hosts: localhost
+  vars_files:
+    - common-vars.yml
+    - org1-vars.yml
+  tasks:
+    - name: Import the organization
+      ibm.blockchain_platform.external_organization:
+        api_endpoint: "{{ api_endpoint }}"
+        api_authtype: "{{ api_authtype }}"
+        api_key: "{{ api_key }}"
+        api_secret: "{{ api_secret | default(omit) }}"
+        api_token_endpoint: "{{ api_token_endpoint | default(omit) }}"
+        organization: "{{ lookup('file', org2_name+'.json') }}"
