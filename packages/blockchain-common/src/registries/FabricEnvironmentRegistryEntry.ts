@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 
+import { IFabricEnvironmentConnection } from '../..';
 import {RegistryEntry} from './RegistryEntry';
 
 export enum EnvironmentFlags {
@@ -35,6 +36,8 @@ export enum EnvironmentType {
     MANAGED = EnvironmentFlags.MANAGED
 }
 
+// environmentConnection acts as a cache of connection to speed up the UI
+// For more info see comments in environmentConnectCommand.ts
 export class FabricEnvironmentRegistryEntry extends RegistryEntry {
 
     public managedRuntime?: boolean; // True if the Local environment
@@ -43,6 +46,7 @@ export class FabricEnvironmentRegistryEntry extends RegistryEntry {
     public url?: string;
     public numberOfOrgs?: number;
     public fabricCapabilities?: string;
+    public environmentConnection?: IFabricEnvironmentConnection;
     constructor(fields?: FabricEnvironmentRegistryEntry) {
         super();
         Object.assign(this, fields);
