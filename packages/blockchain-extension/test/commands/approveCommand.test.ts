@@ -62,7 +62,7 @@ describe('ApproveCommand', () => {
             fabricRuntimeMock.approveSmartContractDefinition.resolves(true);
 
             getSettingsStub = mySandBox.stub();
-            getSettingsStub.withArgs(SettingConfigurations.FABRIC_CLIENT_TIMEOUT).returns(9000);
+            getSettingsStub.withArgs(SettingConfigurations.FABRIC_CLIENT_TIMEOUT).returns(90);
 
             getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
             getConfigurationStub.returns({
@@ -95,8 +95,8 @@ describe('ApproveCommand', () => {
             orgMap.set('Org1MSP', ['peerOne']);
             orgMap.set('Org2MSP', ['peerTwo', 'peerThree']);
             await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
-            fabricRuntimeMock.approveSmartContractDefinition.getCall(0).should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
-            fabricRuntimeMock.approveSmartContractDefinition.getCall(1).should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerTwo', 'peerThree'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
+            fabricRuntimeMock.approveSmartContractDefinition.getCall(0).should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 90);
+            fabricRuntimeMock.approveSmartContractDefinition.getCall(1).should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerTwo', 'peerThree'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 90);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'approveSmartContract');
@@ -134,7 +134,7 @@ describe('ApproveCommand', () => {
             const orgMap: Map<string, string[]> = new Map<string, string[]>();
             orgMap.set('Org1MSP', ['peerOne']);
             await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`));
-            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledOnceWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`), 9000000);
+            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledOnceWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId', `OR('Org1.member', 'Org2.member')`), 90);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'approveSmartContract');
@@ -150,7 +150,7 @@ describe('ApproveCommand', () => {
             environmentConnectionStub.resetHistory();
             environmentConnectionStub.onFirstCall().returns(undefined);
             await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
-            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
+            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 90);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'approveSmartContract');
@@ -169,7 +169,7 @@ describe('ApproveCommand', () => {
             registryEntry.managedRuntime = false;
             environmentRegistryStub.returns(registryEntry);
             await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
-            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
+            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 90);
 
             dockerLogsOutputSpy.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'approveSmartContract');
@@ -198,7 +198,7 @@ describe('ApproveCommand', () => {
 
             await ExtensionUtil.executeCommandInternal(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId')).should.eventually.be.rejectedWith(/some error/);
 
-            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
+            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 90);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'approveSmartContract');
@@ -214,7 +214,7 @@ describe('ApproveCommand', () => {
             fabricRuntimeMock.approveSmartContractDefinition.resolves(false);
 
             await vscode.commands.executeCommand(ExtensionCommands.APPROVE_SMART_CONTRACT, 'myOrderer', 'mychannel', orgMap, new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'));
-            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 9000000);
+            fabricRuntimeMock.approveSmartContractDefinition.should.have.been.calledWithExactly('myOrderer', 'mychannel', ['peerOne'], new FabricSmartContractDefinition('mySmartContract', '0.0.1', 1, 'myPackageId'), 90);
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'approveSmartContract');

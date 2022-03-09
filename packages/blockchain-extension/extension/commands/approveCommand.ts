@@ -55,10 +55,7 @@ export async function approveSmartContract(ordererName: string, channelName: str
                 progress.report({ message: `Approving Smart Contract for org ${org}` });
                 const peers: string[] = orgMap.get(org);
                 let timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
-                // convert from seconds to milliseconds
-                if (timeout) {
-                    timeout = timeout * 1000;
-                }
+
                 const approved: boolean = await connection.approveSmartContractDefinition(ordererName, channelName, peers, smartContractDefinition, timeout);
                 if (!approved) {
                     outputAdapter.log(LogType.INFO, `Smart contract definition alreay approved by organisation ${org}`);
