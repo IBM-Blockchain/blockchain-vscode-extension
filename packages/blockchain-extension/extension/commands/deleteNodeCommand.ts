@@ -129,6 +129,8 @@ export async function deleteNode(nodeTreeItem: NodeTreeItem | FabricNode, hideNo
             const connectedRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (connectedRegistry && connectedRegistry.name === environmentRegistryEntry.name) {
                 // only connect if already connected to this environment or in setup for this environment
+                // For more info see comments in environmentConnectCommand.ts
+                connectedRegistry.environmentConnection=undefined;
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, connectedRegistry);
             }
         }
