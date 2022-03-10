@@ -90,14 +90,14 @@ describe('LifecyclePeer', () => {
                 url: 'grpcs://localhost:7051',
                 mspid: 'myMSPID',
                 name: 'myPeer',
-                requestTimeout: 70000,
+                requestTimeout: 70,
                 pem: '-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n'
             });
 
             peer['url'].should.equal('grpcs://localhost:7051');
             peer['mspid'].should.equal('myMSPID');
             peer['name'].should.equal('myPeer');
-            peer['requestTimeout'].should.equal(70000);
+            peer['requestTimeout'].should.equal(70);
             // @ts-ignore
             peer['pem'].should.equal('-----BEGIN CERTIFICATE-----\\nMIICJjCCAc2gAwIBAgIURY9F2Rt0JqOtiHbNJ6rRgfiDy2EwCgYIKoZIzj0EAwIw\\ncDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQH\\nEwZEdXJoYW0xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjAwMzE2MTQ1MDAwWhcNMzUwMzEzMTQ1MDAw\\nWjBwMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExDzANBgNV\\nBAcTBkR1cmhhbTEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMT\\nY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHic\\nzHXBRqfe7elvQ8zuxIwigOFCuk/49bjChQxf19fL/qHBLYLOXgd3Ox5jTVyyLuO/\\nf9x19piTv7gVgv8h7BijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAG\\nAQH/AgEBMB0GA1UdDgQWBBRGw4tXsbZSI45NZNTsDT7rssJpzjAKBggqhkjOPQQD\\nAgNHADBEAiBWNIFkaageeAiEMmhauY3bTHoG45Wgjk99CjHZ6KJoTgIgMfKc9mBL\\na5JHbGNB/gsBhxIm8/akE6g+SikIz/JGty4=\\n-----END CERTIFICATE-----\\n"\n');
         });
@@ -259,7 +259,7 @@ describe('LifecyclePeer', () => {
             });
 
             it('should install the smart contract package using the timeout passed in', async () => {
-                peer2['requestTimeout'] = 1234;
+                peer2['requestTimeout'] = 70;
                 const encodedResult: Buffer = Buffer.from(protos.lifecycle.InstallChaincodeResult.encode({
                     package_id: 'myPackageId'
                 }).finish());
@@ -273,7 +273,7 @@ describe('LifecyclePeer', () => {
                     }]
                 });
 
-                const result: string | undefined = await peer2.installSmartContractPackage(packageBuffer, 4321);
+                const result: string | undefined = await peer2.installSmartContractPackage(packageBuffer, 90);
                 result!.should.equal('myPackageId');
 
                 endorserConnectStub.should.have.been.called;
@@ -281,12 +281,12 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 4321
+                    requestTimeout: 90000
                 });
             });
 
             it('should install the smart contract package using the timeout', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 90;
                 const encodedResult: Buffer = Buffer.from(protos.lifecycle.InstallChaincodeResult.encode({
                     package_id: 'myPackageId'
                 }).finish());
@@ -308,7 +308,7 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 
@@ -452,7 +452,7 @@ describe('LifecyclePeer', () => {
             });
 
             it('should install the smart contract package using the timeout passed in', async () => {
-                peer2['requestTimeout'] = 1234;
+                peer2['requestTimeout'] = 70;
 
                 endorsementSendStub.resolves({
                     responses: [{
@@ -462,19 +462,19 @@ describe('LifecyclePeer', () => {
                     }]
                 });
 
-                await peer2.installSmartContractPackageCds(packageBuffer, 4321).should.eventually.be.fulfilled;
+                await peer2.installSmartContractPackageCds(packageBuffer, 90).should.eventually.be.fulfilled;
 
                 endorserConnectStub.should.have.been.called;
                 endorsementBuildSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext), buildRequest);
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 4321
+                    requestTimeout: 90000
                 });
             });
 
             it('should install the smart contract package using the timeout', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 90;
                 const encodedResult: Buffer = Buffer.from(protos.lifecycle.InstallChaincodeResult.encode({
                     package_id: 'myPackageId'
                 }).finish());
@@ -495,7 +495,7 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 
@@ -652,7 +652,7 @@ describe('LifecyclePeer', () => {
             });
 
             it('should get installed the smart contract using the timeout passed in', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 70;
 
                 const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryInstalledChaincodesResult.encode({
                     installed_chaincodes: [{
@@ -673,7 +673,7 @@ describe('LifecyclePeer', () => {
                     }]
                 });
 
-                const result: InstalledSmartContract[] = await peer.getAllInstalledSmartContracts(4321);
+                const result: InstalledSmartContract[] = await peer.getAllInstalledSmartContracts(90);
                 result.should.deep.equal([{ packageId: 'myPackageId', label: 'myLabel' }, {
                     packageId: 'anotherPackageId',
                     label: 'anotherLabel'
@@ -684,12 +684,12 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 4321
+                    requestTimeout: 90000
                 });
             });
 
             it('should get the installed smart contracts using the timeout', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 90;
 
                 const encodedResult: Buffer = Buffer.from(protos.lifecycle.QueryInstalledChaincodesResult.encode({
                     installed_chaincodes: [{
@@ -721,7 +721,7 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 
@@ -869,7 +869,7 @@ describe('LifecyclePeer', () => {
             });
 
             it('should get installed the smart contract using the timeout passed in', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 70;
                 const pkgData: Buffer = Buffer.from('myPackage');
                 const encodedResult: Buffer = Buffer.from(protos.lifecycle.GetInstalledChaincodePackageResult.encode({
                     chaincode_install_package: pkgData
@@ -884,7 +884,7 @@ describe('LifecyclePeer', () => {
                     }]
                 });
 
-                const result: Buffer = await peer.getInstalledSmartContractPackage('myPackageId', 4321);
+                const result: Buffer = await peer.getInstalledSmartContractPackage('myPackageId', 90);
                 result.compare(pkgData).should.equal(0);
 
                 endorserConnectStub.should.have.been.called;
@@ -892,12 +892,12 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 4321
+                    requestTimeout: 90000
                 });
             });
 
             it('should get the installed smart contracts using the timeout', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 90;
                 const pkgData: Buffer = Buffer.from('myPackage');
                 const encodedResult: Buffer = Buffer.from(protos.lifecycle.GetInstalledChaincodePackageResult.encode({
                     chaincode_install_package: pkgData
@@ -920,7 +920,7 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 
@@ -1071,7 +1071,7 @@ describe('LifecyclePeer', () => {
             });
 
             it('should all the channel names using the timeout passed in', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 70;
 
                 const encodedResult: Buffer = Buffer.from(protos.protos.ChannelQueryResponse.encode({
                     channels: [{
@@ -1090,7 +1090,7 @@ describe('LifecyclePeer', () => {
                     }]
                 });
 
-                const result: string[] = await peer.getAllChannelNames(4321);
+                const result: string[] = await peer.getAllChannelNames(90);
                 result.should.deep.equal(['mychannel', 'anotherchannel']);
 
                 endorserConnectStub.should.have.been.called;
@@ -1098,12 +1098,12 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 4321
+                    requestTimeout: 90000
                 });
             });
 
             it('should get all the channel using the timeout', async () => {
-                peer['requestTimeout'] = 1234;
+                peer['requestTimeout'] = 90;
                 const encodedResult: Buffer = Buffer.from(protos.protos.ChannelQueryResponse.encode({
                     channels: [{
                         channel_id: 'mychannel'
@@ -1129,7 +1129,7 @@ describe('LifecyclePeer', () => {
                 endorsementSignSpy.should.have.been.calledWith(sinon.match.instanceOf(IdentityContext));
                 endorsementSendStub.should.have.been.calledWith({
                     targets: [sinon.match.instanceOf(Endorser)],
-                    requestTimeout: 1234
+                    requestTimeout: 90000
                 });
             });
 

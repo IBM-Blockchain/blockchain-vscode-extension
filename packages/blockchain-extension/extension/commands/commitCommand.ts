@@ -62,10 +62,7 @@ export async function commitSmartContract(ordererName: string, channelName: stri
                 peerNames.push(...peers);
             }
             let timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT);
-            // convert from seconds to milliseconds
-            if (timeout) {
-                timeout = timeout * 1000;
-            }
+
             await connection.commitSmartContractDefinition(ordererName, channelName, peerNames, smartContractDefinition, timeout);
 
             Reporter.instance().sendTelemetryEvent('commitCommand');
