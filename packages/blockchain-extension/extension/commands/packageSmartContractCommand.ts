@@ -170,10 +170,10 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
                                 originalGOPATH = process.env.GOPATH;
                             }
                             goPaths.forEach((value: string) => {
-                                if (value.charAt(value.length - 1) === path.sep) {
-                                    value = value.substr(0, value.length - 1);
+                                if (value.endsWith(path.sep)) {
+                                    value = value.slice(0, -path.sep.length);
                                 }
-                                if (value === srcPath.substr(0, srcPath.length - 4)) {
+                                if (value === srcPath.slice(0, -4)) {
                                     process.env.GOPATH = value;
                                     pathsMatch = true;
                                 }
