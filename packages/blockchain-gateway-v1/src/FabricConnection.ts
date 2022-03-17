@@ -202,7 +202,7 @@ export abstract class FabricConnection {
             queryHandlerOptions: { strategy: EvaluateQueryHandler.createQueryHandler }
         };
 
-        await this.gateway.connect(connectionProfile, options);
+        await this.gateway.connect(connectionProfile as Record<string, unknown>, options);
 
         // This bit is needed to add all the peers to the list of peers the lifecycle knows about
         const endorsers: Endorser[] = this.gateway['client'].getEndorsers();
