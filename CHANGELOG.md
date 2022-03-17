@@ -1,4 +1,24 @@
 # IBM Blockchain Platform Extension Change Log
+
+## 2.0.8: March 21st 2022
+
+Announcements
+---
+
+* **VS Code v1.40 or greater is now the minimum version required for using the v2.0.0 version of the extension.**
+
+Changes
+---
+* Fix slow UI due to multiple Fabric network connections
+* Fix request time out preference
+* Update Fabric SDK and other dependency versions
+
+Notes
+---
+* Smart contract debugging is unavailable [#2660](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/2660)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-88.jpg)
+
 ## 2.0.7: January 19th 2022
 
 Announcements

@@ -1,5 +1,5 @@
-# IBM Blockchain Platform Extension updated to v2.0.7
-_Release date: January 19th 2022_
+# IBM Blockchain Platform Extension updated to v2.0.8
+_Release date: March 21st 2022_
 
 Announcements
 ---
@@ -8,7 +8,9 @@ Announcements
 
 Changes
 ---
-* Add link to common tasks wiki on home page
+* Fix slow UI due to multiple Fabric network connections
+* Fix request time out preference
+* Update Fabric SDK and other dependency versions
 
 Notes
 ---
@@ -18,4 +20,4 @@ For the full history of all releases, see the [change log](https://marketplace.v
 
 This release's Conga Comic:	
 ---	
-<img src="https://congacomic.github.io/assets/img/blockheight-87.jpg" width="800">
+<img src="https://congacomic.github.io/assets/img/blockheight-88.jpg" width="800">
