@@ -53,9 +53,9 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
     // set the default path to be the first open workspace folder
     let defaultPath: string;
     let fileName: string = gatewayEntry.name;
+    fileName = lodash.camelCase(fileName) + `Connection.json`;
     const firstAlphaIndex: number = fileName.search(/[a-zA-Z]/);
-    const beforeFirstAlpha: string = lodash.camelCase(fileName.substr(0, firstAlphaIndex)) + fileName.charAt(firstAlphaIndex).toUpperCase();
-    fileName = beforeFirstAlpha + lodash.camelCase(fileName.slice(firstAlphaIndex + 1)) + `Connection.json`;
+    fileName = fileName.substring(0, firstAlphaIndex) + fileName.charAt(firstAlphaIndex).toUpperCase() + fileName.substring(firstAlphaIndex + 1);
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length > 0) {
         defaultPath = path.join(workspaceFolders[0].uri.fsPath, fileName);
