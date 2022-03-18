@@ -311,7 +311,7 @@ export class DependencyManager {
         try {
             const nodeResult: string = await CommandUtil.sendCommand('node -v'); // Format: vX.Y.Z
             if (this.isCommandFound(nodeResult)) {
-                const nodeVersion: string = nodeResult.substr(1);
+                const nodeVersion: string = nodeResult.substring(1);
                 const nodeValid: string = semver.valid(nodeVersion); // Returns version
                 return nodeValid;
             }

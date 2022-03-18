@@ -234,7 +234,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 FabricDebugConfigurationProvider.orgName = undefined;
                 return;
             }
-            const _orgName: string = mspName.substr(0, mspName.indexOf('MSP')); // Strip off 'MSP' so it makes getting the gateway easier.
+            const _orgName: string = mspName.replace(/MSP$/, ''); // Strip off 'MSP' so it makes getting the gateway easier.
             FabricDebugConfigurationProvider.orgName = _orgName;
         } else {
             FabricDebugConfigurationProvider.orgName = 'Org1'; // It is unlikely this will change.

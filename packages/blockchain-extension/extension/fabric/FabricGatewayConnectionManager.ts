@@ -45,7 +45,7 @@ export class FabricGatewayConnectionManager extends EventEmitter {
         } else {
             if (this.gatewayRegistryEntry.fromEnvironment) {
                 const connectionProfilePath: string = this.gatewayRegistryEntry.connectionProfilePath;
-                const gatewayFolderPath: string = connectionProfilePath.substr(0, connectionProfilePath.lastIndexOf('/'));
+                const gatewayFolderPath: string = connectionProfilePath.substring(0, connectionProfilePath.lastIndexOf('/'));
                 const configPath: string = path.join(gatewayFolderPath, '.config.json');
 
                 try {
