@@ -34,7 +34,7 @@ jobs:
 
       - task: GitHubRelease@1
         inputs:
-          gitHubConnection: 'github.com_cazfletch'
+          gitHubConnection: 'github.com_ibmblockchaindev'
           repositoryName: '$(Build.Repository.Name)'
           action: 'edit'
           tag: '$(github_tag)'
