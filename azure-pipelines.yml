@@ -20,7 +20,7 @@ pr: # Hopefully this causes PR's to trigger
     - '*'
 
 variables:
-  - group: opsTools
+  - group: buildVariables
 
 stages:
   - stage: unitTest
