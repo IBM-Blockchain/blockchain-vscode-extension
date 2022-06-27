@@ -8,6 +8,7 @@ Detailed below are various instructions for getting set up with the Ibm Blockcha
 2. Fork this repository (by clicking the fork button on the top right of the page).
 3. Clone the fork that you made to your local machine.
 4. `cd` into the cloned repository in terminal, and run the following three commands:
+    - `nvm use # Alternatively make sure your node version matches the .nvmrc file`
     - `npm install -g lerna # This installs lerna, which can install dependencies across multiple packages`
     - `lerna bootstrap # This installs the packages dependencies`
     - `lerna run compile`
