@@ -89,7 +89,7 @@ export async function openDeployView(fabricRegistryEntry?: FabricEnvironmentRegi
             return hasV1Capabilities ? fileExtension === '.cds' : fileExtension !== '.cds';
         });
 
-        const workspaceFolders: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+        const workspaceFolders: readonly vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         const workspaceNames: string[] = workspaceFolders.map((item: vscode.WorkspaceFolder) => item.name);
 
         const allCommittedContracts: FabricSmartContractDefinition[] = await connection.getCommittedSmartContractDefinitions(channelPeers, channelName);

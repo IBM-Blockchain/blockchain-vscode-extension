@@ -1224,7 +1224,7 @@ describe('UserInputUtil', () => {
                     fsPath: 'pathHere'
                 }
             }]);
-            const result: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+            const result: ReadonlyArray<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
 
             result.should.deep.equal([{
                 name: 'myPath1',
@@ -1238,7 +1238,7 @@ describe('UserInputUtil', () => {
         it('should throw an error if no workspace folders', () => {
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value(null);
 
-            const result: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+            const result: ReadonlyArray<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
 
             result.should.deep.equal([]);
         });

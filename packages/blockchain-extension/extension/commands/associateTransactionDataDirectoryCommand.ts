@@ -88,7 +88,7 @@ export async function associateTransactionDataDirectory(chaincode?: Instantiated
             gateway = await FabricGatewayConnectionManager.instance().getGatewayRegistryEntry();
 
             const quickPickItems: IBlockchainQuickPickItem<string>[] = [];
-            const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+            const workspaceFolders: ReadonlyArray<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
             for (const folder of workspaceFolders) {
                 const txnDataPath: string = path.join(folder.uri.path, 'transaction_data');
                 if (await fs.pathExists(txnDataPath)) {

@@ -331,7 +331,7 @@ export class DeployView extends ReactView {
     }
 
     getWorkspace(workspaceName: string): vscode.WorkspaceFolder {
-        const workspaces: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+        const workspaces: readonly vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         return workspaces.find((_workspace: vscode.WorkspaceFolder) => _workspace.name === workspaceName);
     }
 

@@ -162,7 +162,7 @@ module.exports = function(): any {
                 const testFileContentsBuffer: Buffer = await fs.readFile(filePath);
                 const testFileContents: string = testFileContentsBuffer.toString();
                 // Did it open?
-                const textEditors: vscode.TextEditor[] = vscode.window.visibleTextEditors;
+                const textEditors: readonly vscode.TextEditor[] = vscode.window.visibleTextEditors;
                 const openFileNameArray: string[] = [];
                 for (const textEditor of textEditors) {
                     openFileNameArray.push(textEditor.document.fileName);

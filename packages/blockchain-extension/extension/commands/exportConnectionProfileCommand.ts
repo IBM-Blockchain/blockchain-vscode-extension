@@ -56,7 +56,7 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem, 
     fileName = lodash.camelCase(fileName) + `Connection.json`;
     const firstAlphaIndex: number = fileName.search(/[a-zA-Z]/);
     fileName = fileName.substring(0, firstAlphaIndex) + fileName.charAt(firstAlphaIndex).toUpperCase() + fileName.substring(firstAlphaIndex + 1);
-    const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+    const workspaceFolders: ReadonlyArray<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length > 0) {
         defaultPath = path.join(workspaceFolders[0].uri.fsPath, fileName);
     } else {

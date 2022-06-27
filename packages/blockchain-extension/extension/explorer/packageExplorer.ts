@@ -22,7 +22,7 @@ import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
     public tree: Array<BlockchainTreeItem> = [];
-    private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
+    private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 

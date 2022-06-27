@@ -13,6 +13,7 @@
 */
 'use strict';
 
+// TODO update dependencies
 export class DependencyProperties {
     static readonly DOCKER_REQUIRED_VERSION: string = '>=17.6.2';
     static readonly NODEJS_REQUIRED_VERSION: string =  '>=10.15.3 < 11.0.0|| >=12.13.1 < 13.0.0';
@@ -21,7 +22,7 @@ export class DependencyProperties {
     static readonly GO_REQUIRED_VERSION: string = '>=1.12.0';
     static readonly JAVA_REQUIRED_VERSION: string = '1.8.x';
 
-    static readonly NODEJS_TEST_RUNNER_EXTENSION: string = 'oshri6688.javascript-test-runner';
+    static readonly NODEJS_TEST_RUNNER_EXTENSION: string = 'felixjb.testify';
     static readonly GO_LANGUAGE_EXTENSION: string = 'golang.go';
     static readonly JAVA_LANGUAGE_EXTENSION: string = 'redhat.java';
     static readonly JAVA_DEBUG_EXTENSION: string = 'vscjava.vscode-java-debug';

@@ -32,13 +32,13 @@ stages:
           matrix:
             linux:
               imageName: 'ubuntu-latest'
-              VERSION: '1.40.0'
+              VERSION: '1.56.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
             mac:
               imageName: 'macOS-10.15'
-              VERSION: '1.40.0'
+              VERSION: '1.56.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
@@ -58,7 +58,7 @@ stages:
       - template: azure-templates/cucumber-job.yml
         parameters:
           name: cucumber
-          version: '1.40.0'
+          version: '1.56.0'
 
   - stage: cucumberReport
     dependsOn: [cucumberTest]
@@ -75,13 +75,13 @@ stages:
           matrix:
             linux:
               imageName: 'ubuntu-latest'
-              VERSION: '1.40.0'
+              VERSION: '1.56.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
             mac:
               imageName: 'macOS-10.15'
-              VERSION: '1.40.0'
+              VERSION: '1.56.0'
               MODULES: 64
               ELECTRON: '3.0'
               TARGET: '3.0.0'
@@ -184,7 +184,7 @@ stages:
       - template: azure-templates/cucumber-job.yml
         parameters:
           name: old
-          version: '1.40.0'
+          version: '1.56.0'
 
       - template: azure-templates/cucumber-job.yml
         parameters:

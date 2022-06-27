@@ -21,7 +21,7 @@
     },
     "production": false,
     "engines": {
-        "vscode": "^1.40.0"
+        "vscode": "^1.68.0"
     },
     "repository": {
         "type": "git",
@@ -1537,7 +1537,7 @@
         "@types/sinon-chai": "3.2.0",
         "@types/strip-ansi": "^3.0.0",
         "@types/tmp": "0.0.33",
-        "@types/vscode": "1.40.0",
+        "@types/vscode": "1.68.0",
         "angular-tslint-rules": "1.5.0",
         "axios-mock-adapter": "^1.18.1",
         "chai": "4.1.2",
@@ -1600,7 +1600,7 @@
         "yeoman-environment": "^2.3.3"
     },
     "extensionPack": [
-        "oshri6688.javascript-test-runner",
+        "felixjb.testify",
         "IBM.ibmcloud-account"
     ],
     "license-check-and-add-config": {

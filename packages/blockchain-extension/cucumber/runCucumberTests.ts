@@ -44,7 +44,7 @@ async function main(): Promise<void> {
         const cliPath: string = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
 
         // Use cp.spawn / cp.exec for custom setup
-        cp.spawnSync(cliPath, ['--install-extension', 'oshri6688.javascript-test-runner'], {
+        cp.spawnSync(cliPath, ['--install-extension', 'felixjb.testify'], {
             encoding: 'utf-8',
             stdio: 'inherit'
         });

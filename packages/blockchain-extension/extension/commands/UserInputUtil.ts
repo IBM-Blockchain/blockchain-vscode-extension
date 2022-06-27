@@ -270,7 +270,7 @@ export class UserInputUtil {
     }
 
     public static async showWorkspaceQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<vscode.WorkspaceFolder> | undefined> {
-        const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+        const workspaceFolderOptions: readonly vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
 
         const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<vscode.WorkspaceFolder>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
             return { label: workspaceFolderOption.name, data: workspaceFolderOption, description: workspaceFolderOption.uri.fsPath };
@@ -288,8 +288,8 @@ export class UserInputUtil {
      * Method to retrieve all the smart contract projects within the active workspace.
      * @returns {<Array<vscode.WorkspaceFolder>>} An Array of all folders in the current workspace
      */
-    public static getWorkspaceFolders(): Array<vscode.WorkspaceFolder> {
-        const workspace: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
+    public static getWorkspaceFolders(): ReadonlyArray<vscode.WorkspaceFolder> {
+        const workspace: readonly vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
         return workspace;
     }
 
@@ -851,7 +851,7 @@ export class UserInputUtil {
 
     public static async openNewProject(openMethod: string, uri: vscode.Uri, workspaceLabel?: string): Promise<void> {
         if (openMethod === UserInputUtil.ADD_TO_WORKSPACE) {
-            const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
+            const openFolders: ReadonlyArray<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
             const options: any = (workspaceLabel) ? { uri: uri, name: workspaceLabel } : { uri: uri };
             vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, options);
         } else {
@@ -1121,7 +1121,7 @@ export class UserInputUtil {
      * @returns Returns the path of the workspace to be used in packaging process.
      */
     public static async chooseWorkspace(isPackaging: boolean): Promise<vscode.WorkspaceFolder> {
-        let workspaceFolderOptions: Array<vscode.WorkspaceFolder>;
+        let workspaceFolderOptions: ReadonlyArray<vscode.WorkspaceFolder>;
         let workspaceFolder: vscode.WorkspaceFolder;
         const text: string = isPackaging ? 'package' : 'create functional tests for';
         workspaceFolderOptions = UserInputUtil.getWorkspaceFolders();
@@ -1344,7 +1344,7 @@ export class UserInputUtil {
 
     private static async getOpenProjects(): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
-        const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+        const workspaceFolderOptions: readonly vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         for (const workspace of workspaceFolderOptions) {
 
             const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: undefined, workspace: workspace };

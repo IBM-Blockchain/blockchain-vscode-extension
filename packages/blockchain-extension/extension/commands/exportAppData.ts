@@ -71,7 +71,7 @@ export async function exportAppData(chaincode?: InstantiatedTreeItem | ContractT
     // set the default path to be the first open workspace folder
     let defaultPath: string;
     const fileName: string = 'env.properties';
-    const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+    const workspaceFolders: ReadonlyArray<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length > 0) {
         defaultPath = path.join(workspaceFolders[0].uri.fsPath, fileName);
     } else {
