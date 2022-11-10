@@ -51,7 +51,7 @@
         "chai-as-promised": "^7.1.1",
         "cucumber": "^6.0.5",
         "license-check-and-add": "2.3.6",
-        "mocha": "^7.1.2",
+        "mocha": "^10.1.0",
         "mocha-junit-reporter": "^1.23.3",
         "mocha-multi-reporters": "^1.1.7",
         "nyc": "^15.0.0",
