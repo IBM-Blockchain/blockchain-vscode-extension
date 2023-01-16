@@ -23,20 +23,6 @@ variables:
   - group: buildVariables
 
 stages:
-  - stage: unpublish
-    condition: eq(variables['Build.Reason'], 'IndividualCI')
-    dependsOn: []
-    jobs:
-    - job:
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-      - bash: |
-          set -ev
-          npm install vsce
-          node ./node_modules/vsce/vsce unpublish -f -p $(VSCETOKEN) IBMBlockchain.ibm-blockchain-platform
-        displayName: Unpublish extension
-
   - stage: unitTest
     condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))))
     dependsOn: []
