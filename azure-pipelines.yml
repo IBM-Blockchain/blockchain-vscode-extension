@@ -34,7 +34,7 @@ stages:
       - bash: |
           set -ev
           npm install vsce
-          node ./node_modules/vsce/vsce unpublish -p $(VSCETOKEN) IBMBlockchain.ibm-blockchain-platform
+          node ./node_modules/vsce/vsce unpublish -f -p $(VSCETOKEN) IBMBlockchain.ibm-blockchain-platform
         displayName: Unpublish extension
 
   - stage: unitTest
