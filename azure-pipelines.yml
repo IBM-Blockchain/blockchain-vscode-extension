@@ -32,10 +32,10 @@ stages:
         vmImage: 'ubuntu-latest'
       steps:
       - bash: |
-            set -ev
-            npm install vsce
-            node ./node_modules/vsce/vsce unpublish -p $(VSCETOKEN) IBMBlockchain.ibm-blockchain-platform
-          displayName: Unpublish extension
+          set -ev
+          npm install vsce
+          node ./node_modules/vsce/vsce unpublish -p $(VSCETOKEN) IBMBlockchain.ibm-blockchain-platform
+        displayName: Unpublish extension
 
   - stage: unitTest
     condition: or(eq(variables['Build.Reason'], 'PullRequest'), and(eq(variables['Build.Reason'], 'IndividualCI'), or(startsWith(variables['Build.SourceBranch'], 'refs/tags/v1'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v2'))))
