@@ -1,6 +1,6 @@
-# IBM Blockchain Platform Extension for VS Code
+**⚠️ Attention! The IBM Blockchain Platform Extension for VS Code project is no longer active**
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBLockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform)
+# IBM Blockchain Platform Extension for VS Code
 
 The IBM Blockchain Platform extension helps developers to create, test and debug smart contracts, connect to Hyperledger Fabric environments, and build applications that transact on your blockchain network.
 
